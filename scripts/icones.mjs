@@ -1,5 +1,7 @@
-// Gera os ícones do site (aba do navegador e "adicionar à tela inicial") a partir de public/assets/logo.png:
-// o NP dourado sobre o fundo escuro do site, com um brilho suave atrás.  npm run icones
+// Gera os ícones do site a partir de public/assets/logo.png.  npm run icones
+// - Aba do navegador (favicon): só o NP, sem fundo e ocupando a altura toda, no mesmo padrão dos outros
+//   projetos (catálogo verde, calculadora lilás, Ajuste 3MF laranja); o do site é o dourado.
+// - Tela inicial do celular (apple-touch, 192, 512): NP dourado sobre o fundo escuro, porque o sistema não aceita transparência.
 import { writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -22,9 +24,16 @@ async function icone(lado, escala, cantos = 0) {
     .toBuffer();
 }
 
+/** favicon no padrão dos outros projetos: NP sem fundo, centralizado e com a altura toda */
+async function favicon(lado) {
+  const logo = await sharp(caminho("public/assets/logo.png")).trim().resize({ width: lado, height: lado, fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toBuffer();
+  return logo;
+}
+
 const saidas = {
-  "favicon-16.png": await icone(16, 0.8, 3),
-  "favicon-32.png": await icone(32, 0.78, 6),
+  "favicon-16.png": await favicon(16),
+  "favicon-32.png": await favicon(32),
+  "favicon-64.png": await favicon(64),
   "apple-touch-icon.png": await icone(180, 0.6),
   "icon-192.png": await icone(192, 0.6),
   // "maskable": o Android pode recortar em círculo; o logo fica dentro da zona segura (80% do centro)
@@ -33,7 +42,7 @@ const saidas = {
 for (const [nome, buf] of Object.entries(saidas)) await writeFile(caminho(`public/assets/icons/${nome}`), buf);
 
 // favicon.ico com PNGs de 16, 32 e 48 dentro (formato ICO aceita PNG embutido)
-const pngs = [saidas["favicon-16.png"], saidas["favicon-32.png"], await icone(48, 0.78, 9)];
+const pngs = [saidas["favicon-16.png"], saidas["favicon-32.png"], await favicon(48)];
 const cab = Buffer.alloc(6 + 16 * pngs.length);
 cab.writeUInt16LE(0, 0); cab.writeUInt16LE(1, 2); cab.writeUInt16LE(pngs.length, 4);
 let deslocamento = cab.length;
