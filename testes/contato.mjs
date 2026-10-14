@@ -2,7 +2,7 @@
 // Lê as páginas geradas em dist/ e confere cada link de WhatsApp, Instagram, catálogo e Shopee:
 // destino certo, mensagem pronta certa, abre em nova aba e o endereço responde na internet.
 import { readFile } from "node:fs/promises";
-import { LINKS } from "../src/data/links.ts";
+import { LINKS, MENSAGENS } from "../src/data/links.ts";
 
 const NUMERO = "5562993152843";
 let falhas = 0, ok = 0;
@@ -28,38 +28,37 @@ for (const l of externos) {
   certo(l.target === "_blank", `abre na mesma aba: ${l.href}`);
   certo(/noopener/.test(l.rel || ""), `sem rel=noopener: ${l.href}`);
 }
-const zapDireto = inicio.filter((l) => l.href === LINKS.contato.whatsapp);
-const zapOrc = inicio.filter((l) => l.href.startsWith(`https://wa.me/${NUMERO}?text=`));
+const zap = inicio.filter((l) => /wa\.me|whatsapp\.com/.test(l.href));
 const insta = inicio.filter((l) => l.href === LINKS.contato.instagram);
 const catalogo = inicio.filter((l) => l.href === LINKS.catalogo.site);
 const shopee = inicio.filter((l) => l.href === LINKS.hub.shopee);
-console.log(`   WhatsApp direto: ${zapDireto.length} · WhatsApp com mensagem pronta: ${zapOrc.length} · Instagram: ${insta.length} · Catálogo: ${catalogo.length} · Shopee: ${shopee.length}`);
-// menu (computador e celular), topo, chamada final, rodapé (ícone e coluna Contato)
-certo(zapDireto.length >= 6, `esperava ≥ 6 botões de WhatsApp direto (menu, menu do celular, topo, chamada final, ícone e coluna do rodapé), achei ${zapDireto.length}`);
+console.log(`   WhatsApp: ${zap.length} · Instagram: ${insta.length} · Catálogo: ${catalogo.length} · Shopee: ${shopee.length}`);
 certo(catalogo.length >= 5, `esperava ≥ 5 links do catálogo, achei ${catalogo.length}`);
 certo(insta.length >= 3, `esperava ≥ 3 links do Instagram, achei ${insta.length}`);
 certo(shopee.length >= 2, `esperava ≥ 2 links da Shopee, achei ${shopee.length}`);
-for (const l of inicio.filter((l) => /wa\.me|whatsapp/.test(l.href))) {
-  certo(l.href.startsWith("https://wa.me/"), `WhatsApp fora do padrão wa.me: ${l.href}`);
-  certo(!/\s/.test(l.href), `WhatsApp com espaço sem codificar: ${l.href}`);
-}
 
-// ---------- 2. Mensagens prontas do "Pedir orçamento" (uma por aba) ----------
-console.log("2. Mensagens prontas da vitrine");
-const esperadas = {
-  empresas: "Olá! Quero um orçamento de brindes ou expositores para a minha empresa.",
-  eventos: "Olá! Quero um orçamento de lembrancinhas ou decoração para uma festa.",
-  voce: "Olá! Quero um orçamento de uma peça personalizada."
-};
-certo(zapOrc.length === 3, `esperava 3 botões "Pedir orçamento" (um por aba), achei ${zapOrc.length}`);
-for (const [aba, msg] of Object.entries(esperadas)) {
-  const painel = new RegExp(`id="painel-${aba}"[\\s\\S]*?href="([^"]+)"`).exec(html["index.html"]);
-  const href = painel?.[1].replace(/&amp;/g, "&") ?? "";
-  const url = new URL(href);
-  certo(url.hostname === "wa.me" && url.pathname === `/${NUMERO}`, `aba ${aba}: número errado (${url.pathname})`);
-  certo(url.searchParams.get("text") === msg, `aba ${aba}: mensagem diferente do esperado: "${url.searchParams.get("text")}"`);
-  certo(href.length < 2000, `aba ${aba}: link longo demais pro WhatsApp`);
-  console.log(`   ${aba}: "${url.searchParams.get("text")}"`);
+// ---------- 2. Cada botão de WhatsApp com a mensagem da sua parte do site ----------
+console.log("2. Mensagens do WhatsApp por origem");
+const textos = Object.values(MENSAGENS);
+certo(new Set(textos).size === textos.length, "há mensagens repetidas: não dá pra saber de onde a pessoa veio");
+const vistas = new Set();
+for (const l of zap) {
+  const url = new URL(l.href);
+  const origem = (l.dataLink || "").replace(/^whatsapp\./, "");
+  certo(url.hostname === "wa.me" && url.pathname === `/${NUMERO}`, `WhatsApp com número errado: ${l.href}`);
+  certo(origem in MENSAGENS, `botão de WhatsApp sem origem (data-link="${l.dataLink}"): ${l.texto || l.aria}`);
+  certo(url.searchParams.get("text") === MENSAGENS[origem], `botão "${origem}" com mensagem errada: "${url.searchParams.get("text")}"`);
+  certo(!/\s/.test(l.href) && l.href.length < 2000, `link do WhatsApp mal formado: ${l.href}`);
+  vistas.add(origem);
+}
+for (const origem of Object.keys(MENSAGENS)) {
+  certo(vistas.has(origem), `nenhum botão usa a mensagem "${origem}"`);
+  console.log(`   ${origem.padEnd(14)} "${MENSAGENS[origem]}"`);
+}
+// vitrine: o botão de cada aba fica dentro do painel certo
+for (const aba of ["empresas", "eventos", "voce"]) {
+  const painel = new RegExp(`id="painel-${aba}"[\\s\\S]*?data-link="([^"]+)"`).exec(html["index.html"]);
+  certo(painel?.[1] === `whatsapp.${aba}`, `aba ${aba}: o botão do painel não é o dela (${painel?.[1]})`);
 }
 
 // ---------- 3. Endereços antigos e página de erro ----------
@@ -71,13 +70,13 @@ for (const [p, aba] of [["empresas/index.html", "empresas"], ["eventos/index.htm
 }
 const erro = links(html["404.html"]);
 certo(erro.some((l) => l.href === LINKS.catalogo.site), "404 sem link pro catálogo");
-certo(erro.some((l) => l.href === LINKS.contato.whatsapp), "404 sem WhatsApp no menu");
+certo(erro.some((l) => l.href.includes(encodeURIComponent(MENSAGENS.menu))), "404 sem WhatsApp no menu");
 // o script da vitrine abre a aba pelo #, inclusive quando o # muda com a página aberta (links do rodapé)
 certo(/hashchange/.test(await readFile("src/pages/index.astro", "utf8")), "vitrine não reage a mudança de #aba");
 
 // ---------- 4. Os destinos respondem na internet ----------
 console.log("4. Destinos na internet");
-const destinos = [...new Set([LINKS.contato.whatsapp, `https://wa.me/${NUMERO}?text=${encodeURIComponent(esperadas.voce)}`, LINKS.contato.instagram, LINKS.catalogo.site, LINKS.hub.shopee, LINKS.calculadora.site, LINKS.ajuste3mf.site, LINKS.hub.stlsGratis])];
+const destinos = [...new Set([`https://wa.me/${NUMERO}?text=${encodeURIComponent(MENSAGENS.topo)}`, LINKS.contato.instagram, LINKS.catalogo.site, LINKS.hub.shopee, LINKS.calculadora.site, LINKS.ajuste3mf.site, LINKS.hub.stlsGratis])];
 for (const d of destinos) {
   try {
     const r = await fetch(d, { redirect: "follow", headers: { "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1" } });
@@ -86,7 +85,7 @@ for (const d of destinos) {
     const vivo = r.status < 400 || [403, 429].includes(r.status);
     certo(vivo, `${d} respondeu ${r.status}`);
     console.log(`   ${r.status} ${d.length > 70 ? d.slice(0, 70) + "…" : d} → ${final}`);
-    if (d === LINKS.contato.whatsapp) {
+    if (d.includes("wa.me")) {
       const corpo = await r.text();
       certo(!/link.{0,40}(inv[aá]lido|invalid|expired|expirou)/i.test(corpo), "o link curto do WhatsApp parece inválido/expirado");
     }

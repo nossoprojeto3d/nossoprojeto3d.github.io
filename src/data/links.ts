@@ -34,3 +34,26 @@ export function url(caminho = "") {
   const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   return `${base}/${caminho.replace(/^\//, "")}`;
 }
+
+/**
+ * Mensagem pronta de cada botão de WhatsApp. Cada uma começa de um jeito diferente, pra saber
+ * pela conversa de qual parte do site a pessoa veio. Pra trocar um texto, mude só aqui
+ * (e confira se continua diferente das outras: `npm run testar` avisa se duas ficarem iguais).
+ */
+export const MENSAGENS = {
+  menu: "Olá! Vim pelo site e queria tirar uma dúvida.",
+  menuCelular: "Oi! Estava olhando o site de vocês e queria conversar.",
+  topo: "Olá! Vi o site e quero fazer um pedido.",
+  empresas: "Olá! Quero um orçamento de brindes ou expositores para a minha empresa.",
+  eventos: "Olá! Quero um orçamento de lembrancinhas ou decoração para uma festa.",
+  voce: "Olá! Quero um orçamento de uma peça personalizada.",
+  chamadaFinal: "Olá! Tenho uma ideia e queria transformar em peça.",
+  rodapeIcone: "Oi, tudo bem? Vim pelo site.",
+  rodapeContato: "Olá, tudo bem? Gostaria de mais informações."
+};
+export type OrigemWhatsApp = keyof typeof MENSAGENS;
+
+/** Link do WhatsApp já com a mensagem da parte do site em que o botão está. */
+export function whatsapp(origem: OrigemWhatsApp) {
+  return `${LINKS.contato.whatsappOrcamento}?text=${encodeURIComponent(MENSAGENS[origem])}`;
+}

@@ -2,7 +2,7 @@
 // Rodapé (V3), no estilo dos grandes sites:
 // 1) chamada final com os dois botões; 2) diretório de links; 3) linha de status com a hora de Goiânia e "voltar ao topo";
 // 4) o nome gigante, que se "imprime" em camadas quando chega na tela; 5) linha legal.
-import { LINKS, url } from "../../data/links";
+import { LINKS, url, whatsapp } from "../../data/links";
 import { GRUPOS_SITES } from "../../data/sites";
 
 const ano = new Date().getFullYear();
@@ -22,7 +22,7 @@ const colunas = [
   {
     titulo: "Contato",
     links: [
-      { nome: "WhatsApp", href: LINKS.contato.whatsapp, link: "contato.whatsapp", fora: true },
+      { nome: "WhatsApp", href: whatsapp("rodapeContato"), link: "whatsapp.rodapeContato", fora: true },
       { nome: "Instagram", href: LINKS.contato.instagram, link: "contato.instagram", fora: true }
     ]
   }
@@ -39,7 +39,7 @@ const colunas = [
           <a href={LINKS.catalogo.site} data-link="catalogo.site" target="_blank" rel="noopener noreferrer" class="botao botao-claro">
             Ver catálogo <span class="ilha"><svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg></span>
           </a>
-          <a href={LINKS.contato.whatsapp} data-link="contato.whatsapp" target="_blank" rel="noopener noreferrer" class="botao botao-ouro">
+          <a href={whatsapp("chamadaFinal")} data-link="whatsapp.chamadaFinal" target="_blank" rel="noopener noreferrer" class="botao botao-ouro">
             Pedir no WhatsApp <span class="ilha"><svg width="18" height="18" aria-hidden="true"><use href="#i-whatsapp"/></svg></span>
           </a>
         </div>
@@ -57,7 +57,7 @@ const colunas = [
         <p>Impressão 3D para empresas, eventos e para você. Goiânia-GO, com envio para todo o Brasil.</p>
         <div class="redes">
           <a href={LINKS.contato.instagram} data-link="contato.instagram" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><svg width="18" height="18" aria-hidden="true"><use href="#i-instagram"/></svg></a>
-          <a href={LINKS.contato.whatsapp} data-link="contato.whatsapp" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><svg width="18" height="18" aria-hidden="true"><use href="#i-whatsapp"/></svg></a>
+          <a href={whatsapp("rodapeIcone")} data-link="whatsapp.rodapeIcone" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><svg width="18" height="18" aria-hidden="true"><use href="#i-whatsapp"/></svg></a>
         </div>
       </div>
       <nav class="colunas" aria-label="Rodapé">

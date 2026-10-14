@@ -3,7 +3,7 @@
 // - Encolhe ao rolar, some ao descer e volta ao subir; a linha dourada embaixo avança com a página, como uma impressão.
 // - Computador: destaque que desliza entre os links e marca a seção visível; "Sites" abre um painel com os nossos sites.
 // - Celular: botão que vira X e abre o menu em tela cheia.
-import { LINKS, url } from "../../data/links";
+import { LINKS, url, whatsapp } from "../../data/links";
 import { GRUPOS_SITES } from "../../data/sites";
 
 const secoes = [
@@ -49,7 +49,7 @@ const secoes = [
 
     <div class="acoes">
       <a href={LINKS.catalogo.site} data-link="catalogo.site" target="_blank" rel="noopener noreferrer" class="catalogo">Catálogo</a>
-      <a href={LINKS.contato.whatsapp} data-link="contato.whatsapp" target="_blank" rel="noopener noreferrer" class="zap" aria-label="WhatsApp">
+      <a href={whatsapp("menu")} data-link="whatsapp.menu" target="_blank" rel="noopener noreferrer" class="zap" aria-label="WhatsApp">
         <svg width="17" height="17" aria-hidden="true"><use href="#i-whatsapp"/></svg>
         <span>WhatsApp</span>
       </a>
@@ -68,7 +68,7 @@ const secoes = [
     <a href={LINKS.catalogo.site} data-link="catalogo.site" target="_blank" rel="noopener noreferrer" style="--i:3">Catálogo <svg width="22" height="22" aria-hidden="true"><use href="#i-arrow"/></svg></a>
   </nav>
   <div class="tela-pe" style="--i:4">
-    <a href={LINKS.contato.whatsapp} data-link="contato.whatsapp" target="_blank" rel="noopener noreferrer" class="botao botao-ouro">
+    <a href={whatsapp("menuCelular")} data-link="whatsapp.menuCelular" target="_blank" rel="noopener noreferrer" class="botao botao-ouro">
       Pedir no WhatsApp <span class="ilha-icone"><svg width="18" height="18" aria-hidden="true"><use href="#i-whatsapp"/></svg></span>
     </a>
     <a href={LINKS.contato.instagram} data-link="contato.instagram" target="_blank" rel="noopener noreferrer" class="legenda tela-insta">

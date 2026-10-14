@@ -4,32 +4,28 @@ import Entrega from "../components/v3/Entrega.astro";
 import QuemSomos from "../components/v3/QuemSomos.astro";
 import NossosSites from "../components/v3/NossosSites.astro";
 import Historia from "../components/v3/Historia.astro";
-import { LINKS, url } from "../data/links";
+import { LINKS, url, whatsapp } from "../data/links";
 
-const orcamento = (texto: string) => `${LINKS.contato.whatsappOrcamento}?text=${encodeURIComponent(texto)}`;
 
 // abas da vitrine: cada público com a sua peça 3D (peças de exemplo até chegarem os arquivos reais)
 const abas = [
   {
-    id: "empresas", sub: "Brindes, kits e expositores com a sua marca", nome: "Empresas", peca: "starlink", imagem: "", rotulo: "Chaveiro Starlink MG · feito por nós",
+    id: "empresas" as const, sub: "Brindes, kits e expositores com a sua marca", nome: "Empresas", peca: "starlink", imagem: "", rotulo: "Chaveiro Starlink MG · feito por nós",
     titulo: "Brindes e expositores com a cara da sua marca.",
     texto: "Chaveiros, porta-cartões e kits com a sua logo. Displays e placas para o seu ponto de venda.",
     itens: ["Logo em relevo e nas cores da sua marca", "Kits montados para eventos e datas comemorativas", "Displays de balcão, suportes e placas com nome"],
-    zap: "Olá! Quero um orçamento de brindes ou expositores para a minha empresa."
   },
   {
-    id: "eventos", sub: "Lembrancinhas e decoração no tema da festa", nome: "Eventos", peca: "lembranca", imagem: "", rotulo: "Lembrancinha de mesa · feita por nós",
+    id: "eventos" as const, sub: "Lembrancinhas e decoração no tema da festa", nome: "Eventos", peca: "lembranca", imagem: "", rotulo: "Lembrancinha de mesa · feita por nós",
     titulo: "Lembrancinhas e decoração no tema da sua festa.",
     texto: "Casamentos, aniversários, chás e batizados, nas cores e com o nome de quem celebra.",
     itens: ["Lembrancinhas com nome, data ou idade", "Letreiros e nomes em relevo para a mesa do bolo", "Nas cores da paleta do convite"],
-    zap: "Olá! Quero um orçamento de lembrancinhas ou decoração para uma festa."
   },
   {
-    id: "voce", sub: "Peças sob medida, presentes e decoração", nome: "Você", peca: "pomo", imagem: "", rotulo: "Pomo de ouro · feito por nós",
+    id: "voce" as const, sub: "Peças sob medida, presentes e decoração", nome: "Você", peca: "pomo", imagem: "", rotulo: "Pomo de ouro · feito por nós",
     titulo: "Do que você imaginou ao que você precisa.",
     texto: "Peças sob medida, miniaturas, decoração e organizadores, feitos um a um.",
     itens: ["Presentes com nome, data ou o desenho que você quiser", "Vasos, luminárias e objetos para a casa", "Organizadores e suportes sob medida"],
-    zap: "Olá! Quero um orçamento de uma peça personalizada."
   }
 ];
 ---
@@ -54,7 +50,7 @@ const abas = [
           <a href={LINKS.catalogo.site} data-link="catalogo.site" target="_blank" rel="noopener noreferrer" class="botao botao-ouro">
             <span class="longo">Ver catálogo</span><span class="curto">Catálogo</span> <span class="ilha"><svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg></span>
           </a>
-          <a href={LINKS.contato.whatsapp} data-link="contato.whatsapp" target="_blank" rel="noopener noreferrer" class="botao botao-claro">
+          <a href={whatsapp("topo")} data-link="whatsapp.topo" target="_blank" rel="noopener noreferrer" class="botao botao-claro">
             <span class="longo">Pedir no WhatsApp</span><span class="curto">WhatsApp</span> <span class="ilha"><svg width="18" height="18" aria-hidden="true"><use href="#i-whatsapp"/></svg></span>
           </a>
         </div>
@@ -96,7 +92,7 @@ const abas = [
             <h3>{a.titulo}</h3>
             <p class="painel-texto">{a.texto}</p>
             <ul class="painel-itens">{a.itens.map((t) => <li>{t}</li>)}</ul>
-            <a href={orcamento(a.zap)} data-link="contato.whatsappOrcamento" target="_blank" rel="noopener noreferrer" class="botao botao-ouro painel-botao">
+            <a href={whatsapp(a.id)} data-link={`whatsapp.${a.id}`} target="_blank" rel="noopener noreferrer" class="botao botao-ouro painel-botao">
               Pedir orçamento <span class="ilha"><svg width="18" height="18" aria-hidden="true"><use href="#i-whatsapp"/></svg></span>
             </a>
           </div>

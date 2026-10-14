@@ -26,6 +26,7 @@ npm run fotos      # prepara as fotos da pasta ~/Desktop/Fotos do site
 ## Onde mexer
 
 - `src/data/links.ts`: **toda URL externa fica aqui**, no objeto `LINKS`. Use `href={LINKS.grupo.chave}` com `data-link="grupo.chave"` (o `medicao.js` usa pra saber de onde veio o clique). Links internos passam por `url("caminho/")` por causa do base `/site`. **Não espalhe `{...ext}` em vários `<a>`**: o Astro gruda a classe do escopo várias vezes e o estilo some; escreva `target="_blank" rel="noopener noreferrer"`.
+- `MENSAGENS` em `src/data/links.ts`: a mensagem pronta de cada botão de WhatsApp, uma por parte do site (menu, topo, abas, chamada final, rodapé), pra saber pela conversa de onde a pessoa veio. Use `whatsapp("origem")` no `href` e `data-link="whatsapp.origem"`. As mensagens têm que ser diferentes entre si (o `npm run testar` confere).
 - `src/data/sites.ts`: os seis sites (menu "Sites", seção Nossos sites e rodapé).
 - Abas da vitrine: array `abas` no topo de `index.astro` (texto, itens, peça, legenda e mensagem do WhatsApp).
 - `src/scripts/palco.ts`: o palco 3D (impressão camada por camada com o bico, giro com o dedo, pausa fora da tela). `src/scripts/pecas.ts`: as peças. Peças reais vêm de `public/assets/3d/*.glb` com material de cor fiel (matcap, sem reflexo); `empresas.glb` é o chaveiro Starlink MG (do 3MF colorido), `voce.glb` é o pomo (bolinha e asas soltas, montadas no código). Logo e lembrancinha são feitos no código.
