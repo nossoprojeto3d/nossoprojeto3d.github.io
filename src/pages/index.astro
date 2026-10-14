@@ -116,6 +116,8 @@ const abas = [
   // topo: começa a imprimir assim que a página abre
   const legendaHero = document.querySelector<HTMLElement>("[data-legenda-hero]")!;
   const camadas = 100;
+  const palcoHero = document.getElementById("palco-hero")!;
+  const semTresD = () => palcoHero.setAttribute("data-sem3d", "");
   carregar().then(({ criarPalco }) => {
     const canvas = document.querySelector<HTMLCanvasElement>("#palco-hero canvas")!;
     const palco = criarPalco(canvas, {
@@ -125,8 +127,9 @@ const abas = [
         legendaHero.textContent = p < 1 ? `Imprimindo · camada ${String(Math.ceil(p * camadas)).padStart(3, "0")}/${camadas}` : "\u00a0";
       }
     });
-    palco?.mostrar("logo");
-  });
+    if (palco) palco.mostrar("logo");
+    else semTresD(); // sem WebGL: mostra o logo parado
+  }, semTresD); // o código 3D não carregou (rede ruim): mostra o logo parado
 
   // vitrine: abas acessíveis (setas do teclado) e peça 3D que se imprime a cada troca
   const abas = [...document.querySelectorAll<HTMLButtonElement>("[role=tab]")];
