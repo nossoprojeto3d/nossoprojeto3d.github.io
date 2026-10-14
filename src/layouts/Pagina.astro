@@ -1,22 +1,21 @@
 ---
-import "../styles/global.css";
+// Layout da V3 (página única, escuro neutro). O Base.astro continua servindo as páginas antigas até a V3 ser aprovada.
+import "../styles/v3.css";
 import Icones from "../components/Icones.astro";
-import Nav from "../components/Nav.astro";
-import Footer from "../components/Footer.astro";
-import Telas from "../components/Telas.astro";
+import Menu from "../components/v3/Menu.astro";
+import Rodape from "../components/v3/Rodape.astro";
 import { LINKS, SITE_URL, TELEFONE, url } from "../data/links";
 
 interface Props {
   titulo: string;
   descricao: string;
-  atual?: "inicio" | "empresas" | "eventos" | "voce";
-  /** dados do negócio pro Google (schema.org); só na página inicial */
-  schema?: boolean;
+  /** página que não deve ir pro Google (404) */
   semIndice?: boolean;
 }
-const { titulo, descricao, atual = "inicio", schema = false, semIndice = false } = Astro.props;
+const { titulo, descricao, semIndice = false } = Astro.props;
 const canonica = new URL(Astro.url.pathname, "https://nossoprojeto3d.github.io").href;
-const og = `${SITE_URL}assets/og/og-image.jpg`;
+// ?v=: muda quando a imagem muda, senão o WhatsApp continua mostrando a prévia antiga guardada em cache
+const og = `${SITE_URL}assets/og/og-image.jpg?v=3`;
 
 const negocio = {
   "@context": "https://schema.org",
@@ -37,14 +36,10 @@ const negocio = {
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <!-- aplica o tema salvo antes de pintar a página (padrão: escuro) -->
-  <script is:inline>
-    try { if (localStorage.getItem("nossoprojeto3d-tema") === "claro") document.documentElement.dataset.tema = "claro"; } catch (e) {}
-  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{titulo}</title>
   <meta name="description" content={descricao}>
-  <meta name="theme-color" content="#0E0B07" id="cor-tema">
+  <meta name="theme-color" content="#0A0A0B">
   {semIndice ? <meta name="robots" content="noindex"> : <link rel="canonical" href={canonica}>}
   <meta property="og:type" content="website">
   <meta property="og:locale" content="pt_BR">
@@ -60,47 +55,46 @@ const negocio = {
   <link rel="icon" href={url("assets/icons/favicon.ico")} sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href={url("assets/icons/favicon-32.png")}>
   <link rel="apple-touch-icon" href={url("assets/icons/apple-touch-icon.png")}>
+  <link rel="manifest" href={url("manifest.webmanifest")}>
+  <meta name="apple-mobile-web-app-title" content="Projeto 3D">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,400&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap">
-  {schema && <script type="application/ld+json" set:html={JSON.stringify(negocio)} />}
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+  <script type="application/ld+json" set:html={JSON.stringify(negocio)} />
   <script is:inline src={url("assets/medicao.js")} defer></script>
 </head>
 <body data-medir-secoes>
   <a href="#topo" class="pular">Pular para o conteúdo</a>
   <Icones />
-  <Nav atual={atual} />
+
+  <Menu />
+
   <main id="topo" tabindex="-1">
     <slot />
   </main>
-  <Footer />
-  <Telas />
-  <slot name="fim" />
-  <script>
-    // topo ganha fundo ao rolar
-    const nav = document.getElementById("nav")!;
-    const aoRolar = () => nav.classList.toggle("scrolled", scrollY > 8);
-    aoRolar();
-    addEventListener("scroll", aoRolar, { passive: true });
 
-    // tema claro/escuro: salvo no navegador e com a mesma escolha em todas as páginas
-    const html = document.documentElement;
-    const corTema = document.getElementById("cor-tema") as HTMLMetaElement;
-    const botoes = document.querySelectorAll<HTMLButtonElement>("[data-tema-alternar]");
-    const aplicar = (claro: boolean) => {
-      if (claro) html.dataset.tema = "claro"; else delete html.dataset.tema;
-      corTema.content = claro ? "#F5F1E8" : "#0E0B07";
-      botoes.forEach((b) => b.setAttribute("aria-label", claro ? "Usar tema escuro" : "Usar tema claro"));
-    };
-    aplicar(html.dataset.tema === "claro");
-    botoes.forEach((b) => b.addEventListener("click", () => {
-      const claro = html.dataset.tema !== "claro";
-      html.classList.add("trocando-tema");
-      aplicar(claro);
-      try { localStorage.setItem("nossoprojeto3d-tema", claro ? "claro" : "escuro"); } catch {}
-      window.np3dTrack?.("trocar_tema", { tema: claro ? "claro" : "escuro" });
-      setTimeout(() => html.classList.remove("trocando-tema"), 450);
-    }));
+  <Rodape />
+  <script>
+    // [data-inclinar]: inclina em 3D seguindo o mouse; só com mouse de verdade e sem "reduzir movimento"
+    if (matchMedia("(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)").matches) {
+      document.querySelectorAll<HTMLElement>("[data-inclinar]").forEach((el) => {
+        el.addEventListener("pointermove", (e) => {
+          const r = el.getBoundingClientRect();
+          const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+          el.classList.add("inclinando");
+          el.style.setProperty("--ry", `${(x - 0.5) * 10}deg`);
+          el.style.setProperty("--rx", `${(0.5 - y) * 8}deg`);
+          el.style.setProperty("--gx", `${x * 100}%`);
+          el.style.setProperty("--gy", `${y * 100}%`);
+        });
+        el.addEventListener("pointerleave", () => {
+          el.classList.remove("inclinando");
+          el.style.setProperty("--rx", "0deg");
+          el.style.setProperty("--ry", "0deg");
+        });
+      });
+    }
   </script>
 </body>
 </html>
+

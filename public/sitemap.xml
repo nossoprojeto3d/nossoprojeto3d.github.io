@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Enviado no Google Search Console (propriedade https://nossoprojeto3d.github.io/site/).
-     Atualize o lastmod quando o conteúdo da página mudar. -->
+     Atualize o lastmod quando o conteúdo da página mudar. As antigas /empresas/, /eventos/ e /para-voce/
+     hoje só levam pras abas da página única, por isso saíram daqui. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://nossoprojeto3d.github.io/site/</loc><lastmod>2026-10-06</lastmod></url>
-  <url><loc>https://nossoprojeto3d.github.io/site/empresas/</loc><lastmod>2026-10-06</lastmod></url>
-  <url><loc>https://nossoprojeto3d.github.io/site/eventos/</loc><lastmod>2026-10-06</lastmod></url>
-  <url><loc>https://nossoprojeto3d.github.io/site/para-voce/</loc><lastmod>2026-10-06</lastmod></url>
+  <url><loc>https://nossoprojeto3d.github.io/site/</loc><lastmod>2026-10-14</lastmod></url>
 </urlset>

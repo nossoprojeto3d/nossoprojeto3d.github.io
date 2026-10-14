@@ -1,0 +1,24 @@
+---
+// Página antiga que hoje é uma aba da página única: leva direto pra aba certa (#empresas, #eventos, #voce).
+// Links compartilhados e o Google continuam funcionando; o canonical aponta pra página única.
+import { SITE_URL, url } from "../../data/links";
+interface Props { aba: "empresas" | "eventos" | "voce"; nome: string }
+const { aba, nome } = Astro.props;
+const destino = url(`#${aba}`);
+---
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{nome} · Nosso Projeto 3D</title>
+  <link rel="canonical" href={SITE_URL}>
+  <meta name="robots" content="noindex">
+  <meta http-equiv="refresh" content={`0; url=${destino}`}>
+  <script is:inline define:vars={{ destino }}>location.replace(destino);</script>
+  <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0A0A0B;color:#B6B6BC;font:16px system-ui,sans-serif;}a{color:#E8C873;}</style>
+</head>
+<body>
+  <p>Abrindo <a href={destino}>{nome}</a>…</p>
+</body>
+</html>

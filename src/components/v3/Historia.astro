@@ -1,0 +1,59 @@
+---
+// História completa (V3), aberta por qualquer botão com data-abre="historia". Texto igual ao da V2 (Telas.astro).
+---
+<dialog class="historia" id="tela-historia" aria-labelledby="historia-titulo">
+  <button type="button" class="fechar" data-fecha aria-label="Fechar"><svg width="18" height="18" aria-hidden="true"><use href="#i-x"/></svg></button>
+  <article tabindex="-1" autofocus>
+    <span class="etiqueta">Nossa história</span>
+    <h2 id="historia-titulo">Somos um casal, dois sonhos e um propósito: construir juntos aquilo que Deus colocou em nossos corações.</h2>
+    <p class="assinatura">Júnior &amp; Thairine · Fundadores</p>
+    <p class="abre">Somos Júnior e Thairine, um casal de empreendedores que acredita que grandes sonhos podem ser construídos juntos, com propósito, dedicação e fé.</p>
+    <p>Júnior é engenheiro de software e Thairine é arquiteta. Além de nossas profissões, já construímos juntos nosso primeiro negócio, a Direto de Minas, trazendo produtos de Minas Gerais para nossa região.</p>
+    <p>Agora, iniciamos um novo projeto: nosso negócio de impressão 3D. Criamos produtos personalizados, miniaturas, brinquedos, organizadores, suportes, itens de decoração e muito mais, sempre buscando transformar ideias em algo real.</p>
+    <p>Mais do que vender produtos, este projeto representa um sonho que estamos construindo lado a lado: conquistar nossa casa, preparar nosso casamento e realizar outros desejos que, com apenas nossas profissões, levariam mais tempo para alcançar.</p>
+    <p>Este é um negócio feito por nós, para nós, com amor, trabalho e propósito.</p>
+    <blockquote>“E acima de tudo, colocamos Deus à frente de cada passo, reconhecendo que toda honra e toda glória pertencem a Ele.”</blockquote>
+  </article>
+</dialog>
+
+<style>
+  .historia{width:min(720px,calc(100vw - 48px));max-height:calc(100dvh - 48px);margin:auto;padding:0;overflow:auto;overscroll-behavior:contain;
+    border:1px solid var(--line-2);border-radius:28px;background:radial-gradient(ellipse 90% 40% at 50% 0%,rgba(201,162,39,.1),transparent 70%),var(--bg-2);color:var(--text);
+    box-shadow:0 40px 100px -30px rgba(0,0,0,.9);}
+  .historia::backdrop{background:rgba(5,5,6,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}
+  .historia[open]{animation:abre .6s var(--mola);}
+  @keyframes abre{from{opacity:0;transform:translateY(24px) scale(.98);}to{opacity:1;transform:none;}}
+  article{padding:64px 56px 56px;outline:none;}
+  h2{margin-top:24px;font-size:var(--fs-h3);line-height:1.2;}
+  .assinatura{margin:16px 0 36px;font-family:var(--mono);font-size:var(--fs-mini);letter-spacing:.14em;text-transform:uppercase;color:var(--ouro-claro);}
+  p{font-size:17px;line-height:1.8;color:var(--body);}
+  p + p{margin-top:18px;}
+  .abre{font-size:var(--fs-lead);line-height:1.6;color:var(--text);}
+  blockquote{margin:40px 0 0;padding:24px 28px;border-left:2px solid var(--ouro);border-radius:0 16px 16px 0;background:linear-gradient(90deg,rgba(201,162,39,.1),transparent);
+    font-size:var(--fs-lead);font-style:italic;line-height:1.55;color:var(--ouro-claro);}
+  .fechar{position:sticky;top:14px;float:right;margin:14px 14px 0 0;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;cursor:pointer;
+    border:1px solid var(--line-2);background:rgba(17,17,19,.8);color:var(--body);transition:transform .5s var(--mola),color .3s ease;z-index:1;}
+  .fechar:hover{transform:rotate(90deg);color:var(--text);}
+  @media (max-width:560px){
+    .historia{width:100vw;max-width:none;height:100dvh;max-height:none;border:0;border-radius:0;}
+    article{padding:40px 20px calc(48px + env(safe-area-inset-bottom,0px));}
+    blockquote{padding:20px;}
+  }
+</style>
+
+<script>
+  const d = document.getElementById("tela-historia") as HTMLDialogElement;
+  document.addEventListener("click", (e) => {
+    if (!(e.target as HTMLElement).closest("[data-abre='historia']")) return;
+    d.showModal();
+    document.documentElement.style.overflow = "hidden";
+    window.np3dTrack?.("abrir_tela", { tela: "historia" });
+  });
+  d.querySelector("[data-fecha]")!.addEventListener("click", () => d.close());
+  // tocar fora do painel fecha
+  d.addEventListener("click", (e) => {
+    const r = d.getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) d.close();
+  });
+  d.addEventListener("close", () => (document.documentElement.style.overflow = ""));
+</script>

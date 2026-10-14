@@ -1,8 +1,0 @@
----
-// Perguntas frequentes. Respostas marcadas com .ph ainda precisam ser confirmadas.
-interface Props { itens: [string, string][] }
-const { itens } = Astro.props;
----
-<div class="faq">
-  {itens.map(([p, r]) => <details><summary>{p}</summary><p class="ph">{r}</p></details>)}
-</div>

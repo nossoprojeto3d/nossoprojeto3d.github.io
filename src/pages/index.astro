@@ -1,104 +1,308 @@
 ---
-import Base from "../layouts/Base.astro";
-import Impressora from "../components/Impressora.astro";
-import QuemSomos from "../components/QuemSomos.astro";
-import Entrega from "../components/Entrega.astro";
-import Projetos from "../components/Projetos.astro";
+import Pagina from "../layouts/Pagina.astro";
+import Entrega from "../components/v3/Entrega.astro";
+import QuemSomos from "../components/v3/QuemSomos.astro";
+import NossosSites from "../components/v3/NossosSites.astro";
+import Historia from "../components/v3/Historia.astro";
 import { LINKS, url } from "../data/links";
 
-const ext = { target: "_blank", rel: "noopener noreferrer" };
+const orcamento = (texto: string) => `${LINKS.contato.whatsappOrcamento}?text=${encodeURIComponent(texto)}`;
+
+// abas da vitrine: cada público com a sua peça 3D (peças de exemplo até chegarem os arquivos reais)
+const abas = [
+  {
+    id: "empresas", sub: "Brindes, kits e expositores com a sua marca", nome: "Empresas", peca: "starlink", imagem: "", rotulo: "Chaveiro Starlink MG · feito por nós",
+    titulo: "Brindes e expositores com a cara da sua marca.",
+    texto: "Chaveiros, porta-cartões e kits com a sua logo. Displays e placas para o seu ponto de venda.",
+    itens: ["Logo em relevo e nas cores da sua marca", "Kits montados para eventos e datas comemorativas", "Displays de balcão, suportes e placas com nome"],
+    zap: "Olá! Quero um orçamento de brindes ou expositores para a minha empresa."
+  },
+  {
+    id: "eventos", sub: "Lembrancinhas e decoração no tema da festa", nome: "Eventos", peca: "lembranca", imagem: "", rotulo: "Lembrancinha de mesa · feita por nós",
+    titulo: "Lembrancinhas e decoração no tema da sua festa.",
+    texto: "Casamentos, aniversários, chás e batizados, nas cores e com o nome de quem celebra.",
+    itens: ["Lembrancinhas com nome, data ou idade", "Letreiros e nomes em relevo para a mesa do bolo", "Nas cores da paleta do convite"],
+    zap: "Olá! Quero um orçamento de lembrancinhas ou decoração para uma festa."
+  },
+  {
+    id: "voce", sub: "Peças sob medida, presentes e decoração", nome: "Você", peca: "pomo", imagem: "", rotulo: "Pomo de ouro · feito por nós",
+    titulo: "Do que você imaginou ao que você precisa.",
+    texto: "Peças sob medida, miniaturas, decoração e organizadores, feitos um a um.",
+    itens: ["Presentes com nome, data ou o desenho que você quiser", "Vasos, luminárias e objetos para a casa", "Organizadores e suportes sob medida"],
+    zap: "Olá! Quero um orçamento de uma peça personalizada."
+  }
+];
 ---
-<Base
-  titulo="Nosso Projeto 3D — Impressão 3D em Goiânia"
-  descricao="Brindes com logo e expositores para empresas. Peças personalizadas, miniaturas e decoração para você. Goiânia-GO, com envio para todo o Brasil."
-  schema
+<Pagina
+  titulo="Nosso Projeto 3D · Impressão 3D em Goiânia"
+  descricao="Brindes com logo e expositores para empresas, lembrancinhas para eventos e peças personalizadas para você. Goiânia-GO, com envio para todo o Brasil."
 >
-  <section class="hero" id="inicio">
-    <div class="container hero-grid">
-      <div class="hero-txt">
-        <span class="eyebrow">Impressão 3D em Goiânia</span>
-        <h1>Ideias que ganham forma, <em class="gold-text">camada por camada.</em></h1>
-        <p class="lead">Impressão 3D com precisão em cada detalhe e cuidado em cada acabamento.</p>
-        <div class="ctas">
-          <a href={LINKS.catalogo.site} data-link="catalogo.site" {...ext} class="btn btn-primary facet">Comprar no catálogo <svg width="16" height="16" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-          <a href={LINKS.contato.whatsapp} data-link="contato.whatsapp" {...ext} class="btn btn-ghost facet"><svg width="17" height="17" aria-hidden="true"><use href="#i-whatsapp"/></svg>Falar no WhatsApp</a>
+  <section class="hero" aria-labelledby="hero-titulo">
+    <div class="container hero-grade">
+      <div class="hero-palco">
+        <div class="palco" id="palco-hero">
+          <img class="parada" src={url("assets/logo.png")} alt="" width="254" height="300">
+          <canvas aria-label="Logo da Nosso Projeto 3D em 3D, sendo impresso camada por camada" role="img"></canvas>
+        </div>
+        <p class="legenda hero-legenda" aria-hidden="true"><span data-legenda-hero>&nbsp;</span></p>
+      </div>
+      <div class="hero-texto">
+        <span class="etiqueta">Impressão 3D · Goiânia</span>
+        <h1 id="hero-titulo">Ideias que ganham forma, camada por camada.</h1>
+        <p class="hero-lead">Brindes, lembrancinhas e peças sob medida, com envio para todo o Brasil.</p>
+        <div class="hero-botoes">
+          <a href={LINKS.catalogo.site} data-link="catalogo.site" target="_blank" rel="noopener noreferrer" class="botao botao-ouro">
+            <span class="longo">Ver catálogo</span><span class="curto">Catálogo</span> <span class="ilha"><svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg></span>
+          </a>
+          <a href={LINKS.contato.whatsapp} data-link="contato.whatsapp" target="_blank" rel="noopener noreferrer" class="botao botao-claro">
+            <span class="longo">Pedir no WhatsApp</span><span class="curto">WhatsApp</span> <span class="ilha"><svg width="18" height="18" aria-hidden="true"><use href="#i-whatsapp"/></svg></span>
+          </a>
         </div>
       </div>
-      <Impressora />
     </div>
   </section>
 
-  <section class="sec" id="caminhos" aria-label="Escolha seu caminho">
-    <div class="container portas">
-      <a class="porta porta-empresa surge" href={url("empresas/")}>
-        <span class="eyebrow">Para empresas</span>
-        <h2>Brindes e expositores com a cara da sua marca.</h2>
-        <p>Chaveiros, porta-cartões e kits com a sua logo. Displays e placas para o seu ponto de venda.</p>
-        <span class="porta-link">Ver soluções para empresas <svg width="18" height="18" aria-hidden="true"><use href="#i-right"/></svg></span>
-      </a>
-      <a class="porta porta-evento surge" href={url("eventos/")}>
-        <span class="eyebrow">Para eventos</span>
-        <h2>Lembrancinhas e decoração no tema da sua festa.</h2>
-        <p>Casamentos, aniversários, chás e batizados, nas cores e com o nome de quem celebra.</p>
-        <span class="porta-link">Ver ideias para eventos <svg width="18" height="18" aria-hidden="true"><use href="#i-right"/></svg></span>
-      </a>
-      <a class="porta surge" href={url("para-voce/")}>
-        <span class="eyebrow">Para você</span>
-        <h2>Do que você imaginou ao que você precisa.</h2>
-        <p>Peças sob medida, miniaturas, decoração e organizadores, feitos um a um.</p>
-        <span class="porta-link">Pedir uma peça sob medida <svg width="18" height="18" aria-hidden="true"><use href="#i-right"/></svg></span>
-      </a>
+  <section class="secao vitrine" id="vitrine" aria-labelledby="vitrine-titulo">
+    <div class="container">
+      <div class="vitrine-topo surge">
+        <span class="etiqueta">Vitrine</span>
+        <h2 id="vitrine-titulo">Escolha para quem é.</h2>
+      </div>
+
+      <div class="abas surge" role="tablist" aria-label="Para quem é a peça">
+        <span class="abas-marca" aria-hidden="true"></span>
+        {abas.map((a, i) => (
+          <button type="button" role="tab" id={`aba-${a.id}`} aria-controls={`painel-${a.id}`} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? 0 : -1} data-aba={a.id} data-peca={a.peca}><span class="aba-nome">{a.nome}</span><span class="aba-sub">{a.sub}</span></button>
+        ))}
+      </div>
+
+      <div class="vitrine-grade">
+        <div class="moldura surge">
+          <div class="moldura-miolo">
+            {abas.filter((a) => a.imagem).map((a, i) => (
+              <div class="vitrine-imagem" data-imagem-aba={a.id} data-ativa={i === 0 && abas[0].imagem ? "" : undefined} data-inclinar>
+                <img src={url(a.imagem)} alt={a.rotulo.split(" · ")[0]} width="748" height="750" decoding="async">
+              </div>
+            ))}
+            <div class="palco" id="palco-vitrine">
+              <canvas aria-label="Peça de exemplo em 3D" role="img"></canvas>
+            </div>
+            <p class="legenda vitrine-legenda" aria-hidden="true"><span data-legenda-vitrine>{abas[0].rotulo}</span></p>
+          </div>
+        </div>
+
+        {abas.map((a, i) => (
+          <div class="painel" role="tabpanel" id={`painel-${a.id}`} aria-labelledby={`aba-${a.id}`} hidden={i !== 0} data-rotulo={a.rotulo}>
+            <h3>{a.titulo}</h3>
+            <p class="painel-texto">{a.texto}</p>
+            <ul class="painel-itens">{a.itens.map((t) => <li>{t}</li>)}</ul>
+            <a href={orcamento(a.zap)} data-link="contato.whatsappOrcamento" target="_blank" rel="noopener noreferrer" class="botao botao-ouro painel-botao">
+              Pedir orçamento <span class="ilha"><svg width="18" height="18" aria-hidden="true"><use href="#i-whatsapp"/></svg></span>
+            </a>
+          </div>
+        ))}
+      </div>
     </div>
   </section>
-
-  <Projetos />
 
   <Entrega />
-
   <QuemSomos />
-</Base>
+  <NossosSites />
+  <Historia />
+</Pagina>
+
+<script>
+  import type { NomePeca } from "../scripts/pecas";
+
+  const quieto = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const carregar = () => import("../scripts/palco");
+
+  // topo: começa a imprimir assim que a página abre
+  const legendaHero = document.querySelector<HTMLElement>("[data-legenda-hero]")!;
+  const camadas = 100;
+  carregar().then(({ criarPalco }) => {
+    const canvas = document.querySelector<HTMLCanvasElement>("#palco-hero canvas")!;
+    const palco = criarPalco(canvas, {
+      duracao: 3.2,
+      aoImprimir: (p) => {
+        // durante a impressão mostra a camada; no fim a legenda some
+        legendaHero.textContent = p < 1 ? `Imprimindo · camada ${String(Math.ceil(p * camadas)).padStart(3, "0")}/${camadas}` : "\u00a0";
+      }
+    });
+    palco?.mostrar("logo");
+  });
+
+  // vitrine: abas acessíveis (setas do teclado) e peça 3D que se imprime a cada troca
+  const abas = [...document.querySelectorAll<HTMLButtonElement>("[role=tab]")];
+  const marca = document.querySelector<HTMLElement>(".abas-marca")!;
+  const legendaVitrine = document.querySelector<HTMLElement>("[data-legenda-vitrine]")!;
+  let palcoVitrine: { mostrar(n: NomePeca): Promise<void>; pausar(p: boolean): void } | null = null;
+  let pecaAtual = abas[0].dataset.peca as NomePeca | "";
+  const imagens = [...document.querySelectorAll<HTMLElement>("[data-imagem-aba]")];
+  const palcoEl = document.getElementById("palco-vitrine")!;
+
+  // abas com imagem (peça real fotografada/renderizada) mostram a imagem; as outras, a peça 3D
+  function trocarPalco() {
+    const aba = abas.find((a) => a.getAttribute("aria-selected") === "true")!;
+    let temImagem = false;
+    imagens.forEach((img) => {
+      const ativa = img.dataset.imagemAba === aba.dataset.aba;
+      if (ativa) temImagem = true;
+      img.toggleAttribute("data-ativa", ativa);
+    });
+    palcoEl.classList.toggle("oculto", temImagem);
+    palcoVitrine?.pausar(temImagem);
+    if (!temImagem && pecaAtual) palcoVitrine?.mostrar(pecaAtual);
+  }
+
+  function moverMarca(aba: HTMLButtonElement) {
+    marca.style.width = `${aba.offsetWidth}px`;
+    marca.style.transform = `translateX(${aba.offsetLeft}px)`;
+  }
+
+  function escolher(aba: HTMLButtonElement, foco = false) {
+    abas.forEach((a) => {
+      const sel = a === aba;
+      a.setAttribute("aria-selected", String(sel));
+      a.tabIndex = sel ? 0 : -1;
+      const painel = document.getElementById(a.getAttribute("aria-controls")!)!;
+      painel.hidden = !sel;
+      if (sel) legendaVitrine.textContent = painel.dataset.rotulo!;
+    });
+    if (foco) aba.focus();
+    moverMarca(aba);
+    pecaAtual = aba.dataset.peca as NomePeca | "";
+    trocarPalco();
+    window.np3dTrack?.("vitrine_aba", { aba: aba.dataset.aba ?? "" });
+  }
+
+  abas.forEach((aba, i) => {
+    aba.addEventListener("click", () => escolher(aba));
+    aba.addEventListener("keydown", (e) => {
+      const passo = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (!passo) return;
+      e.preventDefault();
+      escolher(abas[(i + passo + abas.length) % abas.length], true);
+    });
+  });
+
+  // #empresas, #eventos ou #voce (links antigos e rodapé) abrem a aba certa e rolam até a vitrine
+  const pelaUrl = () => {
+    const aba = abas.find((a) => `#${a.dataset.aba}` === location.hash);
+    if (!aba) return;
+    escolher(aba);
+    document.getElementById("vitrine")!.scrollIntoView({ behavior: quieto ? "auto" : "smooth" });
+  };
+  pelaUrl();
+  addEventListener("hashchange", pelaUrl);
+  requestAnimationFrame(() => moverMarca(abas.find((a) => a.getAttribute("aria-selected") === "true")!));
+  addEventListener("resize", () => moverMarca(abas.find((a) => a.getAttribute("aria-selected") === "true")!));
+
+  // o 3D da vitrine só carrega quando ela está chegando na tela
+  const canvasVitrine = document.querySelector<HTMLCanvasElement>("#palco-vitrine canvas")!;
+  new IntersectionObserver((entradas, obs) => {
+    if (!entradas[0].isIntersecting) return;
+    obs.disconnect();
+    carregar().then(({ criarPalco }) => {
+      palcoVitrine = criarPalco(canvasVitrine, { duracao: 2.2 });
+      trocarPalco();
+    });
+  }, { rootMargin: "300px" }).observe(canvasVitrine);
+</script>
 
 <style>
-  .hero{position:relative;padding:56px 0 96px;overflow:hidden;}
-  .hero::before{content:"";position:absolute;inset:0;pointer-events:none;
-    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:64px 64px;
-    -webkit-mask-image:radial-gradient(ellipse 70% 60% at 70% 45%,#000 10%,transparent 75%);mask-image:radial-gradient(ellipse 70% 60% at 70% 45%,#000 10%,transparent 75%);opacity:.5;}
-  .hero::after{content:"";position:absolute;width:780px;height:780px;right:-160px;top:50%;transform:translateY(-50%);pointer-events:none;background:radial-gradient(circle,rgba(201,162,39,.16),transparent 62%);}
-  .hero-grid{position:relative;z-index:1;display:grid;grid-template-columns:1.1fr .9fr;gap:64px;align-items:center;}
-  .hero-txt > *{opacity:0;transform:translateY(18px);animation:sobe .9s var(--ease) forwards;}
-  .hero-txt > :nth-child(2){animation-delay:.1s;} .hero-txt > :nth-child(3){animation-delay:.2s;} .hero-txt > :nth-child(4){animation-delay:.3s;}
-  @keyframes sobe{to{opacity:1;transform:none;}}
-  h1{font-size:var(--fs-display);line-height:1.04;font-weight:300;margin-top:26px;}
-  h1 em{font-style:italic;font-weight:400;}
-  .lead{margin-top:24px;max-width:470px;font-size:var(--fs-body-lg);line-height:1.7;color:var(--body);}
-  .ctas{margin-top:36px;}
+  /* ---------- Topo ---------- */
+  .hero{position:relative;min-height:100svh;display:flex;align-items:center;padding:110px 0 72px;overflow:clip;}
+  /* refletor suave atrás da peça */
+  .hero::before{content:"";position:absolute;width:min(1100px,160vw);aspect-ratio:1;right:-18%;top:50%;transform:translateY(-50%);pointer-events:none;
+    background:radial-gradient(circle,rgba(201,162,39,.13),rgba(201,162,39,.03) 38%,transparent 62%);}
+  .hero-grade{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(32px,5vw,80px);align-items:center;width:100%;}
+  .hero-texto{order:-1;}
+  .hero-texto > *{opacity:0;transform:translateY(24px);filter:blur(8px);animation:entra 1.1s var(--mola) forwards;}
+  .hero-texto > :nth-child(2){animation-delay:.08s;} .hero-texto > :nth-child(3){animation-delay:.16s;} .hero-texto > :nth-child(4){animation-delay:.24s;}
+  @keyframes entra{to{opacity:1;transform:none;filter:none;}}
+  h1{margin-top:24px;font-size:var(--fs-hero);line-height:.98;}
+  .hero-lead{margin-top:24px;max-width:30ch;font-size:var(--fs-lead);line-height:1.55;color:var(--body);}
+  .hero-botoes{margin-top:40px;display:grid;grid-template-columns:repeat(2,max-content);gap:12px;}
+  .hero-palco .palco{aspect-ratio:1;width:100%;max-height:72svh;margin:0 auto;}
+  .hero-legenda{margin-top:4px;text-align:center;}
+  .curto{display:none;}
 
-  /* os caminhos continuam o topo, sem divisória nem respiro dobrado */
-  #caminhos{border-top:0;padding-top:0;}
-  .portas{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
-  .porta{position:relative;display:flex;flex-direction:column;min-height:420px;padding:40px 32px 34px;border:1px solid var(--line-2);background:var(--bg-2);overflow:hidden;
-    transition:border-color .4s ease,transform .5s var(--ease);}
-  .porta:hover{border-color:var(--gold);transform:translateY(-4px);}
-  .porta-empresa{background:radial-gradient(ellipse 90% 70% at 100% 0%,var(--gold-dim),transparent 60%),var(--bg-2);}
-  .porta-evento{background:radial-gradient(ellipse 90% 70% at 50% 100%,var(--gold-dim),transparent 60%),var(--bg-2);}
-  .porta h2{margin-top:22px;font-size:clamp(26px,1.4vw + 16px,36px);line-height:1.1;font-weight:300;max-width:15ch;}
-  .porta p{margin-top:18px;color:var(--muted);line-height:1.7;font-size:var(--fs-body-lg);max-width:40ch;}
-  .porta-link{margin-top:auto;padding-top:36px;display:flex;align-items:center;gap:10px;color:var(--gold-2);font-weight:500;}
-  .porta-link svg{transition:transform .35s var(--ease);}
-  .porta:hover .porta-link svg{transform:translateX(4px);}
-
-
-  @media (max-width:980px){
-    .hero-grid{grid-template-columns:1fr;gap:40px;}
-    .hero-grid :global(.printer){order:-1;}
-    .portas{grid-template-columns:1fr;}
+  /* ---------- Vitrine ---------- */
+  .vitrine{border-top:1px solid var(--line);}
+  .vitrine-topo{display:flex;flex-direction:column;align-items:flex-start;gap:20px;}
+  h2{font-size:var(--fs-h2);line-height:1.02;}
+  .abas{position:relative;display:inline-flex;margin-top:40px;padding:5px;border-radius:999px;background:var(--bg-2);border:1px solid var(--line-2);}
+  .abas button{position:relative;z-index:1;height:44px;padding:0 22px;border:0;border-radius:999px;background:none;cursor:pointer;font-size:15px;font-weight:500;color:var(--muted);transition:color .4s ease;}
+  .abas button[aria-selected="true"]{color:#0A0A0B;}
+  .abas-marca{position:absolute;top:5px;left:0;height:44px;border-radius:999px;background:var(--text);transition:transform .6s var(--mola),width .6s var(--mola);}
+  .aba-sub{display:none;}
+  /* computador e tablet: as abas viram três cartões largos, com o nome grande e uma linha dourada sob o escolhido */
+  @media (min-width:561px){
+    .abas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:100%;padding:0;border:0;border-radius:0;background:none;}
+    .abas button{height:auto;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:24px 26px 26px;text-align:left;border-radius:22px;
+      background:var(--bg-2);border:1px solid var(--line);color:var(--muted);transition:color .4s ease,background-color .4s ease,border-color .4s ease;}
+    .abas button:hover{border-color:var(--line-2);color:var(--body);}
+    .abas button[aria-selected="true"]{color:var(--text);background:var(--surface-2);border-color:var(--line-2);}
+    .aba-nome{font-size:clamp(24px,1.6vw + 12px,32px);font-weight:600;letter-spacing:-.03em;line-height:1.1;}
+    .aba-sub{display:block;font-size:14px;font-weight:400;line-height:1.45;color:var(--muted);}
+    .abas-marca{top:auto;bottom:-1px;height:2px;border-radius:2px;z-index:2;background:linear-gradient(90deg,transparent,var(--ouro-claro) 20%,var(--ouro) 80%,transparent);
+      box-shadow:0 0 14px rgba(232,200,115,.6);}
   }
-  @media (max-width:760px){
-    .hero{padding:20px 0 64px;}
-    .hero-grid{gap:28px;}
-    h1{margin-top:18px;}
-    .lead{margin-top:16px;}
-    .ctas{margin-top:26px;}
-    .porta{min-height:0;padding:32px 24px 28px;}
+
+  .vitrine-grade{margin-top:32px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(32px,5vw,72px);align-items:start;}
+  .painel{padding-top:clamp(0px,3vw,40px);}
+  .moldura-miolo{position:relative;border-radius:25px;overflow:hidden;
+    background:radial-gradient(ellipse 70% 60% at 50% 40%,var(--surface-2),var(--bg-2) 75%);box-shadow:inset 0 1px 0 rgba(255,255,255,.06);}
+  .moldura .palco{aspect-ratio:1;transition:opacity .5s ease;}
+  .palco.oculto{opacity:0;pointer-events:none;}
+  /* imagem da peça: entra "imprimindo" de baixo pra cima, com a linha dourada do bico, e depois flutua */
+  .vitrine-imagem{position:absolute;inset:12% 12% 16%;z-index:1;display:none;}
+  .vitrine-imagem[data-ativa]{display:block;}
+  .vitrine-imagem img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 30px 40px rgba(0,0,0,.55));}
+  .vitrine-imagem[data-ativa] img{animation:imprimeImagem 1.8s cubic-bezier(.45,.05,.35,1) both,flutua 6s ease-in-out 1.8s infinite;}
+  .vitrine-imagem::after{content:"";position:absolute;left:-4%;right:-4%;height:2px;border-radius:2px;pointer-events:none;opacity:0;
+    background:linear-gradient(90deg,transparent,var(--ouro-claro) 20%,#fff 50%,var(--ouro-claro) 80%,transparent);box-shadow:0 0 18px 4px rgba(232,200,115,.55);}
+  .vitrine-imagem[data-ativa]::after{animation:bico 1.8s cubic-bezier(.45,.05,.35,1) both;}
+  @keyframes imprimeImagem{from{clip-path:inset(100% -10% 0 -10%);}to{clip-path:inset(-10% -10% -10% -10%);}}
+  @keyframes bico{0%{bottom:0;opacity:1;}95%{bottom:100%;opacity:1;}100%{bottom:100%;opacity:0;}}
+  @keyframes flutua{50%{transform:translateY(-8px);}}
+  .vitrine-legenda{position:absolute;left:0;right:0;bottom:18px;text-align:center;}
+
+  .painel h3{font-size:var(--fs-h3);line-height:1.15;}
+  .painel:not([hidden]){animation:painel .7s var(--mola);}
+  @keyframes painel{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+  .painel-texto{margin-top:16px;color:var(--body);font-size:var(--fs-lead);line-height:1.55;}
+  .painel-itens{margin:28px 0 0;padding:0;list-style:none;border-top:1px solid var(--line);}
+  .painel-itens li{display:flex;gap:14px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--line);color:var(--body);}
+  .painel-itens li::before{content:"";width:6px;height:6px;flex-shrink:0;border-radius:50%;background:var(--ouro);transform:translateY(-2px);}
+  .painel-botao{margin-top:32px;}
+
+  @media (max-width:900px){
+    .hero{min-height:0;padding:92px 0 64px;}
+    .hero-grade,.vitrine-grade{grid-template-columns:1fr;}
+    .hero-texto{order:0;}
+    .hero-palco .palco{width:min(100%,460px);max-height:none;height:auto;}
+    .hero-palco{margin:0 -8px;}
+    .moldura{width:min(100%,560px);}
+    h1{margin-top:20px;}
+  }
+  /* celular: logo, título e os dois botões cabem na primeira tela (quem vem do Instagram decide ali) */
+  @media (max-width:560px){
+    .hero{padding:80px 0 56px;}
+    .hero-grade{gap:8px;}
+    .hero-palco{position:relative;}
+    .hero-palco .palco{width:min(100%,35svh);}
+    .hero-legenda{position:absolute;left:0;right:0;bottom:-2px;margin:0;}
+    h1{margin-top:16px;}
+    .hero-lead{margin-top:12px;}
+    .hero-botoes{margin-top:24px;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+    .hero-botoes .botao{width:100%;padding-left:18px;}
+    .longo{display:none;}
+    .curto{display:inline;}
+    .abas{display:flex;width:100%;}
+    .abas button{flex:1;padding:0 8px;}
+    .moldura-miolo{border-radius:20px;}
+    .painel-botao{width:100%;}
   }
 </style>

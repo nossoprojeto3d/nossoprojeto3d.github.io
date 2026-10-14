@@ -3,59 +3,63 @@
 Site institucional e porta de entrada de vendas, publicado no GitHub Pages: https://nossoprojeto3d.github.io/site/
 Todo push na `main` dispara `.github/workflows/deploy.yml`, que roda `astro check`, gera o site e publica. Se o check falhar, nada vai pro ar.
 
-Feito em **Astro** (só HTML e CSS gerados; JS mínimo em `<script>` dos componentes), sem React nem Tailwind. A V1 era um `index.html` único e está na etiqueta `v1-final`.
+Feito em **Astro**, sem React nem Tailwind, com **Three.js** nas peças 3D. É a V3: uma página só, escura e "tecnológica", com peças que se imprimem na tela. A V2 (cinco páginas, Fraunces, tema claro) está na etiqueta `backup-oficial-20261013`; a V1 em `v1-final`.
 
 ```bash
 npm run dev        # http://localhost:4321/site/  (--host pra abrir no celular pela rede)
 npm run build      # gera dist/
 npx astro check    # tipos e erros; rode antes de commitar
+npm run testar     # bateria dos caminhos de contato (WhatsApp, Instagram, catálogo, Shopee); rode depois do build
+npm run modelo -- <arquivo.3mf|.stl> <nome> [frente|em-pe]   # converte peça real em public/assets/3d/<nome>.glb
+npm run formas     # regenera src/data/formas.ts (contorno do logo e textos da lembrancinha)
+npm run icones     # regenera favicon e ícones de app a partir de public/assets/logo.png
 npm run fotos      # prepara as fotos da pasta ~/Desktop/Fotos do site
 ```
 
-## Páginas
+## Página
 
-- `src/pages/index.astro`: início. Impressora animada, botão do catálogo em destaque (o site é o link da bio do Instagram), três caminhos (empresas, eventos, você), nossos projetos, mapa de entregas e "Quem somos".
-- `src/pages/empresas.astro`, `eventos.astro`, `para-voce.astro`: cada caminho tem topo, ofertas, "Como funciona", orçamento guiado e perguntas frequentes. "Quem somos" fica só na página inicial.
-- `src/pages/404.astro`: o GitHub Pages serve esse arquivo em qualquer endereço inexistente de `/site/`.
+`src/pages/index.astro`, de cima pra baixo: topo (logo NP em 3D se imprimindo + Catálogo e WhatsApp com o mesmo peso), vitrine com abas Empresas / Eventos / Você (cada aba uma peça 3D e um "Pedir orçamento" com mensagem pronta no WhatsApp), Onde atendemos (mapa 3D), Quem somos, Nossos sites e rodapé.
+
+- `empresas.astro`, `eventos.astro`, `para-voce.astro`: só levam pra aba certa (`/site/#empresas` etc.), pra não quebrar links antigos. `#empresas`, `#eventos` e `#voce` abrem a aba em qualquer link.
+- `404.astro`: o GitHub Pages serve esse arquivo em qualquer endereço inexistente de `/site/`.
 
 ## Onde mexer
 
-- `src/data/links.ts`: **toda URL externa fica aqui**, no objeto `LINKS`. Nos componentes use `href={LINKS.grupo.chave}` com `data-link="grupo.chave"`, que é o que o `medicao.js` usa pra saber de onde veio o clique. Links internos passam por `url("caminho/")` por causa do base `/site`.
-- `src/components/Orcamento.astro`: orçamento guiado. A tabela `CONFIG` define, por tipo (empresa, pessoa, evento), as opções, os campos e o texto da mensagem que abre no WhatsApp (`LINKS.contato.whatsappOrcamento`). Botões com `data-quer="Opção"` em qualquer lugar da página deixam a opção marcada.
-- `src/components/`: `Topo`, `Oferta`, `Passos`, `Duvidas`, `Foto`, `Entrega` (mapa), `Projetos`, `QuemSomos`, `Telas` (diálogos do versículo e da história completa), `Nav`, `Footer`.
-- `src/data/mapa.ts`: o mapa do Brasil é desenhado no build (world-atlas + d3-geo); nada disso vai pro navegador.
-- `src/styles/global.css`: tokens de cor e tipografia, botões, tema claro.
-- `public/`: vai pro ar como está. `assets/medicao.js` é o Google Analytics compartilhado com os outros projetos: se mudar aqui, avisar que precisa copiar pros outros. `googlee4343bf2118f52f0.html` é a verificação do Google Search Console (não apagar nem renomear). `sitemap.xml`: atualizar o `lastmod` e incluir página nova quando criar.
-- `public/assets/og/og-image.html`: fonte da imagem de compartilhamento. Depois de editar, gere de novo o `og-image.jpg` em 1200×630.
+- `src/data/links.ts`: **toda URL externa fica aqui**, no objeto `LINKS`. Use `href={LINKS.grupo.chave}` com `data-link="grupo.chave"` (o `medicao.js` usa pra saber de onde veio o clique). Links internos passam por `url("caminho/")` por causa do base `/site`. **Não espalhe `{...ext}` em vários `<a>`**: o Astro gruda a classe do escopo várias vezes e o estilo some; escreva `target="_blank" rel="noopener noreferrer"`.
+- `src/data/sites.ts`: os seis sites (menu "Sites", seção Nossos sites e rodapé).
+- Abas da vitrine: array `abas` no topo de `index.astro` (texto, itens, peça, legenda e mensagem do WhatsApp).
+- `src/scripts/palco.ts`: o palco 3D (impressão camada por camada com o bico, giro com o dedo, pausa fora da tela). `src/scripts/pecas.ts`: as peças. Peças reais vêm de `public/assets/3d/*.glb` com material de cor fiel (matcap, sem reflexo); `empresas.glb` é o chaveiro Starlink MG (do 3MF colorido), `voce.glb` é o pomo (bolinha e asas soltas, montadas no código). Logo e lembrancinha são feitos no código.
+- `src/scripts/mapa3d.ts` + `components/v3/Entrega.astro`: o Brasil em 3D com rotas saindo de Goiânia; os pontos vêm de `src/data/mapa.ts` (calculado no build).
+- `src/components/v3/`: `Menu`, `Rodape`, `QuemSomos`, `Historia` (diálogo), `NossosSites`, `Entrega`, `Redireciona`. `src/layouts/Pagina.astro`: cabeçalho, ícones, SEO e o script de inclinação (`data-inclinar`).
+- `src/styles/v3.css`: tokens de cor e tipografia, botões em pílula, moldura dupla.
+- `public/`: vai pro ar como está. `assets/medicao.js` é o Google Analytics compartilhado com os outros projetos: se mudar aqui, avisar que precisa copiar pros outros. `googlee4343bf2118f52f0.html` é a verificação do Google Search Console (não apagar nem renomear). `sitemap.xml`: atualizar o `lastmod` quando o conteúdo mudar.
+- `public/assets/og/og-image.html`: fonte da prévia que aparece no WhatsApp. Depois de editar, gere de novo o `og-image.jpg` em 1200×630 e aumente o `?v=` em `Pagina.astro` (o WhatsApp guarda a prévia antiga).
 
 ## Identidade visual
 
-A mesma do catálogo, da calculadora e do financeiro: fundo escuro, dourado `#C9A227`, títulos em Fraunces, texto em Work Sans e detalhes em JetBrains Mono. Existe um tema claro (botão sol/lua, salvo em `localStorage` como `nossoprojeto3d-tema`; o padrão é o escuro): use as variáveis de `global.css` em vez de cores soltas, senão o tema claro quebra. Os botões usam o dourado fixo da marca (`--ouro*`) nos dois temas.
+Escuro neutro (`#0A0A0B`), texto em Geist e detalhes em Geist Mono; o dourado (`--ouro*`) só nos botões, na linha de impressão e nos destaques. Sem tema claro. Use as variáveis de `v3.css` em vez de cores soltas.
 
 ## Cuidados
 
-- A animação do logo (`Impressora.astro`, CSS em `src/styles/_printer.css`) já teve "flash" no celular e ao recomeçar. Ao mexer, confira no celular.
-- O compactador do build (esbuild) apaga uma das versões de propriedades duplicadas e mantém a última escrita. Em `backdrop-filter`, escreva `-webkit-backdrop-filter` primeiro e o padrão por último, senão o Chrome fica sem desfoque.
-- Textos com a classe `.ph` (sublinhado tracejado) são suposições que os donos ainda precisam confirmar: prazos, quantidades mínimas e respostas das perguntas frequentes. Quando confirmarem, troque o texto e tire o `.ph`.
-- Use a escala tipográfica (`--fs-*`) em vez de tamanhos soltos.
+- O 3D só carrega quando a seção chega perto da tela, e cada palco para de desenhar fora dela; mantenha assim (celular).
+- Peças de terceiros (MakerWorld etc.) com licença não comercial não entram no site sem autorização do autor.
+- Safari do iPhone: não tem `animation-timeline` (animações por rolagem) e ignora `textLength` em SVG. Efeitos importantes usam `IntersectionObserver` e HTML/CSS.
+- O compactador do build (esbuild) mantém só a última de propriedades duplicadas: em `backdrop-filter`, escreva `-webkit-backdrop-filter` primeiro.
+- Textos com a classe `.ph` (sublinhado tracejado) são suposições que os donos ainda precisam confirmar. Quando confirmarem, troque o texto e tire o `.ph`.
 
 ## Imagens
 
-- Todas as fotos são 4:5, 1080×1350, JPEG sRGB, no máximo ~250 KB, com a peça no centro e ~10% de margem (o mesmo arquivo aparece em larguras diferentes no celular e no computador).
-- Ficam em `public/assets/fotos/<número>-<nome>.jpg`. O componente `Foto.astro` acha o arquivo no build; sem arquivo, mostra "Foto em breve" (o número do espaço fica em `data-espaco`). A lista dos 15 espaços está nos `fotos:` das páginas e em `QuemSomos.astro`.
-- As originais chegam em `~/Desktop/Fotos do site/`, nomeadas só com o número (`06.jpg`, `07.heic`). `npm run fotos` enquadra, comprime e grava com o nome certo. Não use o `/otimizar-imagens` aqui: ele faz commit sozinho.
-- Ao trocar uma foto, atualize a descrição dela (vira o texto alternativo).
+- Fotos: 4:5, 1080×1350, JPEG sRGB, no máximo ~250 KB, em `public/assets/fotos/<número>-<nome>.jpg`. Hoje só a `01-casal.jpg` aparece (Quem somos).
+- As originais chegam em `~/Desktop/Fotos do site/`, nomeadas só com o número. `npm run fotos` enquadra, comprime e grava com o nome certo. Não use o `/otimizar-imagens` aqui: ele faz commit sozinho.
 
 ## Roteiro de teste
 
 Usado pelo `/conferir-site`, no build (`npm run build` e `npx astro preview`), no celular (375px), tablet (768px) e desktop:
 
-1. As cinco páginas abrem sem erros no console.
-2. A animação do logo no início roda sem flash, inclusive ao recomeçar.
-3. Os links do menu, dos caminhos e dos projetos abrem a página certa; os externos abrem em nova aba. Não clique no WhatsApp.
-4. Orçamento guiado nas três páginas: escolher opções monta a "ordem de impressão" e o `href` do botão traz a mensagem certa para `wa.me/5562993152843`.
-5. "Provérbios 16:3" e "Conheça nossa história" abrem e fecham os diálogos.
-6. Tema claro e escuro: troca, fica salvo ao recarregar e nada fica ilegível.
-7. No celular, a barra "Pedir orçamento" aparece depois do topo e some na seção de orçamento.
-8. Sem rolagem horizontal em 320px, 375px e 768px; o nome no topo cabe numa linha.
-9. Um endereço inexistente (ex.: `/site/teste`) mostra a 404 com fontes e botões funcionando.
+1. `npm run testar` sem falhas (links, mensagens prontas do WhatsApp, redirecionamentos e destinos no ar).
+2. A página e a 404 abrem sem erros no console.
+3. O logo do topo se imprime; as três abas trocam a peça e o "Pedir orçamento"; o mapa 3D aparece.
+4. Todo botão de contato (menu, menu do celular, topo, vitrine, Nossos sites, rodapé) fica visível, sem nada por cima, e abre em nova aba. Não envie mensagem no WhatsApp.
+5. `/site/empresas/`, `/site/eventos/` e `/site/para-voce/` caem na aba certa.
+6. "Conheça nossa história" abre e fecha o diálogo.
+7. Sem rolagem horizontal em 320px, 375px e 768px; o nome do rodapé cabe inteiro.

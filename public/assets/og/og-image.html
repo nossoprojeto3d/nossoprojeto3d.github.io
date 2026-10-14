@@ -1,59 +1,52 @@
 <!doctype html>
 <!--
-  Fonte da imagem de compartilhamento (assets/og/og-image.jpg, 1200×630).
-  Pra regenerar depois de editar: abra no Chrome e tire print de 1200×630,
-  ou peça pro Claude rodar o Chrome headless de novo.
+  Fonte da imagem de compartilhamento (assets/og/og-image.jpg, 1200×630): é o que aparece
+  quando alguém manda o link do site no WhatsApp, Instagram etc. Mesmo visual da V3.
+  Pra regenerar depois de editar: abra em 1200×630 (npm run dev → /site/assets/og/og-image.html),
+  tire o print e salve como og-image.jpg, ou peça pro Claude fazer isso.
 -->
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
 <title>OG image</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,400&family=Work+Sans:wght@400;500&family=JetBrains+Mono&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
 <style>
-  :root{--bg:#0E0B07;--line:#2A2217;--line-2:#3A3226;--gold:#C9A227;--gold-2:#E8C873;--text:#F4EFE3;--muted:#A69C87;--faint:#786F5C;}
+  :root{--bg:#0A0A0B;--line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.14);--text:#F4F4F5;--body:#B6B6BC;--muted:#8B8B93;--ouro:#C9A227;--ouro-claro:#E8C873;}
   *{box-sizing:border-box;margin:0;}
-  body{width:1200px;height:630px;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Work Sans',sans-serif;position:relative;}
-  body::before{content:"";position:absolute;inset:0;
-    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:60px 60px;
-    -webkit-mask-image:radial-gradient(ellipse 60% 80% at 22% 50%,#000 10%,transparent 75%);opacity:.6;}
-  body::after{content:"";position:absolute;width:760px;height:760px;left:-190px;top:50%;transform:translateY(-50%);
-    background:radial-gradient(circle,rgba(201,162,39,.2),transparent 62%);}
-  .wrap{position:relative;z-index:1;display:flex;align-items:center;height:100%;padding:0 80px;gap:72px;}
+  body{width:1200px;height:630px;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Geist',system-ui,sans-serif;position:relative;}
+  /* refletor dourado atrás do logo, como no topo do site */
+  body::before{content:"";position:absolute;width:900px;height:900px;left:-120px;top:50%;transform:translateY(-50%);
+    background:radial-gradient(circle,rgba(201,162,39,.2),rgba(201,162,39,.04) 40%,transparent 64%);}
+  .wrap{position:relative;display:flex;align-items:center;height:100%;padding:0 84px 0 96px;gap:84px;}
 
-  .panel{position:relative;flex:0 0 400px;height:400px;border:1px solid var(--line-2);background:linear-gradient(180deg,rgba(24,19,12,.75),rgba(14,11,7,.4));}
-  .corner{position:absolute;width:16px;height:16px;border:0 solid var(--gold);}
-  .c1{top:-1px;left:-1px;border-top-width:1px;border-left-width:1px;} .c2{top:-1px;right:-1px;border-top-width:1px;border-right-width:1px;}
-  .c3{bottom:-1px;left:-1px;border-bottom-width:1px;border-left-width:1px;} .c4{bottom:-1px;right:-1px;border-bottom-width:1px;border-right-width:1px;}
-  .label{position:absolute;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);}
-  .tl{top:20px;left:22px;} .tr{top:20px;right:22px;color:var(--gold);} .bl{bottom:20px;left:22px;} .br{bottom:20px;right:22px;}
-  .stage{position:absolute;inset:18%;display:flex;align-items:center;justify-content:center;}
-  .stage::before{content:"";position:absolute;inset:-12%;background:radial-gradient(circle,rgba(201,162,39,.28),transparent 65%);filter:blur(12px);}
-  .stage img{position:relative;height:100%;width:auto;
-    -webkit-mask-image:repeating-linear-gradient(0deg,#000 0 3px,rgba(0,0,0,.82) 3px 4px);}
-  .bed{position:absolute;left:12%;right:12%;bottom:13%;height:1px;background:var(--line-2);}
+  .peca{position:relative;flex:0 0 330px;height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  /* o logo "impresso": linhas de camada à mostra e a linha dourada do bico sobre o último terço */
+  .peca img{height:330px;width:auto;filter:drop-shadow(0 30px 40px rgba(0,0,0,.6));
+    -webkit-mask-image:repeating-linear-gradient(0deg,#000 0 3px,rgba(0,0,0,.72) 3px 4px);}
+  .sombra{width:240px;height:22px;margin-top:18px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.75),transparent);}
+  .camada{position:absolute;left:50%;transform:translateX(-50%);bottom:30px;font-family:'Geist Mono',monospace;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
 
-  .copy{flex:1;}
-  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:15px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:14px;}
-  .eyebrow::before{content:"";width:34px;height:1px;background:var(--gold);}
-  h1{font-family:'Fraunces',serif;font-weight:300;font-size:66px;line-height:1.05;letter-spacing:-.01em;margin-top:26px;}
-  h1 em{font-style:italic;font-weight:400;background:linear-gradient(100deg,var(--gold),var(--gold-2) 40%,var(--gold) 70%);-webkit-background-clip:text;background-clip:text;color:transparent;}
-  .meta{margin-top:40px;padding-top:26px;border-top:1px solid var(--line);display:flex;gap:32px;font-size:19px;color:var(--muted);}
-  .meta b{font-family:'Fraunces',serif;font-weight:300;color:var(--text);font-size:22px;}
+  .texto{flex:1;}
+  .etiqueta{display:inline-flex;align-items:center;gap:10px;padding:9px 16px;border:1px solid var(--line-2);border-radius:999px;
+    font-family:'Geist Mono',monospace;font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:var(--body);}
+  .etiqueta::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ouro);box-shadow:0 0 12px var(--ouro);}
+  h1{margin-top:28px;font-size:76px;font-weight:600;line-height:.98;letter-spacing:-.045em;}
+  h1 span{background:linear-gradient(180deg,#F3DC8E,#C9A227 60%,#9C7A1C);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .rodape{margin-top:36px;padding-top:24px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;font-size:21px;color:var(--muted);}
+  .rodape b{font-weight:500;color:var(--text);}
 </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="panel">
-      <i class="corner c1"></i><i class="corner c2"></i><i class="corner c3"></i><i class="corner c4"></i>
-      <span class="label tl">NP—3D</span><span class="label tr">● Impressão 3D</span>
-      <span class="label bl">Camada 0,20 mm</span><span class="label br">Goiânia · BR</span>
-      <div class="stage"><img src="../logo.png" alt=""></div>
-      <div class="bed"></div>
+    <div class="peca">
+      <img src="../logo.png" alt="">
+      <div class="sombra"></div>
+      <span class="camada">Camada 0,20 mm</span>
     </div>
-    <div class="copy">
-      <span class="eyebrow">Nosso Projeto 3D</span>
-      <h1>Ideias que ganham forma, <em>camada por camada.</em></h1>
-      <div class="meta"><b>Goiânia e região</b><span>·</span><span>Enviamos para todo o Brasil</span></div>
+    <div class="texto">
+      <span class="etiqueta">Nosso Projeto 3D · Goiânia</span>
+      <h1>Ideias que ganham forma, <span>camada por camada.</span></h1>
+      <p class="rodape"><b>Brindes, lembrancinhas e peças sob medida</b><span>Envio para todo o Brasil</span></p>
     </div>
   </div>
 </body>

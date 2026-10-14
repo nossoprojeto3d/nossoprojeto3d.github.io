@@ -1,0 +1,248 @@
+---
+// Menu (V3): ilha de vidro flutuante.
+// - Encolhe ao rolar, some ao descer e volta ao subir; a linha dourada embaixo avança com a página, como uma impressão.
+// - Computador: destaque que desliza entre os links e marca a seção visível; "Sites" abre um painel com os nossos sites.
+// - Celular: botão que vira X e abre o menu em tela cheia.
+import { LINKS, url } from "../../data/links";
+import { GRUPOS_SITES } from "../../data/sites";
+
+const secoes = [
+  { id: "vitrine", nome: "Vitrine" },
+  { id: "quem-somos", nome: "Quem somos" }
+];
+---
+<header class="menu" data-menu>
+  <div class="ilha">
+    <a href={url()} class="marca" aria-label="Nosso Projeto 3D, início">
+      <img src={url("assets/logo.png")} alt="" width="254" height="300">
+      <span translate="no">Nosso Projeto 3D</span>
+    </a>
+
+    <nav class="links" aria-label="Seções">
+      <span class="realce" aria-hidden="true"></span>
+      {secoes.map((s) => <a href={url(`#${s.id}`)} data-secao={s.id}>{s.nome}</a>)}
+      <div class="sites">
+        <button type="button" class="sites-botao" aria-expanded="false" aria-controls="painel-sites" data-secao="nossos-sites">
+          Sites <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        </button>
+        <div class="painel" id="painel-sites">
+          <div class="painel-miolo">
+            {GRUPOS_SITES.map((g) => (
+              <div>
+                <p class="legenda">{g.titulo}</p>
+                <ul>
+                  {g.sites.map((s) => (
+                    <li>
+                      <a href={s.href} data-link={s.link} target="_blank" rel="noopener noreferrer">
+                        <span class="painel-icone"><svg width="18" height="18" aria-hidden="true"><use href={`#${s.icone}`}/></svg></span>
+                        <span><b>{s.nome}</b><small>{s.texto}</small></span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="acoes">
+      <a href={LINKS.catalogo.site} data-link="catalogo.site" target="_blank" rel="noopener noreferrer" class="catalogo">Catálogo</a>
+      <a href={LINKS.contato.whatsapp} data-link="contato.whatsapp" target="_blank" rel="noopener noreferrer" class="zap" aria-label="WhatsApp">
+        <svg width="17" height="17" aria-hidden="true"><use href="#i-whatsapp"/></svg>
+        <span>WhatsApp</span>
+      </a>
+      <button type="button" class="hamburguer" aria-expanded="false" aria-controls="menu-tela" aria-label="Abrir menu">
+        <span></span><span></span>
+      </button>
+    </div>
+    <span class="progresso" aria-hidden="true"></span>
+  </div>
+</header>
+
+<div class="tela" id="menu-tela" inert>
+  <nav class="tela-links" aria-label="Menu">
+    {secoes.map((s, i) => <a href={url(`#${s.id}`)} style={`--i:${i}`}>{s.nome}</a>)}
+    <a href={url("#nossos-sites")} style="--i:2">Nossos sites</a>
+    <a href={LINKS.catalogo.site} data-link="catalogo.site" target="_blank" rel="noopener noreferrer" style="--i:3">Catálogo <svg width="22" height="22" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+  </nav>
+  <div class="tela-pe" style="--i:4">
+    <a href={LINKS.contato.whatsapp} data-link="contato.whatsapp" target="_blank" rel="noopener noreferrer" class="botao botao-ouro">
+      Pedir no WhatsApp <span class="ilha-icone"><svg width="18" height="18" aria-hidden="true"><use href="#i-whatsapp"/></svg></span>
+    </a>
+    <a href={LINKS.contato.instagram} data-link="contato.instagram" target="_blank" rel="noopener noreferrer" class="legenda tela-insta">
+      <svg width="16" height="16" aria-hidden="true"><use href="#i-instagram"/></svg>@nossoprojeto3d
+    </a>
+  </div>
+</div>
+
+<style>
+  .menu{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 0;pointer-events:none;
+    transition:transform .6s var(--mola);}
+  .menu:global(.escondido){transform:translateY(-120%);}
+  .ilha{pointer-events:auto;position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;width:min(100%,960px);height:60px;padding:0 8px 0 18px;border-radius:999px;
+    background:rgba(17,17,19,.55);border:1px solid var(--line-2);box-shadow:0 20px 50px -24px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.06);
+    -webkit-backdrop-filter:blur(20px) saturate(1.5);backdrop-filter:blur(20px) saturate(1.5);
+    transition:width .7s var(--mola),height .7s var(--mola),background-color .4s ease;}
+  .menu:global(.compacto) .ilha{width:min(100%,880px);height:54px;background:rgba(17,17,19,.82);}
+
+  .marca{display:flex;align-items:center;gap:10px;min-width:0;}
+  .marca img{height:26px;width:auto;}
+  .marca span{font-weight:600;font-size:15px;letter-spacing:-.02em;white-space:nowrap;}
+
+  /* links com destaque que desliza (posição e largura vêm do script) */
+  .links{position:relative;display:flex;align-items:center;gap:2px;}
+  .links > a,.sites-botao{position:relative;z-index:1;display:flex;align-items:center;gap:6px;height:38px;padding:0 14px;border:0;border-radius:999px;background:none;cursor:pointer;
+    font-size:14px;color:var(--body);transition:color .3s ease;}
+  .links > a:hover,.sites-botao:hover,.links [aria-current="true"],.sites-botao[aria-expanded="true"]{color:var(--text);}
+  .sites-botao svg{transition:transform .5s var(--mola);}
+  .sites-botao[aria-expanded="true"] svg{transform:rotate(180deg);}
+  .realce{position:absolute;top:0;left:0;height:38px;width:0;border-radius:999px;background:rgba(255,255,255,.08);opacity:0;
+    transition:transform .5s var(--mola),width .5s var(--mola),opacity .3s ease;}
+
+  /* painel dos sites */
+  .sites{position:relative;}
+  .painel{position:absolute;top:calc(100% + 18px);left:50%;width:min(620px,calc(100vw - 32px));transform:translateX(-50%) translateY(-8px) scale(.97);transform-origin:50% 0;
+    opacity:0;visibility:hidden;transition:opacity .3s ease,transform .5s var(--mola),visibility 0s .3s;}
+  .sites-botao[aria-expanded="true"] + .painel{opacity:1;visibility:visible;transform:translateX(-50%);transition:opacity .3s ease,transform .5s var(--mola);}
+  .painel::before{content:"";position:absolute;left:0;right:0;top:-18px;height:18px;} /* ponte invisível pro mouse não "cair" no vão */
+  .painel-miolo{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:18px;border-radius:24px;border:1px solid var(--line-2);
+    background:rgba(17,17,19,.985);box-shadow:0 30px 80px -30px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.06);
+    -webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);}
+  .painel .legenda{padding:4px 10px 8px;}
+  .painel ul{margin:0;padding:0;list-style:none;}
+  .painel li a{display:flex;gap:12px;align-items:flex-start;padding:10px;border-radius:14px;transition:background-color .25s ease;}
+  .painel li a:hover,.painel li a:focus-visible{background:rgba(255,255,255,.06);}
+  .painel-icone{flex-shrink:0;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ouro-claro);}
+  .painel b{display:block;font-weight:500;font-size:14px;color:var(--text);}
+  .painel small{display:block;margin-top:2px;font-size:12.5px;line-height:1.45;color:var(--muted);}
+
+  .acoes{display:flex;align-items:center;gap:6px;}
+  .catalogo{padding:10px 14px;border-radius:999px;font-size:14px;color:var(--body);transition:color .3s ease,background-color .3s ease;}
+  .catalogo:hover{color:var(--text);background:rgba(255,255,255,.06);}
+  .zap{display:flex;align-items:center;gap:8px;height:42px;padding:0 16px;border-radius:999px;background:var(--text);color:#0A0A0B;font-size:14px;font-weight:500;
+    transition:transform .5s var(--mola),height .7s var(--mola);}
+  .zap:active{transform:scale(.96);}
+  .menu:global(.compacto) .zap{height:38px;}
+
+  /* progresso da página: linha dourada na base da ilha */
+  .progresso{position:absolute;left:28px;right:28px;bottom:-1px;height:1px;transform-origin:0 50%;transform:scaleX(0);
+    background:linear-gradient(90deg,transparent,var(--ouro) 20%,var(--ouro-claro));box-shadow:0 0 8px rgba(232,200,115,.7);}
+  @supports (animation-timeline:scroll()){
+    .progresso{animation:progresso linear both;animation-timeline:scroll(root);}
+    @keyframes progresso{to{transform:scaleX(1);}}
+  }
+
+  /* hambúrguer: as duas linhas giram e formam um X */
+  .hamburguer{display:none;position:relative;width:42px;height:42px;border:1px solid var(--line-2);border-radius:50%;background:rgba(255,255,255,.04);cursor:pointer;}
+  .hamburguer span{position:absolute;left:13px;right:13px;height:1.5px;border-radius:2px;background:var(--text);transition:transform .5s var(--mola);}
+  .hamburguer span:first-child{transform:translateY(-3.5px);}
+  .hamburguer span:last-child{transform:translateY(3.5px);}
+  .hamburguer[aria-expanded="true"] span:first-child{transform:rotate(45deg);}
+  .hamburguer[aria-expanded="true"] span:last-child{transform:rotate(-45deg);}
+
+  /* menu em tela cheia (celular) */
+  .tela{position:fixed;inset:0;z-index:19;display:flex;flex-direction:column;justify-content:space-between;padding:calc(env(safe-area-inset-top,0px) + 110px) 24px calc(env(safe-area-inset-bottom,0px) + 32px);
+    background:rgba(10,10,11,.86);-webkit-backdrop-filter:blur(28px) saturate(1.4);backdrop-filter:blur(28px) saturate(1.4);
+    opacity:0;visibility:hidden;transition:opacity .45s ease,visibility 0s .45s;}
+  .tela:global(.aberta){opacity:1;visibility:visible;transition:opacity .45s ease;}
+  .tela-links{display:flex;flex-direction:column;}
+  .tela-links a{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line);
+    font-size:clamp(30px,9vw,44px);font-weight:600;letter-spacing:-.035em;}
+  .tela-links a,.tela-pe{opacity:0;transform:translateY(40px);transition:opacity .5s ease,transform .7s var(--mola);}
+  .tela:global(.aberta) .tela-links a,.tela:global(.aberta) .tela-pe{opacity:1;transform:none;transition-delay:calc(var(--i) * 60ms + 100ms);}
+  .tela-pe{display:flex;flex-direction:column;gap:20px;align-items:stretch;}
+  .tela-pe .botao{width:100%;}
+  .ilha-icone{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:rgba(21,16,5,.12);}
+  .tela-insta{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 0;}
+
+  @media (max-width:900px){
+    .links,.catalogo{display:none;}
+    .hamburguer{display:block;}
+  }
+  @media (max-width:420px){
+    .ilha{gap:8px;padding-left:14px;}
+    .marca span{font-size:14px;}
+    .zap{width:42px;padding:0;justify-content:center;}
+    .zap span{display:none;}
+  }
+  @media (min-width:901px){
+    .tela{display:none;}
+  }
+</style>
+
+<script>
+  const menu = document.querySelector<HTMLElement>("[data-menu]")!;
+  const tela = document.getElementById("menu-tela")!;
+  const hamburguer = menu.querySelector<HTMLButtonElement>(".hamburguer")!;
+  const sitesBotao = menu.querySelector<HTMLButtonElement>(".sites-botao")!;
+  const realce = menu.querySelector<HTMLElement>(".realce")!;
+  const itens = [...menu.querySelectorAll<HTMLElement>(".links [data-secao]")];
+
+  // ---- rolagem: compacto, some ao descer, volta ao subir ----
+  let ultimoY = scrollY;
+  let pedido = 0;
+  const aoRolar = () => {
+    pedido = 0;
+    const y = scrollY;
+    menu.classList.toggle("compacto", y > 40);
+    const ocupado = tela.classList.contains("aberta") || sitesBotao.getAttribute("aria-expanded") === "true";
+    if (!ocupado && Math.abs(y - ultimoY) > 6) menu.classList.toggle("escondido", y > ultimoY && y > 640);
+    ultimoY = y;
+  };
+  addEventListener("scroll", () => { if (!pedido) pedido = requestAnimationFrame(aoRolar); }, { passive: true });
+  aoRolar();
+  // o foco do teclado nunca fica num menu escondido
+  menu.addEventListener("focusin", () => menu.classList.remove("escondido"));
+
+  // ---- destaque que desliza: vai pro link sob o mouse; parado, marca a seção visível ----
+  let secaoAtual: HTMLElement | null = null;
+  const realcar = (el: HTMLElement | null) => {
+    if (!el) { realce.style.opacity = "0"; return; }
+    realce.style.opacity = "1";
+    realce.style.width = `${el.offsetWidth}px`;
+    realce.style.transform = `translateX(${el.offsetLeft}px)`;
+  };
+  itens.forEach((el) => el.addEventListener("pointerenter", () => realcar(el)));
+  menu.querySelector(".links")!.addEventListener("pointerleave", () => realcar(secaoAtual));
+  const visiveis = new Map<string, boolean>();
+  const observador = new IntersectionObserver((entradas) => {
+    entradas.forEach((e) => visiveis.set(e.target.id, e.isIntersecting));
+    const id = itens.map((el) => el.dataset.secao!).filter((s) => visiveis.get(s)).pop();
+    secaoAtual = itens.find((el) => el.dataset.secao === id) ?? null;
+    itens.forEach((el) => el.setAttribute("aria-current", String(el === secaoAtual)));
+    realcar(secaoAtual);
+  }, { rootMargin: "-45% 0px -50% 0px" });
+  itens.forEach((el) => { const s = document.getElementById(el.dataset.secao!); if (s) observador.observe(s); });
+
+  // ---- painel dos sites: abre no hover (com folga) ou no clique; Esc e clique fora fecham ----
+  const caixaSites = menu.querySelector<HTMLElement>(".sites")!;
+  let tempo = 0;
+  const abrirSites = (abrir: boolean) => sitesBotao.setAttribute("aria-expanded", String(abrir));
+  const comMouse = matchMedia("(hover: hover) and (pointer: fine)").matches;
+  if (comMouse) {
+    caixaSites.addEventListener("pointerenter", () => { clearTimeout(tempo); tempo = window.setTimeout(() => abrirSites(true), 120); });
+    caixaSites.addEventListener("pointerleave", () => { clearTimeout(tempo); tempo = window.setTimeout(() => abrirSites(false), 260); });
+  }
+  sitesBotao.addEventListener("click", () => abrirSites(sitesBotao.getAttribute("aria-expanded") !== "true"));
+  document.addEventListener("click", (e) => { if (!caixaSites.contains(e.target as Node)) abrirSites(false); });
+
+  // ---- menu em tela cheia (celular) ----
+  const abrirTela = (abrir: boolean) => {
+    tela.classList.toggle("aberta", abrir);
+    tela.inert = !abrir;
+    hamburguer.setAttribute("aria-expanded", String(abrir));
+    hamburguer.setAttribute("aria-label", abrir ? "Fechar menu" : "Abrir menu");
+    document.documentElement.style.overflow = abrir ? "hidden" : "";
+    if (abrir) menu.classList.remove("escondido");
+  };
+  hamburguer.addEventListener("click", () => abrirTela(!tela.classList.contains("aberta")));
+  tela.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => abrirTela(false)));
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (tela.classList.contains("aberta")) { abrirTela(false); hamburguer.focus(); }
+    if (sitesBotao.getAttribute("aria-expanded") === "true") { abrirSites(false); sitesBotao.focus(); }
+  });
+</script>
