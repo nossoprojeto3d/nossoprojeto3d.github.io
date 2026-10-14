@@ -15,6 +15,11 @@ export interface Peca {
   giro: "volta" | "balanco";
   /** movimento próprio da peça a cada quadro (ex.: asas batendo); t em segundos */
   animar?: (t: number, imprimindo: boolean) => void;
+  /**
+   * Impressão própria, no lugar do corte que sobe: recebe o andamento (0 a 1), mostra o que já foi
+   * "impresso" e devolve onde está a ponta do bico (coordenadas do grupo), ou null se o bico some.
+   */
+  desenho?: (progresso: number) => THREE.Vector3 | null;
 }
 
 // cores de filamento (PLA)
@@ -52,12 +57,87 @@ function material(cor: string, rugosidade: number, metal: number) {
   return new THREE.MeshStandardMaterial({ color: cor, roughness: rugosidade, metalness: metal });
 }
 
+/**
+ * Logo "desenhado com filamento": como na primeira camada de uma impressão, o bico traça o contorno
+ * de cada parte do NP com um fio dourado aceso; quando os contornos fecham, o miolo se preenche numa
+ * placa fina de ouro e o fio fica como borda luminosa. Mantém as linhas finas do logo original.
+ */
 function logo(): Peca {
-  const m = material(COR.ouro, 0.27, 1);
-  const malha = new THREE.Mesh(extrudarSvg(LOGO.d, 2.2, LOGO.altura, 90, 10), m);
+  const altura = 2.2;
+  const espessura = 0.07;
+  const e = altura / LOGO.altura;
+  const formas = formasDoPath(LOGO.d);
+
+  // placa: o desenho do logo com pouca espessura, centrada e com a base em y = 0
+  const gPlaca = new THREE.ExtrudeGeometry(formas, { depth: espessura / e, bevelEnabled: true, bevelThickness: 3, bevelSize: 2, bevelSegments: 2, curveSegments: 6 });
+  gPlaca.scale(e, -e, -e);
+  gPlaca.computeBoundingBox();
+  const b = gPlaca.boundingBox!;
+  const centro = new THREE.Vector3((b.min.x + b.max.x) / 2, b.min.y, (b.min.z + b.max.z) / 2);
+  gPlaca.translate(-centro.x, -centro.y, -centro.z);
+  gPlaca.computeVertexNormals();
+  const mPlaca = material(COR.ouro, 0.34, 1);
+  mPlaca.transparent = true;
+  mPlaca.opacity = 0;
+  const placa = new THREE.Mesh(gPlaca, mPlaca);
+
+  // contornos (paredes) de cada parte, na frente da placa, na ordem em que o bico passa
+  const frente = espessura / 2 + 0.008;
+  const paraCena = (p: THREE.Vector2) => new THREE.Vector3(p.x * e - centro.x, -p.y * e - centro.y, frente);
+  const contornos = formas.flatMap((f) => [f.getPoints(8), ...f.holes.map((h) => h.getPoints(8))]).map((pts) => pts.map(paraCena));
+  contornos.sort((p, q) => Math.min(...p.map((v) => v.x)) - Math.min(...q.map((v) => v.x)));
+
+  const QUENTE = new THREE.Color("#FFE2A0"); // fio saindo do bico
+  const FRIO = new THREE.Color("#E3BC5E"); // fio já assentado, depois do preenchimento
+  const mFio = new THREE.MeshBasicMaterial({ color: QUENTE.clone(), toneMapped: false });
+  const mHalo = new THREE.MeshBasicMaterial({ color: "#E8B84A", transparent: true, opacity: 0.14, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
   const grupo = new THREE.Group();
-  grupo.add(malha);
-  return { grupo, materiais: [m], giro: "balanco" };
+  grupo.add(placa);
+  let total = 0;
+  const fios = contornos.map((pts) => {
+    const caminho = new THREE.CurvePath<THREE.Vector3>();
+    for (let i = 0; i < pts.length; i++) caminho.add(new THREE.LineCurve3(pts[i], pts[(i + 1) % pts.length]));
+    const comprimento = caminho.getLength();
+    const passos = Math.max(32, Math.round(comprimento * 120));
+    const gFio = new THREE.TubeGeometry(caminho, passos, 0.0065, 6, false);
+    const gHalo = new THREE.TubeGeometry(caminho, passos, 0.02, 6, false);
+    const fio = new THREE.Mesh(gFio, mFio);
+    const halo = new THREE.Mesh(gHalo, mHalo);
+    grupo.add(fio, halo);
+    const inicio = total;
+    total += comprimento;
+    return { caminho, gFio, gHalo, inicio, comprimento };
+  });
+
+  const bico = new THREE.Vector3();
+  const CONTORNO = 0.72; // até aqui o bico desenha as paredes; depois preenche
+  return {
+    grupo,
+    materiais: [mPlaca],
+    giro: "balanco",
+    desenho(progresso) {
+      // 1) contornos, um depois do outro, na velocidade do comprimento de cada um
+      const feito = Math.min(progresso / CONTORNO, 1) * total;
+      let ponta: THREE.Vector3 | null = null;
+      for (const f of fios) {
+        const parte = THREE.MathUtils.clamp((feito - f.inicio) / f.comprimento, 0, 1);
+        for (const g of [f.gFio, f.gHalo]) g.setDrawRange(0, Math.floor((g.index!.count / 3) * parte) * 3);
+        if (parte > 0 && parte < 1) ponta = f.caminho.getPointAt(parte, bico);
+      }
+      // 2) preenchimento: a placa aparece e o bico varre o logo em zigue-zague
+      const enchendo = THREE.MathUtils.clamp((progresso - CONTORNO) / (1 - CONTORNO), 0, 1);
+      mPlaca.opacity = enchendo;
+      mPlaca.transparent = enchendo < 1;
+      // o fio esfria e o brilho baixa conforme a placa se preenche: fica só um filete dourado na borda
+      mFio.color.copy(QUENTE).lerp(FRIO, enchendo);
+      mHalo.opacity = 0.14 * (1 - enchendo) + 0.04;
+      if (!ponta && enchendo > 0 && enchendo < 1) {
+        const larg = b.max.x - b.min.x;
+        ponta = bico.set(-larg / 2 + (0.5 + 0.5 * Math.sin(enchendo * 60)) * larg, enchendo * altura, frente);
+      }
+      return progresso >= 1 ? null : ponta;
+    }
+  };
 }
 
 /** Material de PLA com a cor exata (matcap, sem luz da cena): o mesmo das peças reais. */

@@ -1,7 +1,6 @@
 // Palco 3D: mostra uma peça "sendo impressa" camada por camada e depois deixa girar com o dedo.
 // Só desenha enquanto está na tela; com "reduzir movimento", a peça aparece pronta e parada.
 import * as THREE from "three";
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { PECAS, type NomePeca, type Peca } from "./pecas";
 
 export interface Palco {
@@ -21,6 +20,29 @@ const quieto = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const ALTURA_CAMADA = 0.022;
 const agora = () => performance.now() / 1000;
 
+/**
+ * Estúdio de fotografia de joia, só pra reflexo: sala quase preta com três softboxes (em cima, à esquerda
+ * e uma faixa à direita). Metal refletindo isso ganha contraste de ouro de verdade; num ambiente cinza
+ * uniforme ele vira amarelo chapado.
+ */
+function estudio() {
+  const sala = new THREE.Scene();
+  const paredes = new THREE.Mesh(new THREE.BoxGeometry(20, 20, 20), new THREE.MeshBasicMaterial({ color: "#060606", side: THREE.BackSide }));
+  sala.add(paredes);
+  const luz = (l: number, a: number, intensidade: number, pos: [number, number, number]) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(l, a), new THREE.MeshBasicMaterial({ color: new THREE.Color(intensidade, intensidade * 0.97, intensidade * 0.9), side: THREE.DoubleSide }));
+    m.position.set(...pos);
+    m.lookAt(0, 0, 0);
+    sala.add(m);
+  };
+  luz(8, 3, 3.2, [0, 9, 3]);     // softbox de cima, puxado pra frente
+  luz(2, 9, 2.2, [-9, 1, 4]);    // faixa à esquerda
+  luz(1.2, 9, 1.4, [9, 0, -2]);  // contraluz fina à direita
+  luz(6, 1, 0.6, [0, -6, 8]);    // rebatedor baixo, pra não sumir a base
+  luz(14, 7, 1.25, [0, -1.5, 10]); // softbox grande de frente, atrás da câmera: dá o brilho na face das letras
+  return sala;
+}
+
 export function criarPalco(canvas: HTMLCanvasElement, opcoes: Opcoes = {}): Palco | null {
   let renderer: THREE.WebGLRenderer;
   try {
@@ -31,14 +53,15 @@ export function criarPalco(canvas: HTMLCanvasElement, opcoes: Opcoes = {}): Palc
   const duracao = opcoes.duracao ?? 3;
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.NeutralToneMapping; // mantém a saturação das cores de PLA (o ACES deixava tudo pastel)
+  // ACES deixa o ouro rico; as peças de PLA colorido usam matcap sem tone mapping, então não são afetadas
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
   renderer.localClippingEnabled = true;
 
   const cena = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
-  cena.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  cena.environmentIntensity = 1.35;
+  cena.environment = pmrem.fromScene(estudio(), 0.03).texture;
+  cena.environmentIntensity = 1;
   pmrem.dispose();
 
   const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 100);
@@ -179,7 +202,8 @@ export function criarPalco(canvas: HTMLCanvasElement, opcoes: Opcoes = {}): Palc
     enquadrar();
     inicio = agora();
     imprimindo = !quieto;
-    uCorte.value = quieto ? altura + 1 : 0;
+    uCorte.value = quieto || p.desenho ? altura + 1 : 0;
+    p.desenho?.(quieto ? 1 : 0);
     acordar();
   }
 
@@ -199,7 +223,19 @@ export function criarPalco(canvas: HTMLCanvasElement, opcoes: Opcoes = {}): Palc
     anterior = t;
 
     // impressão: o corte sobe com um leve "ease-out"; o bico vai e volta sobre a camada
-    if (imprimindo) {
+    if (imprimindo && atual.desenho) {
+      // a peça imprime do seu jeito (ex.: logo desenhado com filamento); o bico segue a ponta do fio
+      const p = Math.min((t - inicio) / duracao, 1);
+      uCorte.value = altura + 1;
+      uBrilho.value = 0;
+      const ponta = atual.desenho(p);
+      if (ponta) {
+        bico.position.copy(atual.grupo.localToWorld(ponta.clone()));
+        bico.visible = true;
+      }
+      opcoes.aoImprimir?.(p);
+      if (p >= 1) imprimindo = false;
+    } else if (imprimindo) {
       const p = Math.min((t - inicio) / duracao, 1);
       const suave = 1 - Math.pow(1 - p, 1.6);
       uCorte.value = suave * (altura + 0.02);

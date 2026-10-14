@@ -119,7 +119,7 @@ const abas = [
   carregar().then(({ criarPalco }) => {
     const canvas = document.querySelector<HTMLCanvasElement>("#palco-hero canvas")!;
     const palco = criarPalco(canvas, {
-      duracao: 3.2,
+      duracao: 5.5,
       aoImprimir: (p) => {
         // durante a impressão mostra a camada; no fim a legenda some
         legendaHero.textContent = p < 1 ? `Imprimindo · camada ${String(Math.ceil(p * camadas)).padStart(3, "0")}/${camadas}` : "\u00a0";
