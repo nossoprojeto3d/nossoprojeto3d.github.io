@@ -3,6 +3,20 @@ import Pagina from "../layouts/Pagina.astro";
 import { LINKS, url } from "../data/links";
 ---
 <Pagina titulo="Página não encontrada · Nosso Projeto 3D" descricao="A página que você procurou não existe ou mudou de lugar." semIndice>
+  <!-- Endereços que mudaram de lugar: leva para o novo mantendo o resto do link (?…, #…).
+       O GitHub Pages serve este 404 em qualquer caminho que não exista no domínio. -->
+  <script is:inline>
+    (function () {
+      var mudou = { "/calc-3d": "/calculadora", "/ajuste-3mf": "/ajustes", "/site": "" };
+      var p = location.pathname;
+      for (var antigo in mudou) {
+        if (p === antigo || p.indexOf(antigo + "/") === 0) {
+          location.replace(((mudou[antigo] + p.slice(antigo.length)) || "/") + location.search + location.hash);
+          return;
+        }
+      }
+    })();
+  </script>
   <section class="erro">
     <div class="container">
       <span class="etiqueta">Erro 404</span>

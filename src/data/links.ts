@@ -15,14 +15,14 @@ export const LINKS = {
     stlsGratis: "https://drive.google.com/drive/folders/1KEVqYll78dvHoo0AbDUCeM57MLXllw48?usp=sharing"
   },
   calculadora: {
-    site: "https://nossoprojeto3d.com.br/calc-3d/",
-    github: "https://github.com/nossoprojeto3d/calc-3d"
+    site: "https://nossoprojeto3d.com.br/calculadora/",
+    github: "https://github.com/nossoprojeto3d/calculadora"
   },
   catalogo: {
     site: "https://nossoprojeto3d.com.br/catalogo/"
   },
   ajuste3mf: {
-    site: "https://nossoprojeto3d.com.br/ajuste-3mf/"
+    site: "https://nossoprojeto3d.com.br/ajustes/"
   }
 };
 
