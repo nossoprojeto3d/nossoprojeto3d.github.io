@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Enviado no Google Search Console (propriedade https://nossoprojeto3d.com.br/).
      Atualize o lastmod quando o conteúdo da página mudar. As antigas /empresas/, /eventos/ e /para-voce/
-     hoje só levam pras abas da página única, por isso saíram daqui. -->
+     hoje só levam pras abas da página única, por isso saíram daqui.
+     Catálogo e calculadora são outros repositórios no mesmo domínio: se mudar o endereço deles, atualize aqui. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://nossoprojeto3d.com.br/</loc><lastmod>2026-10-14</lastmod></url>
+  <url><loc>https://nossoprojeto3d.com.br/catalogo/</loc><lastmod>2026-11-08</lastmod></url>
+  <url><loc>https://nossoprojeto3d.com.br/calc-3d/</loc><lastmod>2026-11-08</lastmod></url>
 </urlset>
