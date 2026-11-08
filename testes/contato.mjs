@@ -66,7 +66,7 @@ console.log("3. Endereços antigos e 404");
 for (const [p, aba] of [["empresas/index.html", "empresas"], ["eventos/index.html", "eventos"], ["para-voce/index.html", "voce"]]) {
   const refresh = /http-equiv="refresh" content="0; url=([^"]+)"/.exec(html[p])?.[1];
   const script = /const destino = "([^"]+)"[\s\S]*?location\.replace\(destino\)/.exec(html[p])?.[1];
-  certo(refresh === `/site/#${aba}` && script === `/site/#${aba}`, `${p} não leva para #${aba} (refresh: ${refresh}, script: ${script})`);
+  certo(refresh === `/#${aba}` && script === `/#${aba}`, `${p} não leva para #${aba} (refresh: ${refresh}, script: ${script})`);
 }
 const erro = links(html["404.html"]);
 certo(erro.some((l) => l.href === LINKS.catalogo.site), "404 sem link pro catálogo");

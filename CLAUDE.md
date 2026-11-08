@@ -1,12 +1,12 @@
 # Site Nosso Projeto 3D
 
-Site institucional e porta de entrada de vendas, publicado no GitHub Pages: https://nossoprojeto3d.github.io/site/
+Site institucional e porta de entrada de vendas, publicado no GitHub Pages (repositório `nossoprojeto3d.github.io`): https://nossoprojeto3d.com.br/ (os endereços antigos `/site/...` levam pra raiz)
 Todo push na `main` dispara `.github/workflows/deploy.yml`, que roda `astro check`, gera o site e publica. Se o check falhar, nada vai pro ar.
 
 Feito em **Astro**, sem React nem Tailwind, com **Three.js** nas peças 3D. É a V3: uma página só, escura e "tecnológica", com peças que se imprimem na tela. A V2 (cinco páginas, Fraunces, tema claro) está na etiqueta `backup-oficial-20261013`; a V1 em `v1-final`.
 
 ```bash
-npm run dev        # http://localhost:4321/site/  (--host pra abrir no celular pela rede)
+npm run dev        # http://localhost:4321/  (--host pra abrir no celular pela rede)
 npm run build      # gera dist/
 npx astro check    # tipos e erros; rode antes de commitar
 npm run testar     # bateria dos caminhos de contato (WhatsApp, Instagram, catálogo, Shopee); rode depois do build
@@ -20,8 +20,8 @@ npm run fotos      # prepara as fotos da pasta ~/Desktop/Fotos do site
 
 `src/pages/index.astro`, de cima pra baixo: topo (logo NP em 3D se imprimindo + Catálogo e WhatsApp com o mesmo peso), vitrine com abas Empresas / Eventos / Você (cada aba uma peça 3D e um "Pedir orçamento" com mensagem pronta no WhatsApp), Onde atendemos (mapa 3D), Quem somos, Nossos sites e rodapé.
 
-- `empresas.astro`, `eventos.astro`, `para-voce.astro`: só levam pra aba certa (`/site/#empresas` etc.), pra não quebrar links antigos. `#empresas`, `#eventos` e `#voce` abrem a aba em qualquer link.
-- `404.astro`: o GitHub Pages serve esse arquivo em qualquer endereço inexistente de `/site/`.
+- `empresas.astro`, `eventos.astro`, `para-voce.astro`: só levam pra aba certa (`/#empresas` etc.), pra não quebrar links antigos. `#empresas`, `#eventos` e `#voce` abrem a aba em qualquer link.
+- `404.astro`: o GitHub Pages serve esse arquivo em qualquer endereço inexistente do domínio.
 
 ## Onde mexer
 
@@ -61,6 +61,6 @@ Usado pelo `/conferir-site`, no build (`npm run build` e `npx astro preview`), n
 2. A página e a 404 abrem sem erros no console.
 3. O logo do topo se imprime; as três abas trocam a peça e o "Pedir orçamento"; o mapa 3D aparece.
 4. Todo botão de contato (menu, menu do celular, topo, vitrine, Nossos sites, rodapé) fica visível, sem nada por cima, e abre em nova aba. Não envie mensagem no WhatsApp.
-5. `/site/empresas/`, `/site/eventos/` e `/site/para-voce/` caem na aba certa.
+5. `/empresas/`, `/eventos/`, `/para-voce/` e os antigos `/site/...` caem na aba certa.
 6. "Conheça nossa história" abre e fecha o diálogo.
 7. Sem rolagem horizontal em 320px, 375px e 768px; o nome do rodapé cabe inteiro.

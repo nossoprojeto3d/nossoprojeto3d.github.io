@@ -13,7 +13,7 @@ interface Props {
   semIndice?: boolean;
 }
 const { titulo, descricao, semIndice = false } = Astro.props;
-const canonica = new URL(Astro.url.pathname, "https://nossoprojeto3d.github.io").href;
+const canonica = new URL(Astro.url.pathname, "https://nossoprojeto3d.com.br").href;
 // ?v=: muda quando a imagem muda, senão o WhatsApp continua mostrando a prévia antiga guardada em cache
 const og = `${SITE_URL}assets/og/og-image.jpg?v=3`;
 

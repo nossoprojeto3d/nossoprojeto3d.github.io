@@ -15,21 +15,21 @@ export const LINKS = {
     stlsGratis: "https://drive.google.com/drive/folders/1KEVqYll78dvHoo0AbDUCeM57MLXllw48?usp=sharing"
   },
   calculadora: {
-    site: "https://nossoprojeto3d.github.io/calc-3d/",
+    site: "https://nossoprojeto3d.com.br/calc-3d/",
     github: "https://github.com/nossoprojeto3d/calc-3d"
   },
   catalogo: {
-    site: "https://nossoprojeto3d.github.io/catalogo/"
+    site: "https://nossoprojeto3d.com.br/catalogo/"
   },
   ajuste3mf: {
-    site: "https://nossoprojeto3d.github.io/ajuste-3mf/"
+    site: "https://nossoprojeto3d.com.br/ajuste-3mf/"
   }
 };
 
-export const SITE_URL = "https://nossoprojeto3d.github.io/site/";
+export const SITE_URL = "https://nossoprojeto3d.com.br/";
 export const TELEFONE = "+55 62 99315-2843";
 
-/** Caminho interno respeitando o base (/site) do GitHub Pages. */
+/** Caminho interno respeitando o base do site (hoje a raiz do domínio). */
 export function url(caminho = "") {
   const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   return `${base}/${caminho.replace(/^\//, "")}`;

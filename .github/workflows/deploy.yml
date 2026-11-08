@@ -1,6 +1,6 @@
 name: Publicar no GitHub Pages
 
-# Todo push na main gera o site (Astro) e publica em https://nossoprojeto3d.github.io/site/
+# Todo push na main gera o site (Astro) e publica em https://nossoprojeto3d.com.br/
 on:
   push:
     branches: [main]
