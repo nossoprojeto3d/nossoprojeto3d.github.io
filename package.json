@@ -11,14 +11,11 @@
     "preview": "astro preview",
     "astro": "astro",
     "fotos": "node scripts/fotos.mjs",
-    "formas": "node scripts/formas.mjs",
-    "modelo": "node scripts/modelos.mjs",
     "icones": "node scripts/icones.mjs",
     "testar": "node testes/contato.mjs"
   },
   "dependencies": {
-    "astro": "^7.3.6",
-    "three": "^0.186.1"
+    "astro": "^7.3.6"
   },
   "allowScripts": {
     "esbuild": true
@@ -32,7 +29,6 @@
     "@types/d3-geo": "^3.1.1",
     "@types/node": "^26.6.4",
     "@types/opentype.js": "^1.3.10",
-    "@types/three": "^0.186.0",
     "@types/topojson-client": "^3.1.5",
     "@types/topojson-specification": "^1.0.5",
     "d3-geo": "^3.1.1",

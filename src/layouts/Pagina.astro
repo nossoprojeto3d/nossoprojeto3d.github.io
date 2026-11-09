@@ -1,9 +1,9 @@
 ---
-// Layout da V3 (página única, escuro neutro). O Base.astro continua servindo as páginas antigas até a V3 ser aprovada.
-import "../styles/v3.css";
+// Layout da V4 (página clara de três portas: comprar, criadores e quem somos).
+import "../styles/v4.css";
 import Icones from "../components/Icones.astro";
-import Menu from "../components/v3/Menu.astro";
-import Rodape from "../components/v3/Rodape.astro";
+import Topo from "../components/v4/Topo.astro";
+import Rodape from "../components/v4/Rodape.astro";
 import { LINKS, SITE_URL, TELEFONE, url } from "../data/links";
 
 interface Props {
@@ -21,7 +21,7 @@ const negocio = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
   name: "Nosso Projeto 3D",
-  description: "Impressão 3D em Goiânia: brindes com logo e expositores para empresas, peças personalizadas, miniaturas e decoração.",
+  description: "Impressão 3D em Goiânia: peças personalizadas, presentes e decoração, e ferramentas gratuitas para quem imprime.",
   url: SITE_URL,
   logo: `${SITE_URL}assets/logo.png`,
   image: og,
@@ -39,7 +39,7 @@ const negocio = {
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{titulo}</title>
   <meta name="description" content={descricao}>
-  <meta name="theme-color" content="#0A0A0B">
+  <meta name="theme-color" content="#faf8f2">
   {semIndice ? <meta name="robots" content="noindex"> : <link rel="canonical" href={canonica}>}
   <meta property="og:type" content="website">
   <meta property="og:locale" content="pt_BR">
@@ -60,7 +60,7 @@ const negocio = {
   <meta name="apple-mobile-web-app-title" content="Projeto 3D">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,600;112,750;112,800&family=Instrument+Sans:wght@400;500;600;700&display=swap">
   <script type="application/ld+json" set:html={JSON.stringify(negocio)} />
   <script is:inline src={url("assets/medicao.js")} defer></script>
 </head>
@@ -68,7 +68,7 @@ const negocio = {
   <a href="#topo" class="pular">Pular para o conteúdo</a>
   <Icones />
 
-  <Menu />
+  <Topo />
 
   <main id="topo" tabindex="-1">
     <slot />
@@ -76,24 +76,12 @@ const negocio = {
 
   <Rodape />
   <script>
-    // [data-inclinar]: inclina em 3D seguindo o mouse; só com mouse de verdade e sem "reduzir movimento"
-    if (matchMedia("(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)").matches) {
-      document.querySelectorAll<HTMLElement>("[data-inclinar]").forEach((el) => {
-        el.addEventListener("pointermove", (e) => {
-          const r = el.getBoundingClientRect();
-          const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
-          el.classList.add("inclinando");
-          el.style.setProperty("--ry", `${(x - 0.5) * 10}deg`);
-          el.style.setProperty("--rx", `${(0.5 - y) * 8}deg`);
-          el.style.setProperty("--gx", `${x * 100}%`);
-          el.style.setProperty("--gy", `${y * 100}%`);
-        });
-        el.addEventListener("pointerleave", () => {
-          el.classList.remove("inclinando");
-          el.style.setProperty("--rx", "0deg");
-          el.style.setProperty("--ry", "0deg");
-        });
-      });
+    // .surge: aparece ao chegar na tela. A página começa visível; só ganha o efeito se o JS rodar.
+    const surgem = document.querySelectorAll(".surge");
+    if (surgem.length && "IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      document.documentElement.classList.add("anima");
+      const io = new IntersectionObserver((itens) => itens.forEach((i) => { if (i.isIntersecting) { i.target.classList.add("visto"); io.unobserve(i.target); } }), { rootMargin: "0px 0px -8% 0px" });
+      surgem.forEach((el) => io.observe(el));
     }
   </script>
 </body>

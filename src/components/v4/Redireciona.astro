@@ -1,10 +1,10 @@
 ---
-// Página antiga que hoje é uma aba da página única: leva direto pra aba certa (#empresas, #eventos, #voce).
+// Páginas antigas (/empresas/, /eventos/, /para-voce/) levam para "Para você" (#comprar) na página única.
 // Links compartilhados e o Google continuam funcionando; o canonical aponta pra página única.
 import { SITE_URL, url } from "../../data/links";
-interface Props { aba: "empresas" | "eventos" | "voce"; nome: string }
-const { aba, nome } = Astro.props;
-const destino = url(`#${aba}`);
+interface Props { nome: string }
+const { nome } = Astro.props;
+const destino = url("#comprar");
 ---
 <!doctype html>
 <html lang="pt-BR">
@@ -16,7 +16,7 @@ const destino = url(`#${aba}`);
   <meta name="robots" content="noindex">
   <meta http-equiv="refresh" content={`0; url=${destino}`}>
   <script is:inline define:vars={{ destino }}>location.replace(destino);</script>
-  <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0A0A0B;color:#B6B6BC;font:16px system-ui,sans-serif;}a{color:#E8C873;}</style>
+  <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#faf8f2;color:#5c574a;font:16px system-ui,sans-serif;}a{color:#8A6A0A;}</style>
 </head>
 <body>
   <p>Abrindo <a href={destino}>{nome}</a>…</p>

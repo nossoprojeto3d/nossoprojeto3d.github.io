@@ -23,8 +23,14 @@ export const LINKS = {
   },
   ajuste3mf: {
     site: "https://nossoprojeto3d.com.br/ajustes/"
+  },
+  dicas: {
+    site: "https://nossoprojeto3d.com.br/dicas/"
   }
 };
+
+/** Queridinhos do catálogo (gerado pelo build do catálogo), sorteados na seção "Para você". */
+export const QUERIDINHOS_JSON = "https://nossoprojeto3d.com.br/catalogo/queridinhos.json";
 
 export const SITE_URL = "https://nossoprojeto3d.com.br/";
 export const TELEFONE = "+55 62 99315-2843";
@@ -43,11 +49,8 @@ export function url(caminho = "") {
 export const MENSAGENS = {
   menu: "Olá! Vim pelo site e queria tirar uma dúvida.",
   menuCelular: "Oi! Estava olhando o site de vocês e queria conversar.",
-  topo: "Olá! Vi o site e quero fazer um pedido.",
-  empresas: "Olá! Quero um orçamento de brindes ou expositores para a minha empresa.",
-  eventos: "Olá! Quero um orçamento de lembrancinhas ou decoração para uma festa.",
-  voce: "Olá! Quero um orçamento de uma peça personalizada.",
-  chamadaFinal: "Olá! Tenho uma ideia e queria transformar em peça.",
+  comprar: "Olá! Quero um orçamento de uma peça personalizada.",
+  quemSomos: "Olá! Conheci a história de vocês pelo site e queria conversar.",
   rodapeIcone: "Oi, tudo bem? Vim pelo site.",
   rodapeContato: "Olá, tudo bem? Gostaria de mais informações."
 };

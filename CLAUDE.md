@@ -3,50 +3,52 @@
 Site institucional e porta de entrada de vendas, publicado no GitHub Pages (repositório `nossoprojeto3d.github.io`): https://nossoprojeto3d.com.br/ (os endereços antigos `/site/...` levam pra raiz)
 Todo push na `main` dispara `.github/workflows/deploy.yml`, que roda `astro check`, gera o site e publica. Se o check falhar, nada vai pro ar.
 
-Feito em **Astro**, sem React nem Tailwind, com **Three.js** nas peças 3D. É a V3: uma página só, escura e "tecnológica", com peças que se imprimem na tela. A V2 (cinco páginas, Fraunces, tema claro) está na etiqueta `backup-oficial-20261013`; a V1 em `v1-final`.
+Feito em **Astro**, sem React nem Tailwind. É a **V4**: uma página só, **clara**, com o dourado da logo como destaque. A V3 (escura, com peças 3D em Three.js) está na etiqueta `v3-final`; a V2 em `backup-oficial-20261013`; a V1 em `v1-final`.
 
 ```bash
 npm run dev        # http://localhost:4321/  (--host pra abrir no celular pela rede)
-npm run build      # gera dist/
+npm run build      # gera dist/ (lê os queridinhos do catálogo no ar; QUERIDINHOS_ARQUIVO=<caminho> usa um arquivo local)
 npx astro check    # tipos e erros; rode antes de commitar
 npm run testar     # bateria dos caminhos de contato (WhatsApp, Instagram, catálogo, Shopee); rode depois do build
-npm run modelo -- <arquivo.3mf|.stl> <nome> [frente|em-pe]   # converte peça real em public/assets/3d/<nome>.glb
-npm run formas     # regenera src/data/formas.ts (contorno do logo e textos da lembrancinha)
 npm run icones     # regenera favicon e ícones de app a partir de public/assets/logo.png
 npm run fotos      # prepara as fotos da pasta ~/Desktop/Fotos do site
 ```
 
 ## Página
 
-`src/pages/index.astro`, de cima pra baixo: topo (logo NP em 3D se imprimindo + Catálogo e WhatsApp com o mesmo peso), vitrine com abas Empresas / Eventos / Você (cada aba uma peça 3D e um "Pedir orçamento" com mensagem pronta no WhatsApp), Onde atendemos (mapa 3D), Quem somos, Nossos sites e rodapé.
+`src/pages/index.astro`, de cima pra baixo:
 
-- `empresas.astro`, `eventos.astro`, `para-voce.astro`: só levam pra aba certa (`/#empresas` etc.), pra não quebrar links antigos. `#empresas`, `#eventos` e `#voce` abrem a aba em qualquer link.
-- `404.astro`: o GitHub Pages serve esse arquivo em qualquer endereço inexistente do domínio.
+1. **Abertura com três portas**: "Quero comprar" (Para você), "Sou maker" (Para criadores) e "Quem somos" (foto do casal). As duas primeiras têm uma vitrine que troca sozinha a cada 3,2 s (queridinhos do catálogo e prints dos projetos); no celular a vitrine fica na metade direita e o texto à esquerda. Cada porta desce até a seção dela.
+2. **Para você** (`#comprar`): "Criamos suas ideias camada por camada", com 6 queridinhos sorteados a cada visita (4 no celular), catálogo, WhatsApp e Shopee.
+3. **Para criadores** (`#criadores`): Calculadora, Ajuste 3MF, Dicas e STLs grátis, com o print de cada um.
+4. **Quem somos** (`#quem-somos`): foto, versículo, Goiânia, "Conheça nossa história" (diálogo `Historia.astro`), Instagram e WhatsApp.
+
+- **Queridinhos**: o build do catálogo gera `https://nossoprojeto3d.com.br/catalogo/queridinhos.json` (peças com MaisVendido preenchido, não esgotadas e com foto). O build do site já põe essa lista no HTML; no navegador o script busca a lista atual e sorteia. Marcou ou desmarcou um queridinho no painel do catálogo: a página acompanha sem precisar publicar o site.
+- **Prints dos projetos**: `public/assets/projetos/*.jpg` (960×713, tema claro quando o projeto tem). Se um projeto mudar de cara, tire o print de novo.
+- `empresas.astro`, `eventos.astro`, `para-voce.astro` e os `#empresas`, `#eventos` e `#voce` antigos levam para `#comprar`.
+- `404.astro`: o GitHub Pages serve esse arquivo em qualquer endereço inexistente do domínio; ele também leva `/calc-3d`, `/ajuste-3mf` e `/site` para os endereços novos.
 
 ## Onde mexer
 
-- `src/data/links.ts`: **toda URL externa fica aqui**, no objeto `LINKS`. Use `href={LINKS.grupo.chave}` com `data-link="grupo.chave"` (o `medicao.js` usa pra saber de onde veio o clique). Links internos passam por `url("caminho/")` (respeita o base, se um dia voltar a ter). **Não espalhe `{...ext}` em vários `<a>`**: o Astro gruda a classe do escopo várias vezes e o estilo some; escreva `target="_blank" rel="noopener noreferrer"`.
-- `MENSAGENS` em `src/data/links.ts`: a mensagem pronta de cada botão de WhatsApp, uma por parte do site (menu, topo, abas, chamada final, rodapé), pra saber pela conversa de onde a pessoa veio. Use `whatsapp("origem")` no `href` e `data-link="whatsapp.origem"`. As mensagens têm que ser diferentes entre si (o `npm run testar` confere).
-- `src/data/sites.ts`: os seis sites (menu "Sites", seção Nossos sites e rodapé).
-- Abas da vitrine: array `abas` no topo de `index.astro` (texto, itens, peça, legenda e mensagem do WhatsApp).
-- `src/scripts/palco.ts`: o palco 3D (impressão camada por camada com o bico, giro com o dedo, pausa fora da tela). `src/scripts/pecas.ts`: as peças. Peças reais vêm de `public/assets/3d/*.glb` com material de cor fiel (matcap, sem reflexo); `empresas.glb` é o chaveiro Starlink MG (do 3MF colorido), `voce.glb` é o pomo (bolinha e asas soltas, montadas no código). Logo e lembrancinha são feitos no código.
-- `src/scripts/mapa3d.ts` + `components/v3/Entrega.astro`: o Brasil em 3D com rotas saindo de Goiânia; os pontos vêm de `src/data/mapa.ts` (calculado no build).
-- `src/components/v3/`: `Menu`, `Rodape`, `QuemSomos`, `Historia` (diálogo), `NossosSites`, `Entrega`, `Redireciona`. `src/layouts/Pagina.astro`: cabeçalho, ícones, SEO e o script de inclinação (`data-inclinar`).
-- `src/styles/v3.css`: tokens de cor e tipografia, botões em pílula, moldura dupla.
+- `src/data/links.ts`: **toda URL externa fica aqui**, no objeto `LINKS`. Use `href={LINKS.grupo.chave}` com `data-link="grupo.chave"` (o `medicao.js` usa pra saber de onde veio o clique). Links internos passam por `url("caminho/")`. Escreva `target="_blank" rel="noopener noreferrer"` em todo link externo.
+- `MENSAGENS` em `src/data/links.ts`: a mensagem pronta de cada botão de WhatsApp, uma por parte do site (menu, menu do celular, Para você, Quem somos, rodapé), pra saber pela conversa de onde a pessoa veio. Use `whatsapp("origem")` no `href` e `data-link="whatsapp.origem"`. As mensagens têm que ser diferentes entre si (o `npm run testar` confere).
+- `src/data/sites.ts`: os sites da casa (rodapé).
+- `src/components/v4/`: `Topo` (cabeçalho; no celular só logo e WhatsApp), `Rodape`, `Historia`, `Redireciona`. `src/layouts/Pagina.astro`: cabeçalho HTML, SEO e o efeito `.surge`. `src/components/Icones.astro`: os ícones (`<use href="#i-nome"/>`).
+- `src/styles/v4.css`: tokens de cor e tipografia, botões, seções.
 - `public/`: vai pro ar como está. `assets/medicao.js` é o Google Analytics compartilhado com os outros projetos: se mudar aqui, avisar que precisa copiar pros outros. `googlee4343bf2118f52f0.html` é a verificação do Google Search Console (não apagar nem renomear). `sitemap.xml`: atualizar o `lastmod` quando o conteúdo mudar.
 - `public/assets/og/og-image.html`: fonte da prévia que aparece no WhatsApp. Depois de editar, gere de novo o `og-image.jpg` em 1200×630 e aumente o `?v=` em `Pagina.astro` (o WhatsApp guarda a prévia antiga).
 
 ## Identidade visual
 
-Escuro neutro (`#0A0A0B`), texto em Geist e detalhes em Geist Mono; o dourado (`--ouro*`) só nos botões, na linha de impressão e nos destaques. Sem tema claro. Use as variáveis de `v3.css` em vez de cores soltas.
+Fundo creme (`--bg` #faf8f2), superfícies brancas, texto quase preto e o **dourado da logo** como destaque (`--ouro-grad` nos botões e setas, `--ouro-texto` #8A6A0A nos rótulos, que dá para ler no claro). Títulos em **Archivo** (largura 112%, peso 750 a 800) e texto em **Instrument Sans**. Verde só no WhatsApp. Sem tema escuro. Use as variáveis de `v4.css` em vez de cores soltas.
 
 ## Cuidados
 
-- O 3D só carrega quando a seção chega perto da tela, e cada palco para de desenhar fora dela; mantenha assim (celular).
-- Peças de terceiros (MakerWorld etc.) com licença não comercial não entram no site sem autorização do autor.
-- Safari do iPhone: não tem `animation-timeline` (animações por rolagem) e ignora `textLength` em SVG. Efeitos importantes usam `IntersectionObserver` e HTML/CSS.
+- Estilos de elementos que o script cria (peças sorteadas, quadros da vitrine) usam `:global(...)` dentro do seletor da seção: o Astro não marca o HTML criado pelo JS.
+- Imagens com `width`/`height` no HTML e `aspect-ratio` no CSS precisam de `height:auto`, senão a altura do atributo vence.
+- As vitrines só giram com a porta na tela, com a aba aberta e sem "reduzir movimento".
+- Safari do iPhone: não tem `animation-timeline`. Efeitos importantes usam `IntersectionObserver`.
 - O compactador do build (esbuild) mantém só a última de propriedades duplicadas: em `backdrop-filter`, escreva `-webkit-backdrop-filter` primeiro.
-- Textos com a classe `.ph` (sublinhado tracejado) são suposições que os donos ainda precisam confirmar. Quando confirmarem, troque o texto e tire o `.ph`.
 
 ## Imagens
 
@@ -57,10 +59,11 @@ Escuro neutro (`#0A0A0B`), texto em Geist e detalhes em Geist Mono; o dourado (`
 
 Usado pelo `/conferir-site`, no build (`npm run build` e `npx astro preview`), no celular (375px), tablet (768px) e desktop:
 
-1. `npm run testar` sem falhas (links, mensagens prontas do WhatsApp, redirecionamentos e destinos no ar).
+1. `npm run testar` sem falhas (links, mensagens prontas do WhatsApp, redirecionamentos, queridinhos e destinos no ar).
 2. A página e a 404 abrem sem erros no console.
-3. O logo do topo se imprime; as três abas trocam a peça e o "Pedir orçamento"; o mapa 3D aparece.
-4. Todo botão de contato (menu, menu do celular, topo, vitrine, Nossos sites, rodapé) fica visível, sem nada por cima, e abre em nova aba. Não envie mensagem no WhatsApp.
-5. `/empresas/`, `/eventos/`, `/para-voce/` e os antigos `/site/...` caem na aba certa.
-6. "Conheça nossa história" abre e fecha o diálogo.
-7. Sem rolagem horizontal em 320px, 375px e 768px; o nome do rodapé cabe inteiro.
+3. As três portas descem até as seções; as vitrines de "Quero comprar" e "Sou maker" trocam sozinhas.
+4. "Para você" mostra 6 queridinhos (4 no celular) com foto quadrada, nome e preço; recarregar muda o sorteio; cada um abre a peça no catálogo.
+5. Todo botão de contato (cabeçalho, Para você, Quem somos, rodapé) fica visível, sem nada por cima, e abre em nova aba. Não envie mensagem no WhatsApp.
+6. `/empresas/`, `/eventos/`, `/para-voce/` e `/#voce` caem em "Para você"; os antigos `/site/...`, `/calc-3d` e `/ajuste-3mf` levam para os endereços novos.
+7. "Conheça nossa história" abre e fecha o diálogo.
+8. Sem rolagem horizontal em 320px, 375px e 768px.

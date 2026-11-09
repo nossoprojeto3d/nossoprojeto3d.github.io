@@ -20,21 +20,20 @@ import { LINKS, url } from "../data/links";
   <section class="erro">
     <div class="container">
       <span class="etiqueta">Erro 404</span>
-      <h1>Essa peça <span>não saiu da impressora.</span></h1>
+      <h1>Essa peça <span class="destaque">não saiu da impressora.</span></h1>
       <p>A página que você procurou não existe ou mudou de lugar. O resto do site está inteiro.</p>
       <div class="botoes">
-        <a href={url()} class="botao botao-ouro">Voltar ao início <span class="ilha"><svg width="18" height="18" aria-hidden="true"><use href="#i-right"/></svg></span></a>
-        <a href={LINKS.catalogo.site} data-link="catalogo.site" target="_blank" rel="noopener noreferrer" class="botao botao-claro">Ver catálogo <span class="ilha"><svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg></span></a>
+        <a href={url()} class="botao botao-ouro">Voltar ao início <svg width="18" height="18" aria-hidden="true"><use href="#i-right"/></svg></a>
+        <a href={LINKS.catalogo.site} data-link="catalogo.site" target="_blank" rel="noopener noreferrer" class="botao botao-claro">Ver catálogo <svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg></a>
       </div>
     </div>
   </section>
 </Pagina>
 
 <style>
-  .erro{padding:180px 0 140px;text-align:center;}
-  h1{margin:24px auto 0;font-size:var(--fs-h2);line-height:1.02;max-width:14ch;}
-  h1 span{background:linear-gradient(180deg,#F3DC8E,#C9A227 60%,#9C7A1C);-webkit-background-clip:text;background-clip:text;color:transparent;}
-  p{margin:24px auto 0;max-width:42ch;font-size:var(--fs-lead);line-height:1.6;color:var(--body);}
-  .botoes{margin-top:40px;display:flex;flex-wrap:wrap;justify-content:center;gap:12px;}
-  @media (max-width:560px){ .erro{padding:130px 0 96px;} .botoes .botao{width:100%;} }
+  .erro{padding:clamp(72px,10vw,140px) 0;text-align:center;}
+  h1{margin:16px auto 0;font-size:var(--fs-h2);font-weight:800;line-height:1.05;max-width:16ch;}
+  p{margin:20px auto 0;max-width:42ch;font-size:var(--fs-lead);line-height:1.6;color:var(--body);}
+  .botoes{margin-top:32px;display:flex;flex-wrap:wrap;justify-content:center;gap:12px;}
+  @media (max-width:560px){ .botoes .botao{width:100%;} }
 </style>

@@ -1,0 +1,58 @@
+---
+// Rodapé da V4: contato, os sites da casa (src/data/sites.ts) e a assinatura.
+import { LINKS, TELEFONE, url, whatsapp } from "../../data/links";
+import { GRUPOS_SITES } from "../../data/sites";
+const ano = new Date().getFullYear();
+---
+<footer class="rodape">
+  <div class="container rodape-grade">
+    <div class="rodape-marca">
+      <a class="marca" href={url()} aria-label="Nosso Projeto 3D, início">
+        <img src={url("assets/logo.png")} alt="" width="40" height="40" loading="lazy">
+        <span>Nosso Projeto 3D</span>
+      </a>
+      <p>Impressão 3D em Goiânia · GO. Enviamos para todo o Brasil.</p>
+      <div class="icones">
+        <a href={whatsapp("rodapeIcone")} data-link="whatsapp.rodapeIcone" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><svg width="20" height="20" aria-hidden="true"><use href="#i-whatsapp"/></svg></a>
+        <a href={LINKS.contato.instagram} data-link="contato.instagram" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><svg width="20" height="20" aria-hidden="true"><use href="#i-instagram"/></svg></a>
+        <a href={LINKS.hub.shopee} data-link="hub.shopee" target="_blank" rel="noopener noreferrer" aria-label="Shopee"><svg width="20" height="20" aria-hidden="true"><use href="#i-bag"/></svg></a>
+      </div>
+    </div>
+    {GRUPOS_SITES.map((g) => (
+      <nav class="rodape-col" aria-label={g.titulo}>
+        <h3>{g.titulo}</h3>
+        <ul>
+          {g.sites.map((s) => (
+            <li><a href={s.href} data-link={s.link} target="_blank" rel="noopener noreferrer">{s.nome}</a></li>
+          ))}
+        </ul>
+      </nav>
+    ))}
+    <div class="rodape-col">
+      <h3>Contato</h3>
+      <ul>
+        <li><a href={whatsapp("rodapeContato")} data-link="whatsapp.rodapeContato" target="_blank" rel="noopener noreferrer">{TELEFONE}</a></li>
+        <li><a href={LINKS.contato.instagram} data-link="contato.instagram" target="_blank" rel="noopener noreferrer">@nossoprojeto3d</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container assinatura">© {ano} Nosso Projeto 3D · Júnior &amp; Thairine</div>
+</footer>
+
+<style>
+  .rodape{border-top:1px solid var(--line);background:var(--bg-2);padding:48px 0 calc(28px + env(safe-area-inset-bottom,0px));}
+  .rodape-grade{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:32px;}
+  .marca{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--display);font-stretch:112%;font-weight:750;font-size:17px;}
+  .marca img{width:40px;height:40px;object-fit:contain;}
+  .rodape-marca p{margin-top:12px;color:var(--body);font-size:14px;max-width:32ch;}
+  .icones{display:flex;gap:8px;margin-top:16px;}
+  .icones a{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);color:var(--text);}
+  .icones a:hover{border-color:var(--ouro);color:var(--ouro-texto);}
+  h3{font-family:var(--sans);font-stretch:100%;letter-spacing:.12em;text-transform:uppercase;font-size:11.5px;font-weight:700;color:var(--ouro-texto);}
+  ul{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:4px;}
+  ul a{display:inline-block;padding:6px 0;text-decoration:none;color:var(--body);font-size:14.5px;}
+  ul a:hover{color:var(--text);}
+  .assinatura{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);}
+  @media (max-width:900px){ .rodape-grade{grid-template-columns:1fr 1fr;} .rodape-marca{grid-column:1/-1;} }
+  @media (max-width:420px){ .rodape-grade{grid-template-columns:1fr;} }
+</style>

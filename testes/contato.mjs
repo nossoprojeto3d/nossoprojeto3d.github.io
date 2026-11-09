@@ -2,7 +2,7 @@
 // Lê as páginas geradas em dist/ e confere cada link de WhatsApp, Instagram, catálogo e Shopee:
 // destino certo, mensagem pronta certa, abre em nova aba e o endereço responde na internet.
 import { readFile } from "node:fs/promises";
-import { LINKS, MENSAGENS } from "../src/data/links.ts";
+import { LINKS, MENSAGENS, QUERIDINHOS_JSON } from "../src/data/links.ts";
 
 const NUMERO = "5562993152843";
 let falhas = 0, ok = 0;
@@ -33,7 +33,7 @@ const insta = inicio.filter((l) => l.href === LINKS.contato.instagram);
 const catalogo = inicio.filter((l) => l.href === LINKS.catalogo.site);
 const shopee = inicio.filter((l) => l.href === LINKS.hub.shopee);
 console.log(`   WhatsApp: ${zap.length} · Instagram: ${insta.length} · Catálogo: ${catalogo.length} · Shopee: ${shopee.length}`);
-certo(catalogo.length >= 5, `esperava ≥ 5 links do catálogo, achei ${catalogo.length}`);
+certo(catalogo.length >= 3, `esperava ≥ 3 links do catálogo, achei ${catalogo.length}`);
 certo(insta.length >= 3, `esperava ≥ 3 links do Instagram, achei ${insta.length}`);
 certo(shopee.length >= 2, `esperava ≥ 2 links da Shopee, achei ${shopee.length}`);
 
@@ -55,28 +55,34 @@ for (const origem of Object.keys(MENSAGENS)) {
   certo(vistas.has(origem), `nenhum botão usa a mensagem "${origem}"`);
   console.log(`   ${origem.padEnd(14)} "${MENSAGENS[origem]}"`);
 }
-// vitrine: o botão de cada aba fica dentro do painel certo
-for (const aba of ["empresas", "eventos", "voce"]) {
-  const painel = new RegExp(`id="painel-${aba}"[\\s\\S]*?data-link="([^"]+)"`).exec(html["index.html"]);
-  certo(painel?.[1] === `whatsapp.${aba}`, `aba ${aba}: o botão do painel não é o dela (${painel?.[1]})`);
+// cada seção tem o botão de WhatsApp dela
+for (const [secao, origem] of [["comprar", "comprar"], ["quem-somos", "quemSomos"]]) {
+  const trecho = new RegExp(`id="${secao}"[\\s\\S]*?</section>`).exec(html["index.html"])?.[0] || "";
+  certo(trecho.includes(`data-link="whatsapp.${origem}"`), `seção ${secao} sem o WhatsApp "${origem}"`);
 }
+// as três portas levam às seções e a vitrine dos queridinhos busca a lista do catálogo
+for (const alvo of ["comprar", "criadores", "quem-somos"]) certo(html["index.html"].includes(`href="#${alvo}"`), `sem porta para #${alvo}`);
+certo(html["index.html"].includes(`data-fonte="${QUERIDINHOS_JSON}"`), "seção Para você não busca os queridinhos do catálogo");
+const pecas = [...html["index.html"].matchAll(/data-link="catalogo\.peca"[^>]*href="([^"]+)"|href="([^"]+)"[^>]*data-link="catalogo\.peca"/g)].map((m) => m[1] || m[2]).filter((h) => !h.includes("${"));
+certo(pecas.length > 0, "nenhum queridinho no HTML (o build não conseguiu ler a lista do catálogo)");
+for (const h of pecas) certo(h.startsWith(LINKS.catalogo.site + "#produto/"), `queridinho com link errado: ${h}`);
 
 // ---------- 3. Endereços antigos e página de erro ----------
 console.log("3. Endereços antigos e 404");
-for (const [p, aba] of [["empresas/index.html", "empresas"], ["eventos/index.html", "eventos"], ["para-voce/index.html", "voce"]]) {
+for (const p of ["empresas/index.html", "eventos/index.html", "para-voce/index.html"]) {
   const refresh = /http-equiv="refresh" content="0; url=([^"]+)"/.exec(html[p])?.[1];
   const script = /const destino = "([^"]+)"[\s\S]*?location\.replace\(destino\)/.exec(html[p])?.[1];
-  certo(refresh === `/#${aba}` && script === `/#${aba}`, `${p} não leva para #${aba} (refresh: ${refresh}, script: ${script})`);
+  certo(refresh === "/#comprar" && script === "/#comprar", `${p} não leva para #comprar (refresh: ${refresh}, script: ${script})`);
 }
 const erro = links(html["404.html"]);
 certo(erro.some((l) => l.href === LINKS.catalogo.site), "404 sem link pro catálogo");
 certo(erro.some((l) => l.href.includes(encodeURIComponent(MENSAGENS.menu))), "404 sem WhatsApp no menu");
-// o script da vitrine abre a aba pelo #, inclusive quando o # muda com a página aberta (links do rodapé)
-certo(/hashchange/.test(await readFile("src/pages/index.astro", "utf8")), "vitrine não reage a mudança de #aba");
+// os # antigos das abas (#empresas, #eventos, #voce) caem em "Para você", inclusive com a página aberta
+certo(/hashchange/.test(await readFile("src/pages/index.astro", "utf8")), "a página não reage aos # antigos das abas");
 
 // ---------- 4. Os destinos respondem na internet ----------
 console.log("4. Destinos na internet");
-const destinos = [...new Set([`https://wa.me/${NUMERO}?text=${encodeURIComponent(MENSAGENS.topo)}`, LINKS.contato.instagram, LINKS.catalogo.site, LINKS.hub.shopee, LINKS.calculadora.site, LINKS.ajuste3mf.site, LINKS.hub.stlsGratis])];
+const destinos = [...new Set([`https://wa.me/${NUMERO}?text=${encodeURIComponent(MENSAGENS.comprar)}`, LINKS.contato.instagram, LINKS.catalogo.site, LINKS.hub.shopee, LINKS.calculadora.site, LINKS.ajuste3mf.site, LINKS.dicas.site, LINKS.hub.stlsGratis, QUERIDINHOS_JSON])];
 for (const d of destinos) {
   try {
     const r = await fetch(d, { redirect: "follow", headers: { "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1" } });
