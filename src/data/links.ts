@@ -22,7 +22,8 @@ export const LINKS = {
   },
   catalogo: {
     site: "https://nossoprojeto3d.com.br/catalogo/",
-    brindes: "https://nossoprojeto3d.com.br/catalogo/#categoria/Brindes"
+    brindes: "https://nossoprojeto3d.com.br/catalogo/#categoria/Brindes",
+    natal: "https://nossoprojeto3d.com.br/catalogo/#categoria/Natal"
   },
   parceiros: {
     // link de afiliado (o mesmo da calculadora); o cupom fica em CUPOM_VOOLT

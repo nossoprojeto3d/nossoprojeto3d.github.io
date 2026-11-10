@@ -4,6 +4,7 @@ import "../styles/v4.css";
 import Icones from "../components/Icones.astro";
 import Topo from "../components/v4/Topo.astro";
 import Rodape from "../components/v4/Rodape.astro";
+import Natal from "../components/v4/Natal.astro";
 import { LINKS, SITE_URL, TELEFONE, url } from "../data/links";
 
 interface Props {
@@ -68,6 +69,7 @@ const negocio = {
   <a href="#topo" class="pular">Pular para o conteúdo</a>
   <Icones />
 
+  <Natal />
   <Topo />
 
   <main id="topo" tabindex="-1">

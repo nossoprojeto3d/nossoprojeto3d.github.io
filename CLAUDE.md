@@ -29,6 +29,8 @@ npm run fotos      # prepara as fotos da pasta ~/Desktop/Fotos do site
 - `empresas.astro`, `eventos.astro`, `para-voce.astro` levam para `#comprar`; os `#empresas` e `#eventos` antigos caem em "Para empresas" e `#voce` em "Para você".
 - `404.astro`: o GitHub Pages serve esse arquivo em qualquer endereço inexistente do domínio; ele também leva `/calc-3d`, `/ajuste-3mf` e `/site` para os endereços novos.
 
+- **Natal** (`src/data/natal.ts` + `components/v4/Natal.astro`): faixa verde no topo com link para a categoria Natal do catálogo e neve caindo nela e atrás da abertura (`data-neve`). Some sozinho a partir de `NATAL_ATE` (o navegador confere a data, não precisa publicar). No próximo Natal, troque as datas e o texto em `natal.ts`.
+
 ## Onde mexer
 
 - `src/data/links.ts`: **toda URL externa fica aqui**, no objeto `LINKS`. Use `href={LINKS.grupo.chave}` com `data-link="grupo.chave"` (o `medicao.js` usa pra saber de onde veio o clique). Links internos passam por `url("caminho/")`. Escreva `target="_blank" rel="noopener noreferrer"` em todo link externo.

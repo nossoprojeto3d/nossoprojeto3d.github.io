@@ -40,7 +40,7 @@ const fotosQuemSomos = ["01-casal"];
 <Pagina titulo="Nosso Projeto 3D · Impressão 3D em Goiânia" descricao="Peças personalizadas e brindes para empresas, impressos em 3D em Goiânia, e ferramentas gratuitas para quem imprime: calculadora, ajuste de 3MF, STLs e dicas.">
 
   <!-- ===== Abertura e as três portas ===== -->
-  <section class="abertura pontos">
+  <section class="abertura pontos" data-neve="claro">
     <div class="container">
       <h1>Ideias que ganham forma, <span class="destaque">camada por camada.</span></h1>
       <p class="abertura-apoio">Impressão 3D em Goiânia. Escolha por onde começar:</p>
@@ -245,6 +245,9 @@ const fotosQuemSomos = ["01-casal"];
 <style>
   /* ---------- abertura ---------- */
   .abertura{padding:clamp(28px,4vw,56px) 0 clamp(36px,5vw,64px);}
+  /* a neve de Natal (Natal.astro) cai num canvas atrás do conteúdo da abertura */
+  .abertura{position:relative;overflow:hidden;}
+  .abertura > .container{position:relative;z-index:1;}
   h1{font-size:var(--fs-h1);font-weight:800;line-height:1.02;max-width:20ch;}
   .abertura-apoio{margin-top:14px;color:var(--body);font-size:var(--fs-lead);}
 

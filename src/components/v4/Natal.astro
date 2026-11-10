@@ -1,0 +1,95 @@
+---
+// Faixa de Natal (com neve dentro) e o script da neve, que também cai atrás da abertura da página
+// (qualquer elemento com data-neve). Some a partir de NATAL_ATE (src/data/natal.ts), conferido no navegador.
+import { LINKS } from "../../data/links";
+import { FAIXA_NATAL, NATAL_ATE, natalNoAr } from "../../data/natal";
+const noAr = natalNoAr();
+---
+{noAr && (
+  <div class="faixa-natal" data-natal data-neve="escuro">
+    <div class="container faixa-linha">
+      <p><strong>{FAIXA_NATAL.texto}</strong>{FAIXA_NATAL.prazo && <span class="prazo"> · {FAIXA_NATAL.prazo}</span>}</p>
+      <a href={LINKS.catalogo.natal} data-link="catalogo.natal" target="_blank" rel="noopener noreferrer">{FAIXA_NATAL.botao} <svg width="16" height="16" aria-hidden="true"><use href="#i-right"/></svg></a>
+    </div>
+  </div>
+)}
+{noAr && (
+  <script is:inline define:vars={{ ate: NATAL_ATE }}>
+    // depois da data, esconde tudo de Natal mesmo sem publicar o site de novo
+    if (Date.now() >= new Date(ate).getTime()) document.documentElement.classList.add("pos-natal");
+  </script>
+)}
+
+<style>
+  .faixa-natal{position:relative;overflow:hidden;background:linear-gradient(100deg,#123d2c,#1b5a3f 55%,#14412f);color:#f6efd9;}
+  .faixa-linha{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px 16px;min-height:44px;padding-block:8px;text-align:center;}
+  .faixa-natal p{margin:0;font-size:14px;}
+  .faixa-natal strong{font-weight:700;}
+  .prazo{color:#e8d9a8;}
+  .faixa-natal a{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:14px;color:#E8C873;text-decoration:none;white-space:nowrap;}
+  .faixa-natal a:hover{text-decoration:underline;}
+  :global(.pos-natal [data-natal]){display:none !important;}
+  @media (max-width:640px){ .faixa-natal p,.faixa-natal a{font-size:13px;} }
+</style>
+
+<script>
+  import { NATAL_ATE } from "../../data/natal";
+
+  // Neve: flocos pequenos caindo devagar num <canvas> atrás do conteúdo de cada [data-neve].
+  // "escuro" = flocos brancos (faixa verde); "claro" = flocos dourados claros (fundo creme do site).
+  // Para quem pediu "reduzir movimento", depois de 26/12, fora da tela ou com a aba escondida, não anima.
+  const fim = new Date(NATAL_ATE).getTime();
+  const parado = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (Date.now() < fim && !parado) {
+    document.querySelectorAll<HTMLElement>("[data-neve]").forEach((caixa) => {
+      const escuro = caixa.dataset.neve === "escuro";
+      const tela = document.createElement("canvas");
+      tela.setAttribute("aria-hidden", "true");
+      tela.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0";
+      if (getComputedStyle(caixa).position === "static") caixa.style.position = "relative";
+      caixa.prepend(tela);
+      const ctx = tela.getContext("2d")!;
+      let w = 0, h = 0, visivel = true, ultimo = 0;
+      type Floco = { x: number; y: number; r: number; v: number; balanco: number; fase: number; estrela: boolean; a: number };
+      let flocos: Floco[] = [];
+      const novo = (topo = false): Floco => ({
+        x: Math.random() * w, y: topo ? -10 : Math.random() * h, r: 1.2 + Math.random() * (escuro ? 2 : 2.6),
+        v: 12 + Math.random() * 22, balanco: 6 + Math.random() * 14, fase: Math.random() * Math.PI * 2,
+        estrela: Math.random() < 0.18, a: escuro ? 0.55 + Math.random() * 0.4 : 0.35 + Math.random() * 0.35
+      });
+      const medir = () => {
+        const r = caixa.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+        w = r.width; h = r.height; tela.width = w * dpr; tela.height = h * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const quantos = Math.round(Math.min(80, Math.max(escuro ? 18 : 28, (w * h) / (escuro ? 2500 : 9000))));
+        flocos = Array.from({ length: quantos }, () => novo());
+      };
+      const cor = (a: number) => (escuro ? `rgba(255,255,255,${a})` : `rgba(201,162,39,${a})`);
+      const desenhar = (t: number) => {
+        const dt = Math.min(0.05, (t - (ultimo || t)) / 1000); ultimo = t;
+        ctx.clearRect(0, 0, w, h);
+        for (const f of flocos) {
+          f.y += f.v * dt; f.fase += dt * 0.8;
+          const x = f.x + Math.sin(f.fase) * f.balanco;
+          if (f.y > h + 10) Object.assign(f, novo(true));
+          if (f.estrela) {
+            // floco em estrela de 6 pontas
+            ctx.strokeStyle = cor(f.a); ctx.lineWidth = 1; ctx.beginPath();
+            for (let k = 0; k < 3; k++) { const ang = f.fase * 0.3 + (k * Math.PI) / 3, dx = Math.cos(ang) * f.r * 2.2, dy = Math.sin(ang) * f.r * 2.2; ctx.moveTo(x - dx, f.y - dy); ctx.lineTo(x + dx, f.y + dy); }
+            ctx.stroke();
+          } else {
+            ctx.fillStyle = cor(f.a); ctx.beginPath(); ctx.arc(x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
+          }
+        }
+      };
+      const passo = (t: number) => {
+        if (Date.now() >= fim) { tela.remove(); return; }
+        if (visivel && !document.hidden) desenhar(t); else ultimo = 0;
+        requestAnimationFrame(passo);
+      };
+      medir();
+      new ResizeObserver(medir).observe(caixa);
+      new IntersectionObserver(([e]) => (visivel = e.isIntersecting)).observe(caixa);
+      requestAnimationFrame(passo);
+    });
+  }
+</script>
