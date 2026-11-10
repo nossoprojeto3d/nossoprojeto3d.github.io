@@ -61,7 +61,6 @@ export const MENSAGENS = {
   comprar: "Olá! Quero um orçamento de uma peça personalizada.",
   empresas: "Olá! Quero um orçamento de brindes personalizados para a minha empresa.",
   parceria: "Olá! Tenho uma empresa e quero conversar sobre uma parceria com a Nosso Projeto 3D.",
-  quemSomos: "Olá! Conheci a história de vocês pelo site e queria conversar.",
   rodapeIcone: "Oi, tudo bem? Vim pelo site.",
   rodapeContato: "Olá, tudo bem? Gostaria de mais informações."
 };

@@ -22,7 +22,7 @@ npm run fotos      # prepara as fotos da pasta ~/Desktop/Fotos do site
 2. **Sua ideia merece sair do papel** (`#comprar`), com dois públicos: **Para você** (`#para-voce`: 4 queridinhos sorteados no computador; no celular 2, que trocam sozinhos a cada 2,2 s passando por todos; catálogo e WhatsApp) e **Para empresas** (`#para-empresas`: texto de brindes, peças da categoria Brindes do catálogo + o card "Sua marca aqui", que fica sempre (no celular: 1 brinde + ele), link para `#categoria/Brindes` e WhatsApp de empresas).
 3. **Para criadores** (`#criadores`): Calculadora, Ajuste 3MF, Dicas e STLs grátis (cards claros no computador; lista com miniatura do lado no celular); o dos STLs tem o desenho animado `StlAnimado.astro` (arquivos baixando e uma impressora levantando a peça), também usado na vitrine da porta "Sou maker".
 4. **Nossas parcerias** (`#parcerias`): Voolt3D (link de afiliado com `rel="sponsored"`, cupom `CUPOM_VOOLT` com botão de copiar), Mercado Livre (só aparece quando `LINKS.hub.mercadoLivre` tiver o link) e o convite "Quero ser parceiro" no WhatsApp.
-5. **Quem somos** (`#quem-somos`): foto, versículo, Goiânia, "Conheça nossa história" (diálogo `Historia.astro`), Instagram e WhatsApp.
+5. **Quem somos** (`#quem-somos`): foto, versículo, Goiânia, "Conheça nossa história" (diálogo `Historia.astro`) e Instagram.
 
 - **Queridinhos e brindes**: o build do catálogo gera `catalogo/queridinhos.json` (MaisVendido preenchido, não esgotadas, com foto) e `catalogo/brindes.json` (categoria Brindes, não esgotadas, com foto). O build do site já põe as listas no HTML; no navegador o script busca a versão atual e sorteia. Mudou no painel do catálogo: a página acompanha sem precisar publicar o site. Para testar sem internet: `QUERIDINHOS_ARQUIVO=... BRINDES_ARQUIVO=... npm run build`.
 - **Prints dos projetos**: `public/assets/projetos/*.jpg` (960×713, tema claro quando o projeto tem). Se um projeto mudar de cara, tire o print de novo.
@@ -32,7 +32,7 @@ npm run fotos      # prepara as fotos da pasta ~/Desktop/Fotos do site
 ## Onde mexer
 
 - `src/data/links.ts`: **toda URL externa fica aqui**, no objeto `LINKS`. Use `href={LINKS.grupo.chave}` com `data-link="grupo.chave"` (o `medicao.js` usa pra saber de onde veio o clique). Links internos passam por `url("caminho/")`. Escreva `target="_blank" rel="noopener noreferrer"` em todo link externo.
-- `MENSAGENS` em `src/data/links.ts`: a mensagem pronta de cada botão de WhatsApp, uma por parte do site (menu, menu do celular, Para você, Para empresas, Parcerias, Quem somos, rodapé), pra saber pela conversa de onde a pessoa veio. Use `whatsapp("origem")` no `href` e `data-link="whatsapp.origem"`. As mensagens têm que ser diferentes entre si (o `npm run testar` confere).
+- `MENSAGENS` em `src/data/links.ts`: a mensagem pronta de cada botão de WhatsApp, uma por parte do site (menu, menu do celular, Para você, Para empresas, Parcerias, rodapé), pra saber pela conversa de onde a pessoa veio. Use `whatsapp("origem")` no `href` e `data-link="whatsapp.origem"`. As mensagens têm que ser diferentes entre si (o `npm run testar` confere).
 - `src/data/sites.ts`: os sites da casa (rodapé).
 - `src/components/v4/`: `Topo` (cabeçalho; no celular só logo e WhatsApp), `Rodape`, `Historia`, `Redireciona`. `src/layouts/Pagina.astro`: cabeçalho HTML, SEO e o efeito `.surge`. `src/components/Icones.astro`: os ícones (`<use href="#i-nome"/>`).
 - `src/styles/v4.css`: tokens de cor e tipografia, botões, seções.
@@ -65,7 +65,7 @@ Usado pelo `/conferir-site`, no build (`npm run build` e `npx astro preview`), n
 2. A página e a 404 abrem sem erros no console.
 3. As três portas descem até as seções; as vitrines de "Quero comprar" e "Sou maker" trocam sozinhas.
 4. "Para você" mostra 6 queridinhos (4 no celular) com foto quadrada, nome e preço; recarregar muda o sorteio; cada um abre a peça no catálogo.
-5. Todo botão de contato (cabeçalho, Para você, Quem somos, rodapé) fica visível, sem nada por cima, e abre em nova aba. Não envie mensagem no WhatsApp.
+5. Todo botão de contato (cabeçalho, Para você, Para empresas, Parcerias, rodapé) fica visível, sem nada por cima, e abre em nova aba. Não envie mensagem no WhatsApp.
 6. `/empresas/`, `/eventos/`, `/para-voce/` e `/#voce` caem em "Para você"; os antigos `/site/...`, `/calc-3d` e `/ajuste-3mf` levam para os endereços novos.
 7. "Conheça nossa história" abre e fecha o diálogo.
 8. Sem rolagem horizontal em 320px, 375px e 768px.

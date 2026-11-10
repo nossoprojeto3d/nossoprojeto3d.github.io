@@ -56,7 +56,7 @@ for (const origem of Object.keys(MENSAGENS)) {
   console.log(`   ${origem.padEnd(14)} "${MENSAGENS[origem]}"`);
 }
 // cada seção tem o botão de WhatsApp dela
-for (const [secao, origem] of [["comprar", "comprar"], ["comprar", "empresas"], ["parcerias", "parceria"], ["quem-somos", "quemSomos"]]) {
+for (const [secao, origem] of [["comprar", "comprar"], ["comprar", "empresas"], ["parcerias", "parceria"]]) {
   const trecho = new RegExp(`id="${secao}"[\\s\\S]*?</section>`).exec(html["index.html"])?.[0] || "";
   certo(trecho.includes(`data-link="whatsapp.${origem}"`), `seção ${secao} sem o WhatsApp "${origem}"`);
 }
