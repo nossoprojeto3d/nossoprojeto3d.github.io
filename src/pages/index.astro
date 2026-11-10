@@ -27,16 +27,11 @@ const BASE_CATALOGO = LINKS.catalogo.site;
 const foto = (q: Peca) => (/^https?:/.test(q.foto) ? q.foto : BASE_CATALOGO + q.foto);
 const brindesNaTela = brindes.slice(0, 3);
 
-// cada ferramenta aparece com as cores do próprio projeto
 const ferramentas = [
-  { nome: "Calculadora", texto: "Descubra quanto cobrar pela sua peça: material, energia, tempo e lucro.", href: LINKS.calculadora.site, link: "calculadora.site", icone: "i-calc", imagem: "assets/projetos/calculadora.jpg",
-    tema: "--f-bg:#14171b;--f-ink:#eceef1;--f-muted:#a3aab4;--f-acc:#a78bfa;--f-line:#262b32;--f-icone:#232830" },
-  { nome: "Ajuste 3MF", texto: "Envie o projeto do Bambu Studio e a IA sugere as configurações.", href: LINKS.ajuste3mf.site, link: "ajuste3mf.site", icone: "i-sliders", imagem: "assets/projetos/ajustes.jpg",
-    tema: "--f-bg:#121316;--f-ink:#edeef0;--f-muted:#9a9da5;--f-acc:#ff8f5c;--f-line:#24262b;--f-icone:#1d1f23" },
-  { nome: "Dicas", texto: "As dicas de impressão dos nossos vídeos, organizadas por número.", href: LINKS.dicas.site, link: "dicas.site", icone: "i-bulb", imagem: "assets/projetos/dicas.jpg",
-    tema: "--f-bg:#F6F4EF;--f-ink:#141414;--f-muted:#68645C;--f-acc:#B8440A;--f-line:#E6E1D6;--f-icone:#FDECDF" },
-  { nome: "STLs grátis", texto: "Arquivos prontos para você baixar e imprimir em casa.", href: LINKS.hub.stlsGratis, link: "hub.stlsGratis", icone: "i-cube", imagem: "",
-    tema: "--f-bg:#ffffff;--f-ink:#1f1c14;--f-muted:#5c574a;--f-acc:#8A6A0A;--f-line:#e8e2d0;--f-icone:#f6edd0" }
+  { nome: "Calculadora", texto: "Descubra quanto cobrar pela sua peça: material, energia, tempo e lucro.", href: LINKS.calculadora.site, link: "calculadora.site", icone: "i-calc", imagem: "assets/projetos/calculadora.jpg" },
+  { nome: "Ajuste 3MF", texto: "Envie o projeto do Bambu Studio e a IA sugere as configurações.", href: LINKS.ajuste3mf.site, link: "ajuste3mf.site", icone: "i-sliders", imagem: "assets/projetos/ajustes.jpg" },
+  { nome: "Dicas", texto: "As dicas de impressão dos nossos vídeos, organizadas por número.", href: LINKS.dicas.site, link: "dicas.site", icone: "i-bulb", imagem: "assets/projetos/dicas.jpg" },
+  { nome: "STLs grátis", texto: "Arquivos prontos para você baixar e imprimir em casa.", href: LINKS.hub.stlsGratis, link: "hub.stlsGratis", icone: "i-cube", imagem: "" }
 ];
 
 // porta "Quem somos": a foto do casal, fixa (mesma moldura das outras portas, sem trocar)
@@ -116,7 +111,7 @@ const fotosQuemSomos = ["01-casal"];
           <span class="etiqueta">Para você</span>
           <h3 id="voce-titulo">Do seu jeito, em 3D</h3>
           <p>Você escolhe a ideia, as cores e a personalização. Nós transformamos tudo em uma peça.</p>
-          <ul class="pecas" data-pecas="queridinhos" data-fonte={QUERIDINHOS_JSON} data-base={BASE_CATALOGO} data-quantos="4">
+          <ul class="pecas" data-pecas="queridinhos" data-fonte={QUERIDINHOS_JSON} data-base={BASE_CATALOGO} data-quantos="99">
             {queridinhos.slice(0, 4).map((q) => (
               <li><a class="peca" href={BASE_CATALOGO + q.link} data-link="catalogo.peca" data-produto={q.codigo} target="_blank" rel="noopener noreferrer">
                 <img src={foto(q)} alt={q.nome} width="480" height="480" loading="lazy" decoding="async">
@@ -167,7 +162,7 @@ const fotosQuemSomos = ["01-casal"];
       </div>
       <ul class="ferramentas">
         {ferramentas.map((f) => (
-          <li class="surge"><a class="ferramenta" style={f.tema} href={f.href} data-link={f.link} target="_blank" rel="noopener noreferrer">
+          <li class="surge"><a class="ferramenta" href={f.href} data-link={f.link} target="_blank" rel="noopener noreferrer">
             <span class="ferramenta-tela">
               {f.imagem ? <img src={url(f.imagem)} alt={`Tela do ${f.nome}`} width="960" height="713" loading="lazy" decoding="async"> : <StlAnimado />}
             </span>
@@ -188,7 +183,7 @@ const fotosQuemSomos = ["01-casal"];
       <div class="surge">
         <span class="etiqueta">Parcerias</span>
         <h2 id="parcerias-titulo">Nossas parcerias</h2>
-        <p class="apoio">Marcas que indicamos e onde mais você encontra as nossas peças.</p>
+        <p class="apoio">Marcas que usamos, indicamos e onde mais você encontra as nossas peças.</p>
       </div>
       <div class="parceiros">
         <div class="parceiro surge">
@@ -212,12 +207,6 @@ const fotosQuemSomos = ["01-casal"];
           </div>
         )}
 
-        <div class="parceiro surge">
-          <span class="parceiro-logo parceiro-logo-shopee" aria-hidden="true"><svg width="22" height="22"><use href="#i-bag"/></svg> Shopee</span>
-          <h3>Também na Shopee</h3>
-          <p>Nossos produtos com a segurança e os cupons da plataforma.</p>
-          <a class="botao botao-claro" href={LINKS.hub.shopee} data-link="hub.shopee" target="_blank" rel="noopener noreferrer">Ver loja na Shopee <svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg></a>
-        </div>
       </div>
 
       <div class="convite surge">
@@ -302,6 +291,7 @@ const fotosQuemSomos = ["01-casal"];
   .acoes{display:flex;flex-wrap:wrap;gap:10px;}
   .publico .acoes{margin-top:auto;padding-top:8px;}
   .pecas{list-style:none;margin:8px 0 4px;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+  #para-voce .pecas :global(li:nth-child(n+5)){display:none;}
   .pecas :global(.peca){display:flex;flex-direction:column;height:100%;border-radius:14px;overflow:hidden;background:var(--surface);border:1px solid var(--line);text-decoration:none;
     transition:transform .4s var(--mola),box-shadow .3s ease;}
   .pecas :global(.peca:hover){transform:translateY(-3px);box-shadow:0 18px 30px -20px rgba(31,28,20,.35);}
@@ -312,16 +302,16 @@ const fotosQuemSomos = ["01-casal"];
   .marca-arte span{display:grid;place-items:center;text-align:center;width:72%;aspect-ratio:1;border-radius:50%;border:2px dashed var(--ouro);
     font:800 clamp(11px,1vw,14px)/1.05 var(--display);font-stretch:112%;color:var(--ouro-texto);letter-spacing:.04em;}
 
-  /* ---------- ferramentas (cada card com as cores do próprio projeto) ---------- */
+  /* ---------- ferramentas ---------- */
   .ferramentas{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;}
-  .ferramenta{display:flex;flex-direction:column;height:100%;border-radius:18px;overflow:hidden;background:var(--f-bg);border:1px solid var(--f-line);text-decoration:none;color:var(--f-ink);
+  .ferramenta{display:flex;flex-direction:column;height:100%;border-radius:18px;overflow:hidden;background:var(--surface);border:1px solid var(--line);text-decoration:none;color:var(--text);
     transition:transform .4s var(--mola),box-shadow .3s ease;}
-  .ferramenta:hover{transform:translateY(-3px);box-shadow:0 18px 30px -20px rgba(31,28,20,.45);}
-  .ferramenta-tela{display:flex;aspect-ratio:960/713;border-bottom:1px solid var(--f-line);overflow:hidden;}
+  .ferramenta:hover{transform:translateY(-3px);box-shadow:0 18px 30px -20px rgba(31,28,20,.35);}
+  .ferramenta-tela{display:flex;aspect-ratio:960/713;border-bottom:1px solid var(--line);overflow:hidden;background:var(--bg-2);}
   .ferramenta-tela img{width:100%;height:100%;object-fit:cover;object-position:top left;}
-  .ferramenta-corpo{padding:16px 18px 20px;display:flex;flex-direction:column;gap:6px;color:var(--f-muted);font-size:14px;}
-  .ferramenta-icone{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:var(--f-icone);color:var(--f-acc);margin-top:-36px;border:3px solid var(--f-bg);}
-  .ferramenta strong{font-family:var(--display);font-stretch:112%;font-weight:750;font-size:17px;color:var(--f-ink);}
+  .ferramenta-corpo{padding:16px 18px 20px;display:flex;flex-direction:column;gap:6px;color:var(--body);font-size:14px;}
+  .ferramenta-icone{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:var(--ouro-suave);color:var(--ouro-texto);margin-top:-36px;border:3px solid var(--surface);}
+  .ferramenta strong{font-family:var(--display);font-stretch:112%;font-weight:750;font-size:17px;color:var(--text);}
 
   /* ---------- parcerias ---------- */
   .parceiros{margin-top:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px;}
@@ -332,7 +322,6 @@ const fotosQuemSomos = ["01-casal"];
   .parceiro-logo{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:#fff;font-weight:700;}
   .parceiro-logo-voolt img{height:26px;width:auto;}
   .parceiro-logo-ml{background:#fff159;border-color:#f0e14a;color:#2d3277;}
-  .parceiro-logo-shopee{background:#fff2ed;border-color:#ffd8c8;color:#ee4d2d;}
   .cupom{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:12px;border:1.5px dashed var(--ouro);background:var(--ouro-suave);cursor:pointer;font:inherit;color:var(--text);}
   .cupom-rotulo{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ouro-texto);}
   .cupom-codigo{font:800 16px/1 var(--display);font-stretch:112%;letter-spacing:.04em;}
@@ -370,11 +359,16 @@ const fotosQuemSomos = ["01-casal"];
   }
   @media (max-width:640px){
     .pecas{grid-template-columns:repeat(2,minmax(0,1fr));}
-    /* celular: lista com miniatura do lado (cada linha nas cores do próprio projeto) */
+    /* celular: só 2 de cada; em Para você elas trocam sozinhas, e em Para empresas o "Sua marca aqui" fica sempre */
+    #para-voce .pecas :global(li:nth-child(n+3)){display:none;}
+    #para-voce .pecas :global(li.entra){animation:entra .55s var(--mola);}
+    @keyframes entra{from{opacity:0;transform:translateY(8px) scale(.98);}to{opacity:1;transform:none;}}
+    #para-empresas .pecas :global(li:not(.sua-marca):nth-child(n+2)){display:none;}
+    /* celular: lista com miniatura do lado */
     .ferramentas{grid-template-columns:1fr;gap:10px;}
     .ferramenta{position:relative;flex-direction:row;align-items:center;gap:14px;padding:10px 40px 10px 10px;border-radius:16px;}
-    .ferramenta::after{content:"›";position:absolute;right:16px;top:50%;transform:translateY(-52%);font:600 26px/1 var(--sans);color:var(--f-muted);}
-    .ferramenta-tela{flex:none;width:104px;aspect-ratio:1;border:1px solid var(--f-line);border-radius:12px;}
+    .ferramenta::after{content:"›";position:absolute;right:16px;top:50%;transform:translateY(-52%);font:600 26px/1 var(--sans);color:var(--ouro-texto);}
+    .ferramenta-tela{flex:none;width:104px;aspect-ratio:1;border:1px solid var(--line);border-radius:12px;}
     .ferramenta-corpo{padding:0;gap:3px;font-size:13.5px;line-height:1.35;}
     .ferramenta-icone{display:none;}
     .ferramenta strong{font-size:16px;}
@@ -436,6 +430,23 @@ const fotosQuemSomos = ["01-casal"];
     janela.innerHTML = fotos.map((p, i) => `<figure class="quadro${i ? "" : " ativo"}"><img src="${fotoDe(p)}" alt="" width="480" height="480" decoding="async"></figure>`).join("");
   });
   lista("brindes");
+
+  // Celular: as 2 peças de "Para você" trocam sozinhas a cada 2,2 s, passando por todos os queridinhos.
+  (() => {
+    const ul = document.querySelector<HTMLUListElement>('[data-pecas="queridinhos"]');
+    if (!ul || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const celular = matchMedia("(max-width: 640px)");
+    let visivel = false;
+    new IntersectionObserver(([e]) => (visivel = e.isIntersecting)).observe(ul);
+    setInterval(() => {
+      if (!celular.matches || !visivel || document.hidden) return;
+      const itens = [...ul.children] as HTMLElement[];
+      if (itens.length < 3) return;
+      // os 2 primeiros vão para o fim: aparecem os 2 seguintes
+      ul.append(itens[0], itens[1]);
+      [...ul.children].slice(0, 2).forEach((li) => { li.classList.remove("entra"); void (li as HTMLElement).offsetWidth; li.classList.add("entra"); });
+    }, 2200);
+  })();
 
   // Vitrines das portas: trocam sozinhas a cada 3,2 s, só com a porta na tela e sem "reduzir movimento".
   if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
