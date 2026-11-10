@@ -82,6 +82,15 @@ const negocio = {
       document.documentElement.classList.add("anima");
       const io = new IntersectionObserver((itens) => itens.forEach((i) => { if (i.isIntersecting) { i.target.classList.add("visto"); io.unobserve(i.target); } }), { rootMargin: "0px 0px -8% 0px" });
       surgem.forEach((el) => io.observe(el));
+      // rolagem rápida ou pulo por link: tudo o que já passou pela tela aparece
+      let pedido = 0;
+      addEventListener("scroll", () => {
+        if (pedido) return;
+        pedido = requestAnimationFrame(() => {
+          pedido = 0;
+          surgem.forEach((el) => { if (!el.classList.contains("visto") && el.getBoundingClientRect().top < innerHeight) { el.classList.add("visto"); io.unobserve(el); } });
+        });
+      }, { passive: true });
     }
   </script>
 </body>

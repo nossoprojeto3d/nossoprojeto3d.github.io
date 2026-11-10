@@ -18,20 +18,21 @@ npm run fotos      # prepara as fotos da pasta ~/Desktop/Fotos do site
 
 `src/pages/index.astro`, de cima pra baixo:
 
-1. **Abertura com três portas**: "Quero comprar" (Para você), "Sou maker" (Para criadores) e "Quem somos" (foto do casal). As duas primeiras têm uma vitrine que troca sozinha a cada 3,2 s (queridinhos do catálogo e prints dos projetos); no celular a vitrine fica na metade direita e o texto à esquerda. Cada porta desce até a seção dela.
-2. **Para você** (`#comprar`): "Criamos suas ideias camada por camada", com 6 queridinhos sorteados a cada visita (4 no celular), catálogo, WhatsApp e Shopee.
-3. **Para criadores** (`#criadores`): Calculadora, Ajuste 3MF, Dicas e STLs grátis, com o print de cada um.
-4. **Quem somos** (`#quem-somos`): foto, versículo, Goiânia, "Conheça nossa história" (diálogo `Historia.astro`), Instagram e WhatsApp.
+1. **Abertura com três portas**: "Quero comprar" (Para você), "Sou maker" (Para criadores) e "Quem somos". As três têm uma vitrine que troca sozinha a cada 3,2 s (queridinhos do catálogo, prints dos projetos e fotos do casal e da bancada), cada uma começando num tempo diferente; no celular a vitrine fica na metade direita e o texto à esquerda. Cada porta desce até a seção dela.
+2. **Sua ideia merece sair do papel** (`#comprar`), com dois públicos: **Para você** (`#para-voce`: 4 queridinhos sorteados, catálogo e WhatsApp) e **Para empresas** (`#para-empresas`: texto de brindes, peças da categoria Brindes do catálogo + o card "Sua marca aqui", link para `#categoria/Brindes` e WhatsApp de empresas).
+3. **Para criadores** (`#criadores`): Calculadora, Ajuste 3MF, Dicas e STLs grátis. Cada card usa as cores do próprio projeto (`tema` em `ferramentas`); o dos STLs tem o desenho animado `StlAnimado.astro` (arquivos baixando e uma impressora levantando a peça), também usado na vitrine da porta "Sou maker".
+4. **Nossas parcerias** (`#parcerias`): Voolt3D (link de afiliado com `rel="sponsored"`, cupom `CUPOM_VOOLT` com botão de copiar), Mercado Livre (só aparece quando `LINKS.hub.mercadoLivre` tiver o link), Shopee e o convite "Quero ser parceiro" no WhatsApp.
+5. **Quem somos** (`#quem-somos`): foto, versículo, Goiânia, "Conheça nossa história" (diálogo `Historia.astro`), Instagram e WhatsApp.
 
-- **Queridinhos**: o build do catálogo gera `https://nossoprojeto3d.com.br/catalogo/queridinhos.json` (peças com MaisVendido preenchido, não esgotadas e com foto). O build do site já põe essa lista no HTML; no navegador o script busca a lista atual e sorteia. Marcou ou desmarcou um queridinho no painel do catálogo: a página acompanha sem precisar publicar o site.
+- **Queridinhos e brindes**: o build do catálogo gera `catalogo/queridinhos.json` (MaisVendido preenchido, não esgotadas, com foto) e `catalogo/brindes.json` (categoria Brindes, não esgotadas, com foto). O build do site já põe as listas no HTML; no navegador o script busca a versão atual e sorteia. Mudou no painel do catálogo: a página acompanha sem precisar publicar o site. Para testar sem internet: `QUERIDINHOS_ARQUIVO=... BRINDES_ARQUIVO=... npm run build`.
 - **Prints dos projetos**: `public/assets/projetos/*.jpg` (960×713, tema claro quando o projeto tem). Se um projeto mudar de cara, tire o print de novo.
-- `empresas.astro`, `eventos.astro`, `para-voce.astro` e os `#empresas`, `#eventos` e `#voce` antigos levam para `#comprar`.
+- `empresas.astro`, `eventos.astro`, `para-voce.astro` levam para `#comprar`; os `#empresas` e `#eventos` antigos caem em "Para empresas" e `#voce` em "Para você".
 - `404.astro`: o GitHub Pages serve esse arquivo em qualquer endereço inexistente do domínio; ele também leva `/calc-3d`, `/ajuste-3mf` e `/site` para os endereços novos.
 
 ## Onde mexer
 
 - `src/data/links.ts`: **toda URL externa fica aqui**, no objeto `LINKS`. Use `href={LINKS.grupo.chave}` com `data-link="grupo.chave"` (o `medicao.js` usa pra saber de onde veio o clique). Links internos passam por `url("caminho/")`. Escreva `target="_blank" rel="noopener noreferrer"` em todo link externo.
-- `MENSAGENS` em `src/data/links.ts`: a mensagem pronta de cada botão de WhatsApp, uma por parte do site (menu, menu do celular, Para você, Quem somos, rodapé), pra saber pela conversa de onde a pessoa veio. Use `whatsapp("origem")` no `href` e `data-link="whatsapp.origem"`. As mensagens têm que ser diferentes entre si (o `npm run testar` confere).
+- `MENSAGENS` em `src/data/links.ts`: a mensagem pronta de cada botão de WhatsApp, uma por parte do site (menu, menu do celular, Para você, Para empresas, Parcerias, Quem somos, rodapé), pra saber pela conversa de onde a pessoa veio. Use `whatsapp("origem")` no `href` e `data-link="whatsapp.origem"`. As mensagens têm que ser diferentes entre si (o `npm run testar` confere).
 - `src/data/sites.ts`: os sites da casa (rodapé).
 - `src/components/v4/`: `Topo` (cabeçalho; no celular só logo e WhatsApp), `Rodape`, `Historia`, `Redireciona`. `src/layouts/Pagina.astro`: cabeçalho HTML, SEO e o efeito `.surge`. `src/components/Icones.astro`: os ícones (`<use href="#i-nome"/>`).
 - `src/styles/v4.css`: tokens de cor e tipografia, botões, seções.
@@ -47,6 +48,7 @@ Fundo creme (`--bg` #faf8f2), superfícies brancas, texto quase preto e o **dour
 - Estilos de elementos que o script cria (peças sorteadas, quadros da vitrine) usam `:global(...)` dentro do seletor da seção: o Astro não marca o HTML criado pelo JS.
 - Imagens com `width`/`height` no HTML e `aspect-ratio` no CSS precisam de `height:auto`, senão a altura do atributo vence.
 - As vitrines só giram com a porta na tela, com a aba aberta e sem "reduzir movimento".
+- `.surge` nunca esconde o bloco (só desliza ao aparecer): conteúdo invisível esperando o JS já deu tela vazia em teste.
 - Safari do iPhone: não tem `animation-timeline`. Efeitos importantes usam `IntersectionObserver`.
 - O compactador do build (esbuild) mantém só a última de propriedades duplicadas: em `backdrop-filter`, escreva `-webkit-backdrop-filter` primeiro.
 

@@ -1,0 +1,65 @@
+---
+// Desenho animado dos "STLs grátis": arquivos .stl baixando à esquerda e uma impressora levantando a peça à direita.
+// Só HTML e CSS; escala pelo tamanho da caixa (unidades cqw/cqh). Com "reduzir movimento" fica parado no quadro final.
+const arquivos = ["vaso-espiral.stl", "chaveiro-np.stl", "suporte-celular.stl"];
+---
+<div class="stl-anim" aria-hidden="true">
+  <div class="arquivos">
+    {arquivos.map((nome, i) => (
+      <div class="arq" style={`--i:${i}`}>
+        <span class="tipo">STL</span>
+        <span class="info"><span class="nome">{nome}</span><span class="barra"><span></span></span></span>
+        <span class="ok">✓</span>
+      </div>
+    ))}
+  </div>
+  <div class="impressora">
+    <span class="trilho"></span>
+    <span class="bico"><span class="fio"></span></span>
+    <span class="peca">
+      {Array.from({ length: 9 }, (_, i) => <span class="camada" style={`--c:${i}`}></span>)}
+    </span>
+    <span class="mesa"></span>
+  </div>
+</div>
+
+<style>
+  .stl-anim{position:relative;width:100%;height:100%;container-type:size;overflow:hidden;
+    background:radial-gradient(circle at 80% 20%,rgba(255,255,255,.7),transparent 45%),linear-gradient(135deg,#fbf6e6,#efe0b2);}
+  /* ----- arquivos baixando ----- */
+  .arquivos{position:absolute;left:6cqw;top:12cqh;width:50cqw;display:flex;flex-direction:column;gap:5cqh;}
+  .arq{display:flex;align-items:center;gap:2.5cqw;height:20cqh;padding:0 2.5cqw;border-radius:2.4cqw;background:#fff;border:1px solid #e8dcb8;
+    box-shadow:0 1.2cqh 3cqh -1.5cqh rgba(31,28,20,.35);animation:chega 9s var(--mola) infinite;animation-delay:calc(var(--i) * .9s);opacity:0;}
+  .tipo{flex:none;display:grid;place-items:center;width:9cqw;height:12cqh;border-radius:1.6cqw;background:linear-gradient(135deg,#E8C873,#C9A227);
+    color:#151005;font:800 2.6cqw/1 var(--display);font-stretch:112%;}
+  .info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1.6cqh;}
+  .nome{font:600 2.7cqw/1.1 var(--sans);color:#1f1c14;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .barra{height:1.6cqh;border-radius:9px;background:#f0e7cc;overflow:hidden;}
+  .barra span{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#C9A227,#E8C873);animation:baixa 9s ease-in-out infinite;animation-delay:calc(var(--i) * .9s);}
+  .ok{flex:none;width:5cqw;height:5cqw;border-radius:50%;display:grid;place-items:center;background:#1f8f4e;color:#fff;font:700 2.8cqw/1 var(--sans);
+    transform:scale(0);animation:confere 9s var(--mola) infinite;animation-delay:calc(var(--i) * .9s);}
+  @keyframes chega{0%{opacity:0;transform:translateX(-6cqw);}6%,88%{opacity:1;transform:none;}96%,100%{opacity:0;transform:translateY(-2cqh);}}
+  @keyframes baixa{0%,8%{width:0;}30%,100%{width:100%;}}
+  @keyframes confere{0%,30%{transform:scale(0);}36%,88%{transform:scale(1);}96%,100%{transform:scale(0);}}
+
+  /* ----- impressora ----- */
+  .impressora{position:absolute;right:6cqw;top:10cqh;bottom:10cqh;width:32cqw;}
+  .trilho{position:absolute;left:0;right:0;top:0;height:4cqh;border-radius:3cqh;background:#2a261c;}
+  .bico{position:absolute;top:2cqh;left:12cqw;width:8cqw;height:13cqh;border-radius:1.2cqw 1.2cqw .6cqw .6cqw;background:#3b3628;animation:vaivem 1.6s ease-in-out infinite alternate;}
+  .bico::after{content:"";position:absolute;left:50%;bottom:-3cqh;width:3cqw;height:3cqh;transform:translateX(-50%);clip-path:polygon(0 0,100% 0,60% 100%,40% 100%);background:#C9A227;}
+  .fio{position:absolute;left:50%;top:-8cqh;width:.6cqw;height:8cqh;transform:translateX(-50%);background:#C9A227;}
+  .peca{position:absolute;left:6cqw;right:6cqw;bottom:5cqh;display:flex;flex-direction:column-reverse;align-items:center;gap:.6cqh;}
+  .camada{display:block;height:4.2cqh;border-radius:2cqh;background:linear-gradient(90deg,#B08A17,#E8C873 50%,#C9A227);
+    width:calc(20cqw - (var(--c) - 4) * (var(--c) - 4) * .45cqw);opacity:0;transform:scaleX(.2);
+    animation:camada 9s ease-out infinite;animation-delay:calc(var(--c) * .55s + .6s);}
+  .mesa{position:absolute;left:0;right:0;bottom:0;height:4cqh;border-radius:1cqh;background:#d9d1bb;}
+  @keyframes vaivem{from{transform:translateX(-9cqw);}to{transform:translateX(9cqw);}}
+  @keyframes camada{0%{opacity:0;transform:scaleX(.2);}4%,80%{opacity:1;transform:scaleX(1);}90%,100%{opacity:0;transform:scaleX(1);}}
+
+  @media (prefers-reduced-motion:reduce){
+    .arq,.barra span,.ok,.camada,.bico{animation:none;}
+    .arq,.camada{opacity:1;transform:none;}
+    .barra span{width:100%;}
+    .ok{transform:scale(1);}
+  }
+</style>

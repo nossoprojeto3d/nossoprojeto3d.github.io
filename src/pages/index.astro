@@ -1,35 +1,48 @@
 ---
-// Página única da V4, de cima pra baixo: três portas (Quero comprar, Sou maker, Quem somos),
-// "Criamos suas ideias" com os queridinhos do catálogo sorteados a cada visita, ferramentas para criadores e Quem somos.
+// Página única da V4, de cima pra baixo: três portas (Quero comprar, Sou maker, Quem somos);
+// "Sua ideia merece sair do papel" (Para você, com 4 queridinhos sorteados, e Para empresas, com os brindes do catálogo);
+// ferramentas para criadores; nossas parcerias; quem somos.
 import { readFile } from "node:fs/promises";
 import Pagina from "../layouts/Pagina.astro";
 import Historia from "../components/v4/Historia.astro";
-import { LINKS, QUERIDINHOS_JSON, url, whatsapp } from "../data/links";
+import StlAnimado from "../components/v4/StlAnimado.astro";
+import { BRINDES_JSON, CUPOM_VOOLT, LINKS, QUERIDINHOS_JSON, url, whatsapp } from "../data/links";
 
-interface Queridinho { codigo: string; nome: string; preco: string; foto: string; link: string }
+interface Peca { codigo: string; nome: string; preco: string; foto: string; link: string }
 
-// Lista do build do catálogo. Entra no HTML como ponto de partida (funciona sem JS e no Google);
-// no navegador, o script busca a lista atual e sorteia. QUERIDINHOS_ARQUIVO serve para testar com um arquivo local.
-let queridinhos: Queridinho[] = [];
-try {
-  const local = process.env.QUERIDINHOS_ARQUIVO;
-  queridinhos = local ? JSON.parse(await readFile(local, "utf8")) : await (await fetch(QUERIDINHOS_JSON)).json();
-  if (!Array.isArray(queridinhos)) queridinhos = [];
-} catch {
-  queridinhos = [];
+// Listas do build do catálogo. Entram no HTML como ponto de partida (funciona sem JS e no Google);
+// no navegador o script busca a versão atual. QUERIDINHOS_ARQUIVO e BRINDES_ARQUIVO servem para testar com arquivos locais.
+async function lista(endereco: string, local?: string): Promise<Peca[]> {
+  try {
+    const dados = local ? JSON.parse(await readFile(local, "utf8")) : await (await fetch(endereco)).json();
+    return Array.isArray(dados) ? dados : [];
+  } catch {
+    return [];
+  }
 }
-const BASE_CATALOGO = LINKS.catalogo.site;
-const foto = (q: Queridinho) => (/^https?:/.test(q.foto) ? q.foto : BASE_CATALOGO + q.foto);
-const iniciais = queridinhos.slice(0, 6);
+const queridinhos = await lista(QUERIDINHOS_JSON, process.env.QUERIDINHOS_ARQUIVO);
+const brindes = await lista(BRINDES_JSON, process.env.BRINDES_ARQUIVO);
 
+const BASE_CATALOGO = LINKS.catalogo.site;
+const foto = (q: Peca) => (/^https?:/.test(q.foto) ? q.foto : BASE_CATALOGO + q.foto);
+const brindesNaTela = brindes.slice(0, 3);
+
+// cada ferramenta aparece com as cores do próprio projeto
 const ferramentas = [
-  { nome: "Calculadora", texto: "Descubra quanto cobrar pela sua peça: material, energia, tempo e lucro.", href: LINKS.calculadora.site, link: "calculadora.site", icone: "i-calc", imagem: "assets/projetos/calculadora.jpg" },
-  { nome: "Ajuste 3MF", texto: "Envie o projeto do Bambu Studio e a IA sugere as configurações.", href: LINKS.ajuste3mf.site, link: "ajuste3mf.site", icone: "i-sliders", imagem: "assets/projetos/ajustes.jpg" },
-  { nome: "Dicas", texto: "As dicas de impressão dos nossos vídeos, organizadas por número.", href: LINKS.dicas.site, link: "dicas.site", icone: "i-bulb", imagem: "assets/projetos/dicas.jpg" },
-  { nome: "STLs grátis", texto: "Arquivos prontos para você baixar e imprimir em casa.", href: LINKS.hub.stlsGratis, link: "hub.stlsGratis", icone: "i-cube", imagem: "" }
+  { nome: "Calculadora", texto: "Descubra quanto cobrar pela sua peça: material, energia, tempo e lucro.", href: LINKS.calculadora.site, link: "calculadora.site", icone: "i-calc", imagem: "assets/projetos/calculadora.jpg",
+    tema: "--f-bg:#14171b;--f-ink:#eceef1;--f-muted:#a3aab4;--f-acc:#a78bfa;--f-line:#262b32;--f-icone:#232830" },
+  { nome: "Ajuste 3MF", texto: "Envie o projeto do Bambu Studio e a IA sugere as configurações.", href: LINKS.ajuste3mf.site, link: "ajuste3mf.site", icone: "i-sliders", imagem: "assets/projetos/ajustes.jpg",
+    tema: "--f-bg:#121316;--f-ink:#edeef0;--f-muted:#9a9da5;--f-acc:#ff8f5c;--f-line:#24262b;--f-icone:#1d1f23" },
+  { nome: "Dicas", texto: "As dicas de impressão dos nossos vídeos, organizadas por número.", href: LINKS.dicas.site, link: "dicas.site", icone: "i-bulb", imagem: "assets/projetos/dicas.jpg",
+    tema: "--f-bg:#F6F4EF;--f-ink:#141414;--f-muted:#68645C;--f-acc:#B8440A;--f-line:#E6E1D6;--f-icone:#FDECDF" },
+  { nome: "STLs grátis", texto: "Arquivos prontos para você baixar e imprimir em casa.", href: LINKS.hub.stlsGratis, link: "hub.stlsGratis", icone: "i-cube", imagem: "",
+    tema: "--f-bg:#ffffff;--f-ink:#1f1c14;--f-muted:#5c574a;--f-acc:#8A6A0A;--f-line:#e8e2d0;--f-icone:#f6edd0" }
 ];
+
+// vitrine da porta "Quem somos": o casal e a bancada
+const fotosQuemSomos = ["01-casal", "04-display-balcao", "05-letreiro-balcao", "03-caixa-embalagem", "02-chaveiro-logo"];
 ---
-<Pagina titulo="Nosso Projeto 3D · Impressão 3D em Goiânia" descricao="Peças personalizadas impressas em 3D em Goiânia e ferramentas gratuitas para quem imprime: calculadora, ajuste de 3MF, STLs e dicas.">
+<Pagina titulo="Nosso Projeto 3D · Impressão 3D em Goiânia" descricao="Peças personalizadas e brindes para empresas, impressos em 3D em Goiânia, e ferramentas gratuitas para quem imprime: calculadora, ajuste de 3MF, STLs e dicas.">
 
   <!-- ===== Abertura e as três portas ===== -->
   <section class="abertura pontos">
@@ -37,10 +50,10 @@ const ferramentas = [
       <h1>Ideias que ganham forma, <span class="destaque">camada por camada.</span></h1>
       <p class="abertura-apoio">Impressão 3D em Goiânia. Escolha por onde começar:</p>
       <div class="portas">
-        <a class="porta porta-vitrine" href="#comprar" data-porta="comprar">
+        <a class="porta" href="#comprar" data-porta="comprar">
           <div class="porta-arte" aria-hidden="true">
             <div class="janela" data-giro="pecas">
-              {iniciais.slice(0, 4).map((q, i) => (
+              {queridinhos.slice(0, 4).map((q, i) => (
                 <figure class:list={["quadro", { ativo: i === 0 }]}><img src={foto(q)} alt="" width="480" height="480" loading={i ? "lazy" : "eager"} decoding="async"></figure>
               ))}
             </div>
@@ -48,18 +61,18 @@ const ferramentas = [
           <div class="porta-texto">
             <span class="etiqueta">Para você</span>
             <strong>Quero comprar</strong>
-            <span class="porta-sub">Peças personalizadas, catálogo e WhatsApp</span>
+            <span class="porta-sub">Peças personalizadas e brindes para empresas</span>
           </div>
           <span class="porta-seta" aria-hidden="true"><svg width="18" height="18"><use href="#i-down"/></svg></span>
         </a>
 
-        <a class="porta porta-vitrine" href="#criadores" data-porta="criadores">
+        <a class="porta" href="#criadores" data-porta="criadores">
           <div class="porta-arte" aria-hidden="true">
             <div class="janela janela-tela" data-giro="projetos">
               {ferramentas.map((f, i) => (
                 <figure class:list={["quadro", { ativo: i === 0 }]}>
                   <span class="barra"><i></i><i></i><i></i><b>{f.nome}</b></span>
-                  {f.imagem ? <img src={url(f.imagem)} alt="" width="960" height="713" loading={i ? "lazy" : "eager"} decoding="async"> : <span class="stl">STLs<br>grátis</span>}
+                  {f.imagem ? <img src={url(f.imagem)} alt="" width="960" height="713" loading={i ? "lazy" : "eager"} decoding="async"> : <span class="quadro-anim"><StlAnimado /></span>}
                 </figure>
               ))}
             </div>
@@ -72,8 +85,14 @@ const ferramentas = [
           <span class="porta-seta" aria-hidden="true"><svg width="18" height="18"><use href="#i-down"/></svg></span>
         </a>
 
-        <a class="porta porta-foto" href="#quem-somos" data-porta="quem-somos">
-          <img class="porta-fundo" src={url("assets/fotos/01-casal.jpg")} alt="" width="1080" height="1350" decoding="async">
+        <a class="porta" href="#quem-somos" data-porta="quem-somos">
+          <div class="porta-arte" aria-hidden="true">
+            <div class="janela" data-giro="fotos">
+              {fotosQuemSomos.map((f, i) => (
+                <figure class:list={["quadro", { ativo: i === 0 }]}><img src={url(`assets/fotos/${f}.jpg`)} alt="" width="1080" height="1350" loading={i ? "lazy" : "eager"} decoding="async"></figure>
+              ))}
+            </div>
+          </div>
           <div class="porta-texto">
             <span class="etiqueta">Nossa história</span>
             <strong>Quem somos</strong>
@@ -85,31 +104,56 @@ const ferramentas = [
     </div>
   </section>
 
-  <!-- ===== Para você: queridinhos do catálogo ===== -->
+  <!-- ===== Sua ideia merece sair do papel: Para você e Para empresas ===== -->
   <section class="secao" id="comprar" aria-labelledby="comprar-titulo">
     <div class="container">
-      <div class="secao-topo surge">
-        <div>
-          <span class="etiqueta">Para você</span>
-          <h2 id="comprar-titulo">Criamos suas ideias camada por camada</h2>
-          <p class="apoio">Peças personalizadas com nome, cor e detalhe do seu jeito. Estes são os queridinhos do nosso catálogo.</p>
-        </div>
-        <div class="acoes">
-          <a class="botao botao-zap" href={whatsapp("comprar")} data-link="whatsapp.comprar" target="_blank" rel="noopener noreferrer"><svg width="18" height="18" aria-hidden="true"><use href="#i-whatsapp"/></svg> Pedir no WhatsApp</a>
-          <a class="botao botao-ouro" href={BASE_CATALOGO} data-link="catalogo.site" target="_blank" rel="noopener noreferrer">Ver catálogo completo <svg width="18" height="18" aria-hidden="true"><use href="#i-right"/></svg></a>
-        </div>
+      <div class="surge">
+        <span class="etiqueta">Para você e para sua empresa</span>
+        <h2 id="comprar-titulo">Sua ideia merece sair do papel.</h2>
       </div>
-      <ul class="pecas surge" data-pecas data-fonte={QUERIDINHOS_JSON} data-base={BASE_CATALOGO}>
-        {iniciais.map((q) => (
-          <li><a class="peca" href={BASE_CATALOGO + q.link} data-link="catalogo.peca" data-produto={q.codigo} target="_blank" rel="noopener noreferrer">
-            <img src={foto(q)} alt={q.nome} width="480" height="480" loading="lazy" decoding="async">
-            <span class="peca-nome">{q.nome}</span>
-            <span class="peca-preco">R$ {q.preco}</span>
-          </a></li>
-        ))}
-      </ul>
-      <script type="application/json" id="queridinhos-iniciais" set:html={JSON.stringify(queridinhos)} />
-      <p class="tambem surge">Prefere comprar por uma plataforma? <a href={LINKS.hub.shopee} data-link="hub.shopee" target="_blank" rel="noopener noreferrer">Estamos também na Shopee</a>.</p>
+      <div class="publicos">
+        <article class="publico surge" id="para-voce" aria-labelledby="voce-titulo">
+          <span class="etiqueta">Para você</span>
+          <h3 id="voce-titulo">Do seu jeito, em 3D</h3>
+          <p>Você escolhe a ideia, as cores e a personalização. Nós transformamos tudo em uma peça.</p>
+          <ul class="pecas" data-pecas="queridinhos" data-fonte={QUERIDINHOS_JSON} data-base={BASE_CATALOGO} data-quantos="4">
+            {queridinhos.slice(0, 4).map((q) => (
+              <li><a class="peca" href={BASE_CATALOGO + q.link} data-link="catalogo.peca" data-produto={q.codigo} target="_blank" rel="noopener noreferrer">
+                <img src={foto(q)} alt={q.nome} width="480" height="480" loading="lazy" decoding="async">
+                <span class="peca-nome">{q.nome}</span><span class="peca-preco">R$ {q.preco}</span>
+              </a></li>
+            ))}
+          </ul>
+          <script type="application/json" id="lista-queridinhos" set:html={JSON.stringify(queridinhos)} />
+          <div class="acoes">
+            <a class="botao botao-ouro" href={BASE_CATALOGO} data-link="catalogo.site" target="_blank" rel="noopener noreferrer">Ver catálogo completo <svg width="18" height="18" aria-hidden="true"><use href="#i-right"/></svg></a>
+            <a class="botao botao-zap" href={whatsapp("comprar")} data-link="whatsapp.comprar" target="_blank" rel="noopener noreferrer"><svg width="18" height="18" aria-hidden="true"><use href="#i-whatsapp"/></svg> Pedir no WhatsApp</a>
+          </div>
+        </article>
+
+        <article class="publico publico-empresa surge" id="para-empresas" aria-labelledby="empresas-titulo">
+          <span class="etiqueta">Para empresas</span>
+          <h3 id="empresas-titulo">Sua marca em cada detalhe</h3>
+          <p>Desenvolvemos peças personalizadas em 3D para empresas que querem levar sua marca a cada detalhe. Criamos produtos sob medida, com cores, formatos e acabamentos alinhados à identidade visual do seu negócio.</p>
+          <ul class="pecas" data-pecas="brindes" data-fonte={BRINDES_JSON} data-base={BASE_CATALOGO} data-quantos="3">
+            {brindesNaTela.map((q) => (
+              <li><a class="peca" href={BASE_CATALOGO + q.link} data-link="catalogo.peca" data-produto={q.codigo} target="_blank" rel="noopener noreferrer">
+                <img src={foto(q)} alt={q.nome} width="480" height="480" loading="lazy" decoding="async">
+                <span class="peca-nome">{q.nome}</span><span class="peca-preco">R$ {q.preco}</span>
+              </a></li>
+            ))}
+            <li class="sua-marca"><a class="peca peca-marca" href={whatsapp("empresas")} data-link="whatsapp.empresas" target="_blank" rel="noopener noreferrer">
+              <span class="marca-arte" aria-hidden="true"><span>SUA<br>MARCA<br>AQUI</span></span>
+              <span class="peca-nome">Brinde com a sua logo</span><span class="peca-preco">Peça um orçamento</span>
+            </a></li>
+          </ul>
+          <script type="application/json" id="lista-brindes" set:html={JSON.stringify(brindes)} />
+          <div class="acoes">
+            <a class="botao botao-ouro" href={LINKS.catalogo.brindes} data-link="catalogo.brindes" target="_blank" rel="noopener noreferrer">Ver brindes no catálogo <svg width="18" height="18" aria-hidden="true"><use href="#i-right"/></svg></a>
+            <a class="botao botao-claro" href={whatsapp("empresas")} data-link="whatsapp.empresas" target="_blank" rel="noopener noreferrer"><svg width="18" height="18" aria-hidden="true"><use href="#i-whatsapp"/></svg> Orçamento para empresa</a>
+          </div>
+        </article>
+      </div>
     </div>
   </section>
 
@@ -123,9 +167,9 @@ const ferramentas = [
       </div>
       <ul class="ferramentas">
         {ferramentas.map((f) => (
-          <li class="surge"><a class="ferramenta" href={f.href} data-link={f.link} target="_blank" rel="noopener noreferrer">
+          <li class="surge"><a class="ferramenta" style={f.tema} href={f.href} data-link={f.link} target="_blank" rel="noopener noreferrer">
             <span class="ferramenta-tela">
-              {f.imagem ? <img src={url(f.imagem)} alt={`Tela do ${f.nome}`} width="960" height="713" loading="lazy" decoding="async"> : <span class="stl">STLs<br>grátis</span>}
+              {f.imagem ? <img src={url(f.imagem)} alt={`Tela do ${f.nome}`} width="960" height="713" loading="lazy" decoding="async"> : <StlAnimado />}
             </span>
             <span class="ferramenta-corpo">
               <span class="ferramenta-icone"><svg width="20" height="20" aria-hidden="true"><use href={`#${f.icone}`}/></svg></span>
@@ -135,6 +179,54 @@ const ferramentas = [
           </a></li>
         ))}
       </ul>
+    </div>
+  </section>
+
+  <!-- ===== Nossas parcerias ===== -->
+  <section class="secao" id="parcerias" aria-labelledby="parcerias-titulo">
+    <div class="container">
+      <div class="surge">
+        <span class="etiqueta">Parcerias</span>
+        <h2 id="parcerias-titulo">Nossas parcerias</h2>
+        <p class="apoio">Marcas que indicamos e onde mais você encontra as nossas peças.</p>
+      </div>
+      <div class="parceiros">
+        <div class="parceiro surge">
+          <span class="parceiro-logo parceiro-logo-voolt"><img src={url("assets/voolt3d.webp")} alt="Voolt3D" width="640" height="162" loading="lazy" decoding="async"></span>
+          <h3>Filamentos com desconto</h3>
+          <p>Filamentos da Voolt3D com até 8% de desconto usando o nosso cupom.</p>
+          <button type="button" class="cupom" data-copiar={CUPOM_VOOLT} aria-label={`Copiar o cupom ${CUPOM_VOOLT}`}>
+            <span class="cupom-rotulo">Cupom</span>
+            <span class="cupom-codigo">{CUPOM_VOOLT}</span>
+            <span class="cupom-acao" data-rotulo>Copiar</span>
+          </button>
+          <a class="botao botao-ouro" href={LINKS.parceiros.voolt} data-link="parceiros.voolt" data-evento="clique_afiliado" data-parceiro="voolt3d" target="_blank" rel="sponsored noopener noreferrer">Ir para a Voolt3D <svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+
+        {LINKS.hub.mercadoLivre && (
+          <div class="parceiro surge">
+            <span class="parceiro-logo parceiro-logo-ml" aria-hidden="true">Mercado Livre</span>
+            <h3>Nossas peças no Mercado Livre</h3>
+            <p>Compre com a segurança e as entregas do Mercado Livre.</p>
+            <a class="botao botao-claro" href={LINKS.hub.mercadoLivre} data-link="hub.mercadoLivre" target="_blank" rel="noopener noreferrer">Ver loja no Mercado Livre <svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          </div>
+        )}
+
+        <div class="parceiro surge">
+          <span class="parceiro-logo parceiro-logo-shopee" aria-hidden="true"><svg width="22" height="22"><use href="#i-bag"/></svg> Shopee</span>
+          <h3>Também na Shopee</h3>
+          <p>Nossos produtos com a segurança e os cupons da plataforma.</p>
+          <a class="botao botao-claro" href={LINKS.hub.shopee} data-link="hub.shopee" target="_blank" rel="noopener noreferrer">Ver loja na Shopee <svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+      </div>
+
+      <div class="convite surge">
+        <div>
+          <strong>Sua empresa quer ser nossa parceira?</strong>
+          <p>Marcas de filamento, lojas e empresas que querem trabalhar com a gente: vamos conversar.</p>
+        </div>
+        <a class="botao botao-zap" href={whatsapp("parceria")} data-link="whatsapp.parceria" target="_blank" rel="noopener noreferrer"><svg width="18" height="18" aria-hidden="true"><use href="#i-whatsapp"/></svg> Quero ser parceiro</a>
+      </div>
     </div>
   </section>
 
@@ -174,64 +266,81 @@ const ferramentas = [
   h1{font-size:var(--fs-h1);font-weight:800;line-height:1.02;max-width:20ch;}
   .abertura-apoio{margin-top:14px;color:var(--body);font-size:var(--fs-lead);}
 
-  /* ---------- portas ---------- */
+  /* ---------- portas (as três iguais: vitrine que gira no alto e texto sobre um degradê claro) ---------- */
   .portas{margin-top:clamp(20px,3vw,32px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;}
   .porta{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:300px;border-radius:var(--raio);overflow:hidden;
     border:1px solid var(--line);background:var(--surface);text-decoration:none;color:var(--text);isolation:isolate;
     transition:transform .45s var(--mola),box-shadow .35s ease,border-color .3s ease;}
   .porta:hover{transform:translateY(-4px);box-shadow:0 22px 40px -22px rgba(31,28,20,.35);border-color:var(--line-2);}
+  .porta::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(transparent 36%,rgba(255,255,255,.96) 72%);}
   .porta-texto{position:relative;z-index:2;padding:22px;display:flex;flex-direction:column;gap:2px;}
   .porta strong{font-family:var(--display);font-stretch:112%;font-weight:800;font-size:clamp(20px,1vw + 14px,25px);text-transform:uppercase;letter-spacing:.01em;}
   .porta-sub{display:inline-flex;align-items:center;gap:5px;color:var(--body);font-size:14px;}
   .porta-seta{position:absolute;z-index:3;right:18px;bottom:20px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--ouro-grad);color:var(--sobre-ouro);
     transition:transform .4s var(--mola);}
   .porta:hover .porta-seta{transform:translateY(3px);}
-
-  /* porta com vitrine que gira (a arte ocupa o alto; o texto fica sobre um degradê claro) */
   .porta-arte{position:absolute;inset:0;z-index:0;background:var(--bg-2);overflow:hidden;}
-  .porta-vitrine::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(transparent 36%,rgba(255,255,255,.96) 72%);}
   .janela{position:absolute;left:9%;right:9%;top:16px;aspect-ratio:4/3;}
   .janela :global(.quadro){position:absolute;inset:0;margin:0;border-radius:14px;overflow:hidden;background:var(--surface);border:1px solid var(--line);
     box-shadow:0 14px 30px -12px rgba(31,28,20,.3);opacity:0;transform:rotate(-2deg) translateY(10px) scale(.97);transition:opacity .8s ease,transform 1s var(--mola);}
   .janela :global(.quadro.ativo){opacity:1;transform:rotate(-2deg);}
   .janela :global(.quadro img){width:100%;height:100%;object-fit:cover;}
+  .janela[data-giro="fotos"] :global(.quadro img){object-position:50% 35%;}
   .janela-tela :global(.quadro){display:flex;flex-direction:column;}
   .janela-tela :global(.quadro img){flex:1;min-height:0;object-position:top left;}
+  .quadro-anim{flex:1;min-height:0;}
   .barra{flex:none;height:22px;display:flex;align-items:center;gap:5px;padding:0 10px;background:#f1ece0;}
   .barra i{width:6px;height:6px;border-radius:50%;background:var(--line-2);}
   .barra b{margin-left:6px;font-size:10.5px;font-weight:700;color:var(--muted);}
-  .stl{flex:1;display:grid;place-items:center;text-align:center;background:linear-gradient(135deg,#fbf6e6,#efe0b2);
-    font-family:var(--display);font-stretch:112%;font-weight:800;font-size:clamp(22px,2vw,30px);line-height:1;color:var(--ouro-texto);}
 
-  /* porta com foto */
-  .porta-foto{color:#fff;}
-  .porta-fundo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 30%;z-index:0;}
-  .porta-foto::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(transparent 30%,rgba(25,20,8,.82));}
-  .porta-foto .etiqueta{color:var(--ouro-claro);}
-  .porta-foto .porta-sub{color:#ece6d6;}
-
-  /* ---------- peças ---------- */
+  /* ---------- sua ideia: para você e para empresas ---------- */
+  .publicos{margin-top:28px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;}
+  .publico{display:flex;flex-direction:column;gap:10px;padding:clamp(20px,2.4vw,28px);border-radius:22px;background:var(--surface);border:1px solid var(--line);}
+  .publico-empresa{background:linear-gradient(160deg,#fffdf6,#fbf3dc);border-color:#eadfbf;}
+  .publico h3{font-size:clamp(20px,1vw + 14px,26px);font-weight:750;line-height:1.15;}
+  .publico > p{color:var(--body);max-width:56ch;}
   .acoes{display:flex;flex-wrap:wrap;gap:10px;}
-  .pecas{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;}
-  .pecas :global(.peca){display:flex;flex-direction:column;height:100%;border-radius:16px;overflow:hidden;background:var(--surface);border:1px solid var(--line);text-decoration:none;
+  .publico .acoes{margin-top:auto;padding-top:8px;}
+  .pecas{list-style:none;margin:8px 0 4px;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+  .pecas :global(.peca){display:flex;flex-direction:column;height:100%;border-radius:14px;overflow:hidden;background:var(--surface);border:1px solid var(--line);text-decoration:none;
     transition:transform .4s var(--mola),box-shadow .3s ease;}
   .pecas :global(.peca:hover){transform:translateY(-3px);box-shadow:0 18px 30px -20px rgba(31,28,20,.35);}
   .pecas :global(.peca img){width:100%;height:auto;aspect-ratio:1;object-fit:cover;background:var(--bg-2);}
-  .pecas :global(.peca-nome){padding:10px 12px 0;font-size:14px;font-weight:600;line-height:1.3;}
-  .pecas :global(.peca-preco){margin-top:auto;padding:6px 12px 12px;font-size:14px;font-weight:700;color:var(--ouro-texto);font-variant-numeric:tabular-nums;}
-  .tambem{margin-top:20px;color:var(--body);font-size:14.5px;}
-  .tambem a{color:var(--ouro-texto);font-weight:600;}
+  .pecas :global(.peca-nome){padding:8px 10px 0;font-size:13px;font-weight:600;line-height:1.3;}
+  .pecas :global(.peca-preco){margin-top:auto;padding:4px 10px 10px;font-size:13px;font-weight:700;color:var(--ouro-texto);font-variant-numeric:tabular-nums;}
+  .marca-arte{display:grid;place-items:center;aspect-ratio:1;background:repeating-linear-gradient(0deg,#f6edd0 0 6px,#efe2bb 6px 7px);border-bottom:1px solid var(--line);}
+  .marca-arte span{display:grid;place-items:center;text-align:center;width:72%;aspect-ratio:1;border-radius:50%;border:2px dashed var(--ouro);
+    font:800 clamp(11px,1vw,14px)/1.05 var(--display);font-stretch:112%;color:var(--ouro-texto);letter-spacing:.04em;}
 
-  /* ---------- ferramentas ---------- */
+  /* ---------- ferramentas (cada card com as cores do próprio projeto) ---------- */
   .ferramentas{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;}
-  .ferramenta{display:flex;flex-direction:column;height:100%;border-radius:18px;overflow:hidden;background:var(--surface);border:1px solid var(--line);text-decoration:none;
+  .ferramenta{display:flex;flex-direction:column;height:100%;border-radius:18px;overflow:hidden;background:var(--f-bg);border:1px solid var(--f-line);text-decoration:none;color:var(--f-ink);
     transition:transform .4s var(--mola),box-shadow .3s ease;}
-  .ferramenta:hover{transform:translateY(-3px);box-shadow:0 18px 30px -20px rgba(31,28,20,.35);}
-  .ferramenta-tela{display:flex;aspect-ratio:960/713;background:var(--bg-2);border-bottom:1px solid var(--line);overflow:hidden;}
+  .ferramenta:hover{transform:translateY(-3px);box-shadow:0 18px 30px -20px rgba(31,28,20,.45);}
+  .ferramenta-tela{display:flex;aspect-ratio:960/713;border-bottom:1px solid var(--f-line);overflow:hidden;}
   .ferramenta-tela img{width:100%;height:100%;object-fit:cover;object-position:top left;}
-  .ferramenta-corpo{padding:16px 18px 20px;display:flex;flex-direction:column;gap:6px;color:var(--body);font-size:14px;}
-  .ferramenta-icone{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:var(--ouro-suave);color:var(--ouro-texto);margin-top:-36px;border:3px solid var(--surface);}
-  .ferramenta strong{font-family:var(--display);font-stretch:112%;font-weight:750;font-size:17px;color:var(--text);}
+  .ferramenta-corpo{padding:16px 18px 20px;display:flex;flex-direction:column;gap:6px;color:var(--f-muted);font-size:14px;}
+  .ferramenta-icone{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:var(--f-icone);color:var(--f-acc);margin-top:-36px;border:3px solid var(--f-bg);}
+  .ferramenta strong{font-family:var(--display);font-stretch:112%;font-weight:750;font-size:17px;color:var(--f-ink);}
+
+  /* ---------- parcerias ---------- */
+  .parceiros{margin-top:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px;}
+  .parceiro{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:22px;border-radius:20px;background:var(--surface);border:1px solid var(--line);}
+  .parceiro h3{font-size:19px;font-weight:750;}
+  .parceiro p{color:var(--body);font-size:14.5px;}
+  .parceiro .botao{margin-top:auto;}
+  .parceiro-logo{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:#fff;font-weight:700;}
+  .parceiro-logo-voolt img{height:26px;width:auto;}
+  .parceiro-logo-ml{background:#fff159;border-color:#f0e14a;color:#2d3277;}
+  .parceiro-logo-shopee{background:#fff2ed;border-color:#ffd8c8;color:#ee4d2d;}
+  .cupom{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:12px;border:1.5px dashed var(--ouro);background:var(--ouro-suave);cursor:pointer;font:inherit;color:var(--text);}
+  .cupom-rotulo{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ouro-texto);}
+  .cupom-codigo{font:800 16px/1 var(--display);font-stretch:112%;letter-spacing:.04em;}
+  .cupom-acao{margin-left:auto;font-size:13px;font-weight:700;color:var(--ouro-texto);}
+  .convite{margin-top:18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px;border-radius:20px;
+    background:linear-gradient(120deg,#1f1c14,#3a3122);color:#fff;}
+  .convite strong{font-family:var(--display);font-stretch:112%;font-weight:750;font-size:19px;}
+  .convite p{margin-top:4px;color:#d8d1bd;font-size:14.5px;max-width:52ch;}
 
   /* ---------- quem somos ---------- */
   .quem{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1fr);gap:clamp(32px,6vw,88px);align-items:center;}
@@ -246,7 +355,7 @@ const ferramentas = [
 
   /* ---------- responsivo ---------- */
   @media (max-width:1100px){
-    .pecas{grid-template-columns:repeat(3,minmax(0,1fr));}
+    .publicos{grid-template-columns:1fr;}
     .ferramentas{grid-template-columns:repeat(2,minmax(0,1fr));}
   }
   @media (max-width:900px){
@@ -254,80 +363,101 @@ const ferramentas = [
     .porta{min-height:172px;}
     /* no celular a vitrine vai para a metade direita e o texto fica à esquerda */
     .janela{left:50%;right:-8%;top:16px;}
-    .porta-vitrine::after{background:linear-gradient(90deg,rgba(255,255,255,.98) 44%,rgba(255,255,255,.6) 62%,transparent 80%);}
-    .porta-vitrine .porta-texto{max-width:62%;}
-    .porta-texto{padding:18px;}
+    .porta::after{background:linear-gradient(90deg,rgba(255,255,255,.98) 44%,rgba(255,255,255,.6) 62%,transparent 80%);}
+    .porta-texto{padding:18px;max-width:62%;}
     .quem{grid-template-columns:1fr;}
     .quem-foto{max-width:440px;}
   }
   @media (max-width:640px){
-    .pecas{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
-    .pecas :global(li:nth-child(n+5)){display:none;}
+    .pecas{grid-template-columns:repeat(2,minmax(0,1fr));}
     .ferramentas{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
     .ferramenta-corpo{padding:12px 12px 14px;font-size:13px;}
     .ferramenta strong{font-size:15px;}
     .ferramenta-icone{width:32px;height:32px;margin-top:-28px;}
     .quem-foto img{aspect-ratio:1;object-fit:cover;object-position:50% 62%;}
-    .secao-topo .acoes,.quem-texto .acoes{width:100%;}
+    .acoes{width:100%;}
     .acoes .botao{flex:1 1 auto;}
+    .convite .botao{width:100%;}
   }
 </style>
 
 <script>
-  // Endereços antigos das abas (#empresas, #eventos, #voce) agora caem em "Para você".
-  const ANTIGAS = ["#empresas", "#eventos", "#voce"];
+  // Endereços antigos das abas (#empresas, #eventos, #voce) caem nas partes certas da seção.
+  const ANTIGAS: Record<string, string> = { "#empresas": "para-empresas", "#eventos": "para-empresas", "#voce": "para-voce" };
   function abrirPeloHash() {
-    if (ANTIGAS.includes(location.hash)) {
+    const alvo = ANTIGAS[location.hash];
+    if (alvo) {
       history.replaceState(null, "", "#comprar");
-      document.getElementById("comprar")?.scrollIntoView();
+      document.getElementById(alvo)?.scrollIntoView();
     }
   }
   abrirPeloHash();
   addEventListener("hashchange", abrirPeloHash);
 
-  interface Queridinho { codigo: string; nome: string; preco: string; foto: string; link: string }
-  const lista = document.querySelector<HTMLUListElement>("[data-pecas]")!;
-  const base = lista.dataset.base!;
-  const fotoDe = (q: Queridinho) => (/^https?:/.test(q.foto) ? q.foto : base + q.foto);
+  interface Peca { codigo: string; nome: string; preco: string; foto: string; link: string }
   const embaralhar = <T,>(xs: T[]) => xs.map((x) => [Math.random(), x] as const).sort((a, b) => a[0] - b[0]).map(([, x]) => x);
   const texto = (s: string) => { const d = document.createElement("div"); d.textContent = s; return d.innerHTML.replace(/"/g, "&quot;"); };
 
-  function mostrar(qs: Queridinho[]) {
-    if (!qs.length) return;
-    const sorteio = embaralhar(qs);
-    lista.innerHTML = sorteio.slice(0, 6).map((q) =>
-      `<li><a class="peca" href="${base + q.link}" data-link="catalogo.peca" data-produto="${texto(q.codigo)}" target="_blank" rel="noopener noreferrer">` +
-      `<img src="${fotoDe(q)}" alt="${texto(q.nome)}" width="480" height="480" loading="lazy" decoding="async">` +
-      `<span class="peca-nome">${texto(q.nome)}</span><span class="peca-preco">R$ ${texto(q.preco)}</span></a></li>`).join("");
-    // a vitrine da porta "Quero comprar" mostra outras peças do mesmo sorteio
-    const janela = document.querySelector<HTMLElement>("[data-giro='pecas']");
-    if (janela) {
-      const fotos = (sorteio.length > 6 ? sorteio.slice(6) : sorteio).slice(0, 5);
-      janela.innerHTML = fotos.map((q, i) => `<figure class="quadro${i ? "" : " ativo"}"><img src="${fotoDe(q)}" alt="" width="480" height="480" decoding="async"></figure>`).join("");
-    }
+  // Preenche uma lista de peças (queridinhos ou brindes) a partir da lista do build e, depois, da versão atual do catálogo.
+  function lista(nome: string, aoMostrar?: (sorteio: Peca[], fotoDe: (p: Peca) => string) => void) {
+    const ul = document.querySelector<HTMLUListElement>(`[data-pecas="${nome}"]`);
+    if (!ul) return;
+    const base = ul.dataset.base!, quantos = Number(ul.dataset.quantos);
+    const fotoDe = (p: Peca) => (/^https?:/.test(p.foto) ? p.foto : base + p.foto);
+    const fixo = ul.querySelector(".sua-marca");
+    const mostrar = (ps: Peca[]) => {
+      if (!ps.length) return;
+      const sorteio = embaralhar(ps);
+      ul.innerHTML = sorteio.slice(0, quantos).map((p) =>
+        `<li><a class="peca" href="${base + p.link}" data-link="catalogo.peca" data-produto="${texto(p.codigo)}" target="_blank" rel="noopener noreferrer">` +
+        `<img src="${fotoDe(p)}" alt="${texto(p.nome)}" width="480" height="480" loading="lazy" decoding="async">` +
+        `<span class="peca-nome">${texto(p.nome)}</span><span class="peca-preco">R$ ${texto(p.preco)}</span></a></li>`).join("");
+      if (fixo) ul.append(fixo);
+      aoMostrar?.(sorteio, fotoDe);
+    };
+    let doBuild: Peca[] = [];
+    try { doBuild = JSON.parse(document.getElementById(`lista-${nome}`)?.textContent || "[]"); } catch { /* sem lista */ }
+    mostrar(doBuild);
+    fetch(ul.dataset.fonte!, { cache: "no-cache" })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((ps: Peca[]) => { if (Array.isArray(ps) && ps.length && JSON.stringify(ps) !== JSON.stringify(doBuild)) mostrar(ps); })
+      .catch(() => { /* fica com a lista do build */ });
   }
 
-  let iniciais: Queridinho[] = [];
-  try { iniciais = JSON.parse(document.getElementById("queridinhos-iniciais")?.textContent || "[]"); } catch { /* sem lista */ }
-  mostrar(iniciais);
-  fetch(lista.dataset.fonte!, { cache: "no-cache" })
-    .then((r) => (r.ok ? r.json() : Promise.reject()))
-    .then((qs: Queridinho[]) => { if (Array.isArray(qs) && qs.length && JSON.stringify(qs) !== JSON.stringify(iniciais)) mostrar(qs); })
-    .catch(() => { /* fica com a lista do build */ });
+  lista("queridinhos", (sorteio, fotoDe) => {
+    // a vitrine da porta "Quero comprar" mostra as peças que não couberam na seção
+    const janela = document.querySelector<HTMLElement>("[data-giro='pecas']");
+    if (!janela) return;
+    const fotos = (sorteio.length > 4 ? sorteio.slice(4) : sorteio).slice(0, 6);
+    janela.innerHTML = fotos.map((p, i) => `<figure class="quadro${i ? "" : " ativo"}"><img src="${fotoDe(p)}" alt="" width="480" height="480" decoding="async"></figure>`).join("");
+  });
+  lista("brindes");
 
   // Vitrines das portas: trocam sozinhas a cada 3,2 s, só com a porta na tela e sem "reduzir movimento".
   if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    document.querySelectorAll<HTMLElement>("[data-giro]").forEach((janela) => {
+    document.querySelectorAll<HTMLElement>("[data-giro]").forEach((janela, n) => {
       let visivel = false;
       new IntersectionObserver(([e]) => (visivel = e.isIntersecting)).observe(janela);
-      setInterval(() => {
+      // cada porta começa num tempo diferente, para não trocarem as três juntas
+      setTimeout(() => setInterval(() => {
         if (!visivel || document.hidden) return;
         const quadros = [...janela.querySelectorAll(".quadro")];
         if (quadros.length < 2) return;
         const i = quadros.findIndex((q) => q.classList.contains("ativo"));
         quadros[i]?.classList.remove("ativo");
         quadros[(i + 1) % quadros.length].classList.add("ativo");
-      }, 3200);
+      }, 3200), n * 1000);
     });
   }
+
+  // Cupom: copia ao tocar e mostra "Copiado"
+  document.querySelectorAll<HTMLButtonElement>("[data-copiar]").forEach((b) => {
+    const rotulo = b.querySelector<HTMLElement>("[data-rotulo]")!;
+    b.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(b.dataset.copiar!); rotulo.textContent = "Copiado"; }
+      catch { getSelection()?.selectAllChildren(b.querySelector(".cupom-codigo")!); rotulo.textContent = "Selecionado"; }
+      window.np3dTrack?.("cupom_copiado", { parceiro: "voolt3d" });
+      setTimeout(() => (rotulo.textContent = "Copiar"), 2200);
+    });
+  });
 </script>

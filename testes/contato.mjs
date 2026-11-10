@@ -2,7 +2,7 @@
 // Lê as páginas geradas em dist/ e confere cada link de WhatsApp, Instagram, catálogo e Shopee:
 // destino certo, mensagem pronta certa, abre em nova aba e o endereço responde na internet.
 import { readFile } from "node:fs/promises";
-import { LINKS, MENSAGENS, QUERIDINHOS_JSON } from "../src/data/links.ts";
+import { BRINDES_JSON, LINKS, MENSAGENS, QUERIDINHOS_JSON } from "../src/data/links.ts";
 
 const NUMERO = "5562993152843";
 let falhas = 0, ok = 0;
@@ -56,13 +56,16 @@ for (const origem of Object.keys(MENSAGENS)) {
   console.log(`   ${origem.padEnd(14)} "${MENSAGENS[origem]}"`);
 }
 // cada seção tem o botão de WhatsApp dela
-for (const [secao, origem] of [["comprar", "comprar"], ["quem-somos", "quemSomos"]]) {
+for (const [secao, origem] of [["comprar", "comprar"], ["comprar", "empresas"], ["parcerias", "parceria"], ["quem-somos", "quemSomos"]]) {
   const trecho = new RegExp(`id="${secao}"[\\s\\S]*?</section>`).exec(html["index.html"])?.[0] || "";
   certo(trecho.includes(`data-link="whatsapp.${origem}"`), `seção ${secao} sem o WhatsApp "${origem}"`);
 }
 // as três portas levam às seções e a vitrine dos queridinhos busca a lista do catálogo
 for (const alvo of ["comprar", "criadores", "quem-somos"]) certo(html["index.html"].includes(`href="#${alvo}"`), `sem porta para #${alvo}`);
-certo(html["index.html"].includes(`data-fonte="${QUERIDINHOS_JSON}"`), "seção Para você não busca os queridinhos do catálogo");
+certo(html["index.html"].includes(`data-fonte="${QUERIDINHOS_JSON}"`), "Para você não busca os queridinhos do catálogo");
+certo(html["index.html"].includes(`data-fonte="${BRINDES_JSON}"`), "Para empresas não busca os brindes do catálogo");
+certo(inicio.some((l) => l.href === LINKS.catalogo.brindes), "Para empresas sem link para os brindes do catálogo");
+certo(inicio.some((l) => l.href === LINKS.parceiros.voolt && /sponsored/.test(l.rel || "")), "Parcerias sem o link da Voolt3D (com rel=sponsored)");
 const pecas = [...html["index.html"].matchAll(/data-link="catalogo\.peca"[^>]*href="([^"]+)"|href="([^"]+)"[^>]*data-link="catalogo\.peca"/g)].map((m) => m[1] || m[2]).filter((h) => !h.includes("${"));
 certo(pecas.length > 0, "nenhum queridinho no HTML (o build não conseguiu ler a lista do catálogo)");
 for (const h of pecas) certo(h.startsWith(LINKS.catalogo.site + "#produto/"), `queridinho com link errado: ${h}`);
@@ -82,7 +85,7 @@ certo(/hashchange/.test(await readFile("src/pages/index.astro", "utf8")), "a pá
 
 // ---------- 4. Os destinos respondem na internet ----------
 console.log("4. Destinos na internet");
-const destinos = [...new Set([`https://wa.me/${NUMERO}?text=${encodeURIComponent(MENSAGENS.comprar)}`, LINKS.contato.instagram, LINKS.catalogo.site, LINKS.hub.shopee, LINKS.calculadora.site, LINKS.ajuste3mf.site, LINKS.dicas.site, LINKS.hub.stlsGratis, QUERIDINHOS_JSON])];
+const destinos = [...new Set([`https://wa.me/${NUMERO}?text=${encodeURIComponent(MENSAGENS.comprar)}`, LINKS.contato.instagram, LINKS.catalogo.site, LINKS.hub.shopee, LINKS.calculadora.site, LINKS.ajuste3mf.site, LINKS.dicas.site, LINKS.hub.stlsGratis, LINKS.parceiros.voolt, QUERIDINHOS_JSON, BRINDES_JSON, ...(LINKS.hub.mercadoLivre ? [LINKS.hub.mercadoLivre] : [])])];
 for (const d of destinos) {
   try {
     const r = await fetch(d, { redirect: "follow", headers: { "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1" } });

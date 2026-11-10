@@ -63,7 +63,8 @@ p{margin:0;}
 .secao h2{margin-top:10px;font-size:var(--fs-h2);font-weight:750;line-height:1.08;}
 .secao .apoio{margin-top:10px;max-width:56ch;color:var(--body);font-size:var(--fs-lead);}
 
-/* surge ao rolar: começa visível e só ganha o movimento quando o JS liga */
-.anima .surge{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .8s var(--mola);}
-.anima .surge.visto{opacity:1;transform:none;}
-@media (prefers-reduced-motion:reduce){.anima .surge{opacity:1;transform:none;transition:none;}}
+/* surge ao rolar: o bloco está sempre visível (nada some se o JS falhar ou o navegador pausar);
+   só desliza um pouco para cima quando chega na tela */
+.anima .surge{transform:translateY(14px);transition:transform .8s var(--mola);}
+.anima .surge.visto{transform:none;}
+@media (prefers-reduced-motion:reduce){.anima .surge{transform:none;transition:none;}}
