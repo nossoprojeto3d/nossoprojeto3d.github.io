@@ -43,7 +43,7 @@ const fotosQuemSomos = ["01-casal"];
   <!-- ===== Abertura e as três portas ===== -->
   <section class="abertura pontos" data-neve="claro">
     <div class="container">
-      <h1>Ideias que ganham forma, <span class="destaque">camada por camada.</span></h1>
+      <h1><span class="impresso">Ideias que ganham forma, <span class="destaque">camada por camada.</span></span><span class="bico" aria-hidden="true"></span></h1>
       <p class="abertura-apoio">Impressão 3D em Goiânia. Escolha por onde começar:</p>
       <div class="portas">
         <a class="porta" href="#comprar" data-porta="comprar">
@@ -250,6 +250,19 @@ const fotosQuemSomos = ["01-casal"];
   .abertura{position:relative;overflow:hidden;}
   .abertura > .container{position:relative;z-index:1;}
   h1{font-size:var(--fs-h1);font-weight:800;line-height:1.02;max-width:20ch;}
+  /* o título "imprime" ao abrir: aparece em camadas, de baixo para cima, com o bico dourado passando.
+     Só CSS e roda uma vez; sem animação (ou com "reduzir movimento") o título já está inteiro na tela. */
+  h1{position:relative;}
+  .impresso{display:block;animation:imprime 1.25s steps(24,end) .15s backwards;}
+  .bico{position:absolute;inset:0;pointer-events:none;opacity:0;animation:sobe 1.25s steps(24,end) .15s backwards,some 1.4s linear .15s backwards;}
+  .bico::before{content:"";position:absolute;left:0;right:0;top:-2px;height:3px;border-radius:3px;background:var(--ouro-grad);box-shadow:0 0 12px rgba(201,162,39,.55);}
+  .bico::after{content:"";position:absolute;top:-14px;left:0;width:16px;height:12px;background:#3b3628;clip-path:polygon(0 0,100% 0,62% 100%,38% 100%);
+    animation:vaivem .3s ease-in-out .15s 4 alternate backwards;}
+  @keyframes imprime{from{clip-path:inset(100% 0 -12% 0);}to{clip-path:inset(0 0 -12% 0);}}
+  @keyframes sobe{from{transform:translateY(100%);}to{transform:translateY(0);}}
+  @keyframes some{0%,88%{opacity:1;}100%{opacity:0;}}
+  @keyframes vaivem{from{left:0;}to{left:calc(100% - 16px);}}
+  @media (prefers-reduced-motion:reduce){.impresso,.bico,.bico::after{animation:none;}}
   .abertura-apoio{margin-top:14px;color:var(--body);font-size:var(--fs-lead);}
 
   /* ---------- portas (as três iguais: vitrine que gira no alto e texto sobre um degradê claro) ---------- */

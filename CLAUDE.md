@@ -59,6 +59,8 @@ Fundo creme (`--bg` #faf8f2), superfícies brancas, texto quase preto e o **dour
 - Fotos: 4:5, 1080×1350, JPEG sRGB, no máximo ~250 KB, em `public/assets/fotos/<número>-<nome>.jpg`. Hoje só a `01-casal.jpg` aparece (Quem somos).
 - As originais chegam em `~/Desktop/Fotos do site/`, nomeadas só com o número. `npm run fotos` enquadra, comprime e grava com o nome certo. Não use o `/otimizar-imagens` aqui: ele faz commit sozinho.
 
+Abertura: o título "imprime" ao carregar (classes `.impresso` e `.bico` no h1 de `index.astro`, só CSS, roda uma vez; com "reduzir movimento" aparece inteiro).
+
 ## Roteiro de teste
 
 Usado pelo `/conferir-site`, no build (`npm run build` e `npx astro preview`), no celular (375px), tablet (768px) e desktop:
