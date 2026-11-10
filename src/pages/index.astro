@@ -183,16 +183,20 @@ const fotosQuemSomos = ["01-casal"];
         <p class="apoio">Marcas que usamos e indicamos para quem também imprime.</p>
       </div>
       <div class="parceiros">
-        <div class="parceiro surge">
-          <span class="parceiro-logo parceiro-logo-voolt"><img src={url("assets/voolt3d.webp")} alt="Voolt3D" width="640" height="162" loading="lazy" decoding="async"></span>
-          <h3>Filamentos com desconto</h3>
-          <p>Filamentos da Voolt3D com até 8% de desconto usando o nosso cupom.</p>
+        <div class="parceiro parceiro-voolt surge">
+          <div class="parceiro-info">
+            <span class="parceiro-logo parceiro-logo-voolt"><img src={url("assets/voolt3d.webp")} alt="Voolt3D" width="640" height="162" loading="lazy" decoding="async"></span>
+            <h3>Filamentos com desconto</h3>
+            <p>Filamentos da Voolt3D com até 8% de desconto usando o nosso cupom.</p>
+          </div>
+          <div class="parceiro-acao">
           <button type="button" class="cupom" data-copiar={CUPOM_VOOLT} aria-label={`Copiar o cupom ${CUPOM_VOOLT}`}>
             <span class="cupom-rotulo">Cupom</span>
             <span class="cupom-codigo">{CUPOM_VOOLT}</span>
             <span class="cupom-acao" data-rotulo>Copiar</span>
           </button>
           <a class="botao botao-ouro" href={LINKS.parceiros.voolt} data-link="parceiros.voolt" data-evento="clique_afiliado" data-parceiro="voolt3d" target="_blank" rel="sponsored noopener noreferrer">Ir para a Voolt3D <svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          </div>
         </div>
 
         {LINKS.hub.mercadoLivre && (
@@ -277,8 +281,7 @@ const fotosQuemSomos = ["01-casal"];
 
   /* ---------- sua ideia: para você e para empresas ---------- */
   .publicos{margin-top:28px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;}
-  .publico{display:flex;flex-direction:column;gap:10px;padding:clamp(20px,2.4vw,28px);border-radius:22px;background:var(--surface);border:1px solid var(--line);}
-  .publico-empresa{background:linear-gradient(160deg,#fffdf6,#fbf3dc);border-color:#eadfbf;}
+  .publico{display:flex;flex-direction:column;gap:10px;padding:clamp(20px,2.4vw,28px);border-radius:22px;background:linear-gradient(160deg,#fffdf6,#fbf3dc);border:1px solid #eadfbf;}
   .publico h3{font-size:clamp(20px,1vw + 14px,26px);font-weight:750;line-height:1.15;}
   .publico > p{color:var(--body);max-width:56ch;}
   .acoes{display:flex;flex-wrap:wrap;gap:10px;}
@@ -312,6 +315,11 @@ const fotosQuemSomos = ["01-casal"];
   .parceiro h3{font-size:19px;font-weight:750;}
   .parceiro p{color:var(--body);font-size:14.5px;}
   .parceiro .botao{margin-top:auto;}
+  /* Voolt sozinha na linha: no computador, informação à esquerda e cupom + botão à direita */
+  .parceiro-voolt{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,400px);align-items:center;gap:16px 48px;padding:26px 28px;}
+  .parceiro-info,.parceiro-acao{display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-width:0;}
+  .parceiro-acao{align-items:stretch;}
+  .parceiro-acao .botao{margin-top:0;}
   .parceiro-logo{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:#fff;font-weight:700;}
   .parceiro-logo-voolt img{height:26px;width:auto;}
   .parceiro-logo-ml{background:#fff159;border-color:#f0e14a;color:#2d3277;}
@@ -374,6 +382,7 @@ const fotosQuemSomos = ["01-casal"];
     .acoes{width:100%;}
     .acoes .botao{flex:1 1 auto;}
     .convite .botao{width:100%;}
+    .parceiro-voolt{grid-template-columns:1fr;padding:22px;}
   }
 </style>
 
