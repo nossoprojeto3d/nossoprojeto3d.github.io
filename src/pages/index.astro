@@ -291,7 +291,7 @@ const fotosQuemSomos = ["01-casal"];
   .acoes{display:flex;flex-wrap:wrap;gap:10px;}
   .publico .acoes{margin-top:auto;padding-top:8px;}
   .pecas{list-style:none;margin:8px 0 4px;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
-  #para-voce .pecas :global(li:nth-child(n+5)){display:none;}
+  #para-voce .pecas:not(.rodando) :global(li:nth-child(n+5)){display:none;}
   .pecas :global(.peca){display:flex;flex-direction:column;height:100%;border-radius:14px;overflow:hidden;background:var(--surface);border:1px solid var(--line);text-decoration:none;
     transition:transform .4s var(--mola),box-shadow .3s ease;}
   .pecas :global(.peca:hover){transform:translateY(-3px);box-shadow:0 18px 30px -20px rgba(31,28,20,.35);}
@@ -360,9 +360,11 @@ const fotosQuemSomos = ["01-casal"];
   @media (max-width:640px){
     .pecas{grid-template-columns:repeat(2,minmax(0,1fr));}
     /* celular: só 2 de cada; em Para você elas trocam sozinhas, e em Para empresas o "Sua marca aqui" fica sempre */
-    #para-voce .pecas :global(li:nth-child(n+3)){display:none;}
-    #para-voce .pecas :global(li.entra){animation:entra .55s var(--mola);}
-    @keyframes entra{from{opacity:0;transform:translateY(8px) scale(.98);}to{opacity:1;transform:none;}}
+    #para-voce .pecas:not(.rodando) :global(li:nth-child(n+3)){display:none;}
+    #para-voce .pecas.rodando :global(li){grid-row:1;opacity:0;visibility:hidden;transition:opacity .9s ease,visibility 0s linear .9s;}
+    #para-voce .pecas.rodando :global(li:nth-child(odd)){grid-column:1;}
+    #para-voce .pecas.rodando :global(li:nth-child(even)){grid-column:2;}
+    #para-voce .pecas.rodando :global(li.ativo){opacity:1;visibility:visible;transition:opacity .9s ease,visibility 0s;}
     #para-empresas .pecas :global(li:not(.sua-marca):nth-child(n+2)){display:none;}
     /* celular: lista com miniatura do lado */
     .ferramentas{grid-template-columns:1fr;gap:10px;}
@@ -432,19 +434,27 @@ const fotosQuemSomos = ["01-casal"];
   lista("brindes");
 
   // Celular: as 2 peças de "Para você" trocam sozinhas a cada 2,2 s, passando por todos os queridinhos.
+  // As peças ficam empilhadas nas duas colunas (mesmo lugar, mesma altura) e só a opacidade muda: sem piscar nem pular.
   (() => {
     const ul = document.querySelector<HTMLUListElement>('[data-pecas="queridinhos"]');
     if (!ul || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const celular = matchMedia("(max-width: 640px)");
-    let visivel = false;
+    let par = 0, visivel = false;
     new IntersectionObserver(([e]) => (visivel = e.isIntersecting)).observe(ul);
+    const marcar = () => [...ul.children].forEach((li, i) => li.classList.toggle("ativo", Math.floor(i / 2) === par));
+    const preparar = () => {
+      const itens = ul.children.length;
+      ul.classList.toggle("rodando", celular.matches && itens > 2);
+      ul.querySelectorAll("img").forEach((img) => (img.loading = "eager"));
+      par = 0; marcar();
+    };
+    preparar();
+    new MutationObserver(() => { if (!ul.querySelector(".ativo")) preparar(); }).observe(ul, { childList: true });
+    celular.addEventListener("change", preparar);
     setInterval(() => {
-      if (!celular.matches || !visivel || document.hidden) return;
-      const itens = [...ul.children] as HTMLElement[];
-      if (itens.length < 3) return;
-      // os 2 primeiros vão para o fim: aparecem os 2 seguintes
-      ul.append(itens[0], itens[1]);
-      [...ul.children].slice(0, 2).forEach((li) => { li.classList.remove("entra"); void (li as HTMLElement).offsetWidth; li.classList.add("entra"); });
+      if (!ul.classList.contains("rodando") || !visivel || document.hidden) return;
+      par = (par + 1) % Math.ceil(ul.children.length / 2);
+      marcar();
     }, 2200);
   })();
 
