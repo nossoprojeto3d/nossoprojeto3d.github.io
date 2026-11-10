@@ -56,10 +56,12 @@ for (const origem of Object.keys(MENSAGENS)) {
   console.log(`   ${origem.padEnd(14)} "${MENSAGENS[origem]}"`);
 }
 // cada seção tem o botão de WhatsApp dela
-for (const [secao, origem] of [["comprar", "comprar"], ["comprar", "empresas"], ["parcerias", "parceria"]]) {
+for (const [secao, origem] of [["comprar", "comprar"], ["comprar", "empresas"]]) {
   const trecho = new RegExp(`id="${secao}"[\\s\\S]*?</section>`).exec(html["index.html"])?.[0] || "";
   certo(trecho.includes(`data-link="whatsapp.${origem}"`), `seção ${secao} sem o WhatsApp "${origem}"`);
 }
+// o convite de parceria fica no rodapé
+certo(/<footer[\s\S]*data-link="whatsapp\.parceria"/.test(html["index.html"]), "rodapé sem o link Quero ser parceiro");
 // as três portas levam às seções e a vitrine dos queridinhos busca a lista do catálogo
 for (const alvo of ["comprar", "criadores", "quem-somos"]) certo(html["index.html"].includes(`href="#${alvo}"`), `sem porta para #${alvo}`);
 certo(html["index.html"].includes(`data-fonte="${QUERIDINHOS_JSON}"`), "Para você não busca os queridinhos do catálogo");

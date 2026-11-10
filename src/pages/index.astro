@@ -210,13 +210,6 @@ const fotosQuemSomos = ["01-casal"];
 
       </div>
 
-      <div class="convite surge">
-        <div>
-          <strong>Sua empresa quer ser nossa parceira?</strong>
-          <p>Marcas de filamento, lojas e empresas que querem trabalhar com a gente: vamos conversar.</p>
-        </div>
-        <a class="botao botao-zap" href={whatsapp("parceria")} data-link="whatsapp.parceria" target="_blank" rel="noopener noreferrer"><svg width="18" height="18" aria-hidden="true"><use href="#i-whatsapp"/></svg> Quero ser parceiro</a>
-      </div>
     </div>
   </section>
 
@@ -327,10 +320,6 @@ const fotosQuemSomos = ["01-casal"];
   .cupom-rotulo{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ouro-texto);}
   .cupom-codigo{font:800 16px/1 var(--display);font-stretch:112%;letter-spacing:.04em;}
   .cupom-acao{margin-left:auto;font-size:13px;font-weight:700;color:var(--ouro-texto);}
-  .convite{margin-top:18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px;border-radius:20px;
-    background:linear-gradient(120deg,#1f1c14,#3a3122);color:#fff;}
-  .convite strong{font-family:var(--display);font-stretch:112%;font-weight:750;font-size:19px;}
-  .convite p{margin-top:4px;color:#d8d1bd;font-size:14.5px;max-width:52ch;}
 
   /* ---------- quem somos ---------- */
   .quem{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1fr);gap:clamp(32px,6vw,88px);align-items:center;}
@@ -362,6 +351,12 @@ const fotosQuemSomos = ["01-casal"];
     .quem-foto{max-width:440px;}
   }
   @media (max-width:640px){
+    /* topo compacto: título e as três portas cabem na primeira tela */
+    .abertura{padding:16px 0 28px;}
+    h1{font-size:31px;}
+    .abertura-apoio{margin-top:8px;font-size:15px;}
+    .portas{margin-top:16px;gap:10px;}
+    .porta{min-height:150px;}
     .pecas{grid-template-columns:repeat(2,minmax(0,1fr));}
     /* celular: só 2 de cada; em Para você elas trocam sozinhas, e em Para empresas o "Sua marca aqui" fica sempre */
     #para-voce .pecas:not(.rodando) :global(li:nth-child(n+3)){display:none;}
@@ -381,7 +376,6 @@ const fotosQuemSomos = ["01-casal"];
     .quem-foto img{aspect-ratio:1;object-fit:cover;object-position:50% 62%;}
     .acoes{width:100%;}
     .acoes .botao{flex:1 1 auto;}
-    .convite .botao{width:100%;}
     .parceiro-voolt{grid-template-columns:1fr;padding:22px;}
   }
 </style>
