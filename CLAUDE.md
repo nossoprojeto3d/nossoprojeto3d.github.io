@@ -61,6 +61,8 @@ Fundo creme (`--bg` #faf8f2), superfícies brancas, texto quase preto e o **dour
 
 Abertura: o título "imprime" ao carregar (classes `.impresso` e `.bico` no h1 de `index.astro`, só CSS, roda uma vez; com "reduzir movimento" aparece inteiro).
 
+Ritmo (computador ≥1101px): Para você e Para empresas em zigue-zague (texto de um lado, peças do outro); Ferramentas numa faixa `.faixa` com título e subtítulo lado a lado (`.secao-topo`); Parcerias centralizada (`.topo-centro`); foto de Quem somos maior, encostada na borda esquerda (≥901px). Peças: `.peca-foto` com zoom e "Ver peça" (setinha no celular). Cupom da Voolt em formato de ticket (classe `copiado` ao copiar).
+
 ## Roteiro de teste
 
 Usado pelo `/conferir-site`, no build (`npm run build` e `npx astro preview`), no celular (375px), tablet (768px) e desktop:

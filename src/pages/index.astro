@@ -151,11 +151,13 @@ const fotosQuemSomos = ["01-casal"];
   </section>
 
   <!-- ===== Para criadores ===== -->
-  <section class="secao" id="criadores" aria-labelledby="criadores-titulo">
+  <section class="secao faixa pontos" id="criadores" aria-labelledby="criadores-titulo">
     <div class="container">
-      <div class="surge">
-        <span class="etiqueta">Para criadores</span>
-        <h2 id="criadores-titulo">Ferramentas gratuitas para quem imprime</h2>
+      <div class="surge secao-topo">
+        <div>
+          <span class="etiqueta">Para criadores</span>
+          <h2 id="criadores-titulo">Ferramentas gratuitas para quem imprime</h2>
+        </div>
         <p class="apoio">Feitas por nós para o dia a dia da nossa bancada, abertas para qualquer maker usar.</p>
       </div>
       <ul class="ferramentas">
@@ -178,7 +180,7 @@ const fotosQuemSomos = ["01-casal"];
   <!-- ===== Nossas parcerias ===== -->
   <section class="secao" id="parcerias" aria-labelledby="parcerias-titulo">
     <div class="container">
-      <div class="surge">
+      <div class="surge topo-centro">
         <span class="etiqueta">Parcerias</span>
         <h2 id="parcerias-titulo">Nossas parcerias</h2>
         <p class="apoio">Marcas que usamos e indicamos para quem também imprime.</p>
@@ -380,6 +382,33 @@ const fotosQuemSomos = ["01-casal"];
   .onde strong{color:var(--text);font-size:15px;}
   .onde-pino{flex:none;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--ouro-grad);color:var(--sobre-ouro);}
   .quem-texto .acoes{margin-top:22px;}
+
+  /* ---------- ritmo entre as seções (computador) ----------
+     cada seção com uma composição diferente: Para você e Para empresas em zigue-zague (texto de um lado, peças do outro),
+     ferramentas numa faixa de fundo com o título dividido, parcerias centralizada e a foto de Quem somos maior, encostada na borda da tela */
+  .faixa{background-color:var(--bg-2);}
+  .secao-topo > div{flex:1 1 480px;max-width:620px;}
+  .secao-topo .apoio{flex:0 1 38ch;max-width:38ch;margin-top:0;}
+  .topo-centro{text-align:center;}
+  .topo-centro .apoio{margin-inline:auto;}
+  @media (min-width:1101px){
+    .publicos{grid-template-columns:1fr;gap:24px;}
+    .publico{display:grid;grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr);column-gap:clamp(32px,4vw,56px);row-gap:10px;
+      grid-template-rows:1fr auto auto auto auto 1fr;grid-template-areas:". pecas" "et pecas" "h pecas" "p pecas" "acoes pecas" ". pecas";padding:32px;}
+    .publico-empresa{grid-template-columns:minmax(0,1.22fr) minmax(0,.78fr);grid-template-areas:"pecas ." "pecas et" "pecas h" "pecas p" "pecas acoes" "pecas .";}
+    .publico > .etiqueta{grid-area:et;}
+    .publico > h3{grid-area:h;font-size:clamp(24px,1vw + 16px,30px);}
+    .publico > p{grid-area:p;}
+    .publico > .pecas{grid-area:pecas;margin:0;align-self:center;}
+    /* Para empresas costuma ter poucos brindes: as peças ficam maiores e centralizadas, sem buraco do lado */
+    .publico-empresa > .pecas{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,210px);justify-content:center;gap:14px;}
+    .publico > .acoes{grid-area:acoes;margin-top:0;padding-top:12px;}
+  }
+  @media (min-width:901px){
+    .quem{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);}
+    .quem-foto{margin-left:calc(-1 * (max(0px,(100vw - var(--largura)) / 2) + 20px));}
+    .quem-foto img{aspect-ratio:1/1.05;object-fit:cover;object-position:50% 45%;border-radius:0 32px 32px 0;}
+  }
 
   /* ---------- responsivo ---------- */
   @media (max-width:1100px){
