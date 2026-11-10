@@ -1,52 +1,41 @@
 <!doctype html>
 <!--
   Fonte da imagem de compartilhamento (assets/og/og-image.jpg, 1200×630): é o que aparece
-  quando alguém manda o link do site no WhatsApp, Instagram etc. Mesmo visual da V3.
+  quando alguém manda o link do site no WhatsApp, Instagram etc. Mesmo visual da V4 (clara, dourado da logo).
   Pra regenerar depois de editar: abra em 1200×630 (npm run dev → /assets/og/og-image.html),
-  tire o print e salve como og-image.jpg, ou peça pro Claude fazer isso.
+  tire o print, salve como og-image.jpg e aumente o ?v= em src/layouts/Pagina.astro (ou peça pro Claude fazer isso).
 -->
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
 <title>OG image</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,750;112,800&family=Instrument+Sans:wght@500;600;700&display=swap">
 <style>
-  :root{--bg:#0A0A0B;--line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.14);--text:#F4F4F5;--body:#B6B6BC;--muted:#8B8B93;--ouro:#C9A227;--ouro-claro:#E8C873;}
+  :root{--bg:#faf8f2;--text:#1f1c14;--body:#5c574a;--line:#e8e2d0;--ouro-texto:#8A6A0A;--ouro-grad:linear-gradient(135deg,#E8C873,#C9A227 60%,#B08A17);}
   *{box-sizing:border-box;margin:0;}
-  body{width:1200px;height:630px;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Geist',system-ui,sans-serif;position:relative;}
-  /* refletor dourado atrás do logo, como no topo do site */
-  body::before{content:"";position:absolute;width:900px;height:900px;left:-120px;top:50%;transform:translateY(-50%);
-    background:radial-gradient(circle,rgba(201,162,39,.2),rgba(201,162,39,.04) 40%,transparent 64%);}
-  .wrap{position:relative;display:flex;align-items:center;height:100%;padding:0 84px 0 96px;gap:84px;}
-
-  .peca{position:relative;flex:0 0 330px;height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-  /* o logo "impresso": linhas de camada à mostra e a linha dourada do bico sobre o último terço */
-  .peca img{height:330px;width:auto;filter:drop-shadow(0 30px 40px rgba(0,0,0,.6));
-    -webkit-mask-image:repeating-linear-gradient(0deg,#000 0 3px,rgba(0,0,0,.72) 3px 4px);}
-  .sombra{width:240px;height:22px;margin-top:18px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.75),transparent);}
-  .camada{position:absolute;left:50%;transform:translateX(-50%);bottom:30px;font-family:'Geist Mono',monospace;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
-
-  .texto{flex:1;}
-  .etiqueta{display:inline-flex;align-items:center;gap:10px;padding:9px 16px;border:1px solid var(--line-2);border-radius:999px;
-    font-family:'Geist Mono',monospace;font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:var(--body);}
-  .etiqueta::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ouro);box-shadow:0 0 12px var(--ouro);}
-  h1{margin-top:28px;font-size:76px;font-weight:600;line-height:.98;letter-spacing:-.045em;}
-  h1 span{background:linear-gradient(180deg,#F3DC8E,#C9A227 60%,#9C7A1C);-webkit-background-clip:text;background-clip:text;color:transparent;}
-  .rodape{margin-top:36px;padding-top:24px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;font-size:21px;color:var(--muted);}
-  .rodape b{font-weight:500;color:var(--text);}
+  body{width:1200px;height:630px;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Instrument Sans',system-ui,sans-serif;position:relative;}
+  /* fundo pontilhado, como a abertura do site, e um brilho dourado suave atrás da logo */
+  body::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgb(31 28 20 / .09) 1.4px,transparent 1.4px);background-size:22px 22px;}
+  body::after{content:"";position:absolute;width:760px;height:760px;left:-170px;top:50%;transform:translateY(-50%);
+    background:radial-gradient(circle,rgba(232,200,115,.35),rgba(232,200,115,.08) 45%,transparent 66%);}
+  .wrap{position:relative;z-index:1;display:flex;align-items:center;height:100%;padding:0 90px 0 100px;gap:76px;}
+  .logo{flex:0 0 280px;display:grid;place-items:center;}
+  .logo img{width:260px;height:auto;filter:drop-shadow(0 18px 26px rgba(138,106,10,.25));}
+  .texto{flex:1;display:flex;flex-direction:column;gap:22px;}
+  .marca{font:700 22px/1 'Instrument Sans',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--ouro-texto);}
+  h1{font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:800;font-size:78px;line-height:1;letter-spacing:-.02em;}
+  h1 span{background:var(--ouro-grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .linha{display:flex;flex-wrap:wrap;gap:10px;}
+  .linha span{padding:9px 16px;border-radius:999px;background:#fff;border:1px solid var(--line);font-weight:600;font-size:21px;color:var(--body);}
 </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="peca">
-      <img src="../logo.png" alt="">
-      <div class="sombra"></div>
-      <span class="camada">Camada 0,20 mm</span>
-    </div>
+    <div class="logo"><img src="../logo.png" alt=""></div>
     <div class="texto">
-      <span class="etiqueta">Nosso Projeto 3D · Goiânia</span>
+      <div class="marca">Nosso Projeto 3D · Goiânia</div>
       <h1>Ideias que ganham forma, <span>camada por camada.</span></h1>
-      <p class="rodape"><b>Brindes, lembrancinhas e peças sob medida</b><span>Envio para todo o Brasil</span></p>
+      <div class="linha"><span>Peças personalizadas</span><span>Brindes para empresas</span><span>Ferramentas para makers</span></div>
     </div>
   </div>
 </body>

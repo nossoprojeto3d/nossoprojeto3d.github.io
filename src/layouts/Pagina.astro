@@ -15,7 +15,7 @@ interface Props {
 const { titulo, descricao, semIndice = false } = Astro.props;
 const canonica = new URL(Astro.url.pathname, "https://nossoprojeto3d.com.br").href;
 // ?v=: muda quando a imagem muda, senão o WhatsApp continua mostrando a prévia antiga guardada em cache
-const og = `${SITE_URL}assets/og/og-image.jpg?v=3`;
+const og = `${SITE_URL}assets/og/og-image.jpg?v=4`;
 
 const negocio = {
   "@context": "https://schema.org",
@@ -50,7 +50,7 @@ const negocio = {
   <meta property="og:image" content={og}>
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Logo NP dourado ao lado da frase: Ideias que ganham forma, camada por camada.">
+  <meta property="og:image:alt" content="Logo NP dourada em fundo claro ao lado da frase: Ideias que ganham forma, camada por camada.">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href={url("assets/icons/favicon.ico")} sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href={url("assets/icons/favicon-32.png")}>
