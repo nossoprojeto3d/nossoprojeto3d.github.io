@@ -112,7 +112,7 @@ const fotosQuemSomos = ["01-casal"];
           <ul class="pecas" data-pecas="queridinhos" data-fonte={QUERIDINHOS_JSON} data-base={BASE_CATALOGO} data-quantos="99">
             {queridinhos.slice(0, 4).map((q) => (
               <li><a class="peca" href={BASE_CATALOGO + q.link} data-link="catalogo.peca" data-produto={q.codigo} target="_blank" rel="noopener noreferrer">
-                <img src={foto(q)} alt={q.nome} width="480" height="480" loading="lazy" decoding="async">
+                <span class="peca-foto"><img src={foto(q)} alt={q.nome} width="480" height="480" loading="lazy" decoding="async"><span class="peca-ver" aria-hidden="true"><span>Ver peça</span><svg width="14" height="14"><use href="#i-arrow"/></svg></span></span>
                 <span class="peca-nome">{q.nome}</span><span class="peca-preco">R$ {q.preco}</span>
               </a></li>
             ))}
@@ -131,7 +131,7 @@ const fotosQuemSomos = ["01-casal"];
           <ul class="pecas" data-pecas="brindes" data-fonte={BRINDES_JSON} data-base={BASE_CATALOGO} data-quantos="3">
             {brindesNaTela.map((q) => (
               <li><a class="peca" href={BASE_CATALOGO + q.link} data-link="catalogo.peca" data-produto={q.codigo} target="_blank" rel="noopener noreferrer">
-                <img src={foto(q)} alt={q.nome} width="480" height="480" loading="lazy" decoding="async">
+                <span class="peca-foto"><img src={foto(q)} alt={q.nome} width="480" height="480" loading="lazy" decoding="async"><span class="peca-ver" aria-hidden="true"><span>Ver peça</span><svg width="14" height="14"><use href="#i-arrow"/></svg></span></span>
                 <span class="peca-nome">{q.nome}</span><span class="peca-preco">R$ {q.preco}</span>
               </a></li>
             ))}
@@ -192,8 +192,8 @@ const fotosQuemSomos = ["01-casal"];
           </div>
           <div class="parceiro-acao">
           <button type="button" class="cupom" data-copiar={CUPOM_VOOLT} aria-label={`Copiar o cupom ${CUPOM_VOOLT}`}>
-            <span class="cupom-rotulo">Cupom</span>
-            <span class="cupom-codigo">{CUPOM_VOOLT}</span>
+            <span class="cupom-selo" aria-hidden="true"><small>até</small><b>8%</b><small>off</small></span>
+            <span class="cupom-corpo"><span class="cupom-rotulo">Cupom</span><span class="cupom-codigo">{CUPOM_VOOLT}</span></span>
             <span class="cupom-acao" data-rotulo>Copiar</span>
           </button>
           <a class="botao botao-ouro" href={LINKS.parceiros.voolt} data-link="parceiros.voolt" data-evento="clique_afiliado" data-parceiro="voolt3d" target="_blank" rel="sponsored noopener noreferrer">Ir para a Voolt3D <svg width="18" height="18" aria-hidden="true"><use href="#i-arrow"/></svg></a>
@@ -301,7 +301,22 @@ const fotosQuemSomos = ["01-casal"];
   .pecas :global(.peca){display:flex;flex-direction:column;height:100%;border-radius:14px;overflow:hidden;background:var(--surface);border:1px solid var(--line);text-decoration:none;
     transition:transform .4s var(--mola),box-shadow .3s ease;}
   .pecas :global(.peca:hover){transform:translateY(-3px);box-shadow:0 18px 30px -20px rgba(31,28,20,.35);}
-  .pecas :global(.peca img){width:100%;height:auto;aspect-ratio:1;object-fit:cover;background:var(--bg-2);}
+  /* foto da peça: no computador dá zoom e mostra "Ver peça" ao passar o mouse; no celular fica uma setinha no canto */
+  .pecas :global(.peca-foto){position:relative;display:block;aspect-ratio:1;overflow:hidden;background:var(--bg-2);}
+  .pecas :global(.peca-foto img){display:block;width:100%;height:100%;object-fit:cover;transition:transform .7s var(--mola);}
+  .pecas :global(.peca-ver){position:absolute;left:8px;right:8px;bottom:8px;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 10px;border-radius:999px;
+    background:rgba(255,255,255,.94);box-shadow:0 6px 16px -8px rgba(31,28,20,.45);font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;
+    opacity:0;transform:translateY(8px);transition:opacity .25s ease,transform .4s var(--mola);}
+  .pecas :global(.peca-ver svg){flex:none;color:var(--ouro-texto);}
+  .pecas :global(.peca:hover .peca-foto img),.pecas :global(.peca:focus-visible .peca-foto img){transform:scale(1.07);}
+  .pecas :global(.peca:hover .peca-ver),.pecas :global(.peca:focus-visible .peca-ver){opacity:1;transform:none;}
+  .marca-arte span{transition:transform .6s var(--mola),border-color .3s ease;}
+  .peca-marca:hover .marca-arte span{transform:rotate(-8deg) scale(1.06);border-style:solid;}
+  @media (hover:none){
+    .pecas :global(.peca-ver){left:auto;top:8px;right:8px;bottom:auto;width:28px;height:28px;padding:0;opacity:1;transform:none;}
+    .pecas :global(.peca-ver span){display:none;}
+    .pecas :global(.peca:active .peca-foto img){transform:scale(1.05);}
+  }
   .pecas :global(.peca-nome){padding:8px 10px 0;font-size:13px;font-weight:600;line-height:1.3;}
   .pecas :global(.peca-preco){margin-top:auto;padding:4px 10px 10px;font-size:13px;font-weight:700;color:var(--ouro-texto);font-variant-numeric:tabular-nums;}
   .marca-arte{display:grid;place-items:center;aspect-ratio:1;background:repeating-linear-gradient(0deg,#f6edd0 0 6px,#efe2bb 6px 7px);border-bottom:1px solid var(--line);}
@@ -326,17 +341,34 @@ const fotosQuemSomos = ["01-casal"];
   .parceiro p{color:var(--body);font-size:14.5px;}
   .parceiro .botao{margin-top:auto;}
   /* Voolt sozinha na linha: no computador, informação à esquerda e cupom + botão à direita */
-  .parceiro-voolt{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,400px);align-items:center;gap:16px 48px;padding:26px 28px;}
+  .parceiro-voolt{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,440px);align-items:center;gap:16px 48px;padding:26px 28px;}
   .parceiro-info,.parceiro-acao{display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-width:0;}
   .parceiro-acao{align-items:stretch;}
   .parceiro-acao .botao{margin-top:0;}
   .parceiro-logo{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:#fff;font-weight:700;}
   .parceiro-logo-voolt img{height:26px;width:auto;}
   .parceiro-logo-ml{background:#fff159;border-color:#f0e14a;color:#2d3277;}
-  .cupom{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:12px;border:1.5px dashed var(--ouro);background:var(--ouro-suave);cursor:pointer;font:inherit;color:var(--text);}
+  /* cupom em formato de ticket: canhoto dourado com o desconto, picote com dois recortes e o código grande */
+  .cupom{--corte:72px;display:grid;grid-template-columns:var(--corte) minmax(0,1fr) auto;align-items:stretch;width:100%;min-height:76px;padding:0;border:0;border-radius:14px;
+    background:linear-gradient(135deg,#fbf3dc,var(--ouro-suave));cursor:pointer;font:inherit;color:var(--text);text-align:left;transition:transform .35s var(--mola);
+    -webkit-mask:radial-gradient(circle 9px at var(--corte) 0,#0000 96%,#000),radial-gradient(circle 9px at var(--corte) 100%,#0000 96%,#000);-webkit-mask-composite:source-in;
+    mask:radial-gradient(circle 9px at var(--corte) 0,#0000 96%,#000),radial-gradient(circle 9px at var(--corte) 100%,#0000 96%,#000);mask-composite:intersect;}
+  .cupom:hover{transform:translateY(-2px);}
+  .cupom-selo{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;background:var(--ouro-grad);color:var(--sobre-ouro);border-right:2px dashed rgba(255,255,255,.75);}
+  .cupom-selo b{font:800 24px/1 var(--display);font-stretch:112%;margin:2px 0;}
+  .cupom-selo small{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;}
+  .cupom-corpo{display:flex;flex-direction:column;justify-content:center;gap:5px;padding:12px 12px 12px 18px;min-width:0;}
   .cupom-rotulo{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ouro-texto);}
-  .cupom-codigo{font:800 16px/1 var(--display);font-stretch:112%;letter-spacing:.04em;}
-  .cupom-acao{margin-left:auto;font-size:13px;font-weight:700;color:var(--ouro-texto);}
+  .cupom-codigo{font:800 17px/1 var(--display);font-stretch:112%;letter-spacing:.03em;overflow:hidden;text-overflow:ellipsis;}
+  .cupom-acao{align-self:center;display:flex;align-items:center;gap:6px;min-height:40px;margin-right:14px;padding:0 14px;border-radius:10px;background:#fff;border:1px solid #eadfbf;
+    font-size:13px;font-weight:700;color:var(--ouro-texto);transition:background-color .25s ease,color .25s ease,border-color .25s ease;}
+  .cupom:hover .cupom-acao{border-color:var(--ouro);}
+  .cupom:focus-visible{outline:none;}
+  .cupom:focus-visible .cupom-acao{outline:2px solid var(--ouro-texto);outline-offset:2px;}
+  .cupom.copiado .cupom-acao{background:#1f8f4e;border-color:#1f8f4e;color:#fff;}
+  .cupom.copiado .cupom-acao::before{content:"✓";}
+  .cupom.copiado{animation:carimbo .5s var(--mola);}
+  @keyframes carimbo{40%{transform:scale(1.035);}}
 
   /* ---------- quem somos ---------- */
   .quem{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1fr);gap:clamp(32px,6vw,88px);align-items:center;}
@@ -394,6 +426,11 @@ const fotosQuemSomos = ["01-casal"];
     .acoes{width:100%;}
     .acoes .botao{flex:1 1 auto;}
     .parceiro-voolt{grid-template-columns:1fr;padding:22px;}
+    .cupom{--corte:58px;}
+    .cupom-selo b{font-size:19px;}
+    .cupom-corpo{padding:12px 8px 12px 12px;}
+    .cupom-codigo{font-size:14.5px;letter-spacing:0;}
+    .cupom-acao{margin-right:10px;padding:0 11px;}
   }
 </style>
 
@@ -426,7 +463,7 @@ const fotosQuemSomos = ["01-casal"];
       const sorteio = embaralhar(ps);
       ul.innerHTML = sorteio.slice(0, quantos).map((p) =>
         `<li><a class="peca" href="${base + p.link}" data-link="catalogo.peca" data-produto="${texto(p.codigo)}" target="_blank" rel="noopener noreferrer">` +
-        `<img src="${fotoDe(p)}" alt="${texto(p.nome)}" width="480" height="480" loading="lazy" decoding="async">` +
+        `<span class="peca-foto"><img src="${fotoDe(p)}" alt="${texto(p.nome)}" width="480" height="480" loading="lazy" decoding="async"><span class="peca-ver" aria-hidden="true"><span>Ver peça</span><svg width="14" height="14"><use href="#i-arrow"/></svg></span></span>` +
         `<span class="peca-nome">${texto(p.nome)}</span><span class="peca-preco">R$ ${texto(p.preco)}</span></a></li>`).join("");
       if (fixo) ul.append(fixo);
       aoMostrar?.(sorteio, fotoDe);
@@ -495,10 +532,10 @@ const fotosQuemSomos = ["01-casal"];
   document.querySelectorAll<HTMLButtonElement>("[data-copiar]").forEach((b) => {
     const rotulo = b.querySelector<HTMLElement>("[data-rotulo]")!;
     b.addEventListener("click", async () => {
-      try { await navigator.clipboard.writeText(b.dataset.copiar!); rotulo.textContent = "Copiado"; }
+      try { await navigator.clipboard.writeText(b.dataset.copiar!); rotulo.textContent = "Copiado"; b.classList.add("copiado"); }
       catch { getSelection()?.selectAllChildren(b.querySelector(".cupom-codigo")!); rotulo.textContent = "Selecionado"; }
       window.np3dTrack?.("cupom_copiado", { parceiro: "voolt3d" });
-      setTimeout(() => (rotulo.textContent = "Copiar"), 2200);
+      setTimeout(() => { rotulo.textContent = "Copiar"; b.classList.remove("copiado"); }, 2200);
     });
   });
 </script>
