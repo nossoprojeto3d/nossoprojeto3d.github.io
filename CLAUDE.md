@@ -29,7 +29,7 @@ npm run fotos      # prepara as fotos da pasta ~/Desktop/Fotos do site
 - `empresas.astro`, `eventos.astro`, `para-voce.astro` levam para `#comprar`; os `#empresas` e `#eventos` antigos caem em "Para empresas" e `#voce` em "Para você".
 - `404.astro`: o GitHub Pages serve esse arquivo em qualquer endereço inexistente do domínio; ele também leva `/calc-3d`, `/ajuste-3mf` e `/site` para os endereços novos.
 
-- **Natal** (`src/data/natal.ts` + `components/v4/Natal.astro`): faixa verde no topo com link para a categoria Natal do catálogo e neve caindo nela e atrás da abertura (`data-neve`). Some sozinho a partir de `NATAL_ATE` (o navegador confere a data, não precisa publicar). No próximo Natal, troque as datas e o texto em `natal.ts`.
+- **Natal** (`src/data/natal.ts` + `components/v4/Natal.astro`): faixa verde no topo com link para a categoria Natal do catálogo e neve caindo nela e atrás da abertura (`data-neve`). Some sozinho a partir de `NATAL_ATE` (o navegador confere a data, não precisa publicar). No próximo Natal, troque as datas e o texto em `natal.ts`. Para tirar antes da data: `git revert natal-2026` (etiqueta do commit que trouxe o tema; `antes-do-natal-2026` marca o site logo antes dele).
 
 ## Onde mexer
 
