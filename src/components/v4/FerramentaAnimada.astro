@@ -1,0 +1,139 @@
+---
+// Desenhos animados dos cards de ferramentas (mesma ideia do StlAnimado), cada um na cor do seu projeto:
+// calculadora (custos somando até o preço), ajuste (controles indo para o ponto certo) e dicas (cartões numerados passando).
+// Só HTML e CSS; escala pelo tamanho da caixa (unidades cqw/cqh). Com "reduzir movimento" fica parado no quadro final.
+interface Props { tipo: "calculadora" | "ajuste" | "dicas" }
+const { tipo } = Astro.props;
+const custos = ["Filamento", "Energia", "Tempo"];
+const preco = ["1", "8", ",", "4", "0"];
+const controles = [
+  { nome: "Camada", de: 0.75, para: 0.3 },
+  { nome: "Velocidade", de: 0.2, para: 0.7 },
+  { nome: "Preenchimento", de: 0.85, para: 0.45 }
+];
+const dicas = ["12", "27", "41"];
+---
+<div class:list={["anim", tipo]} aria-hidden="true">
+  {tipo === "calculadora" && (
+    <>
+      <div class="custos">
+        {custos.map((nome, i) => (
+          <div class="custo" style={`--i:${i}`}>
+            <span class="ponto"></span>
+            <span class="info"><span class="nome">{nome}</span><span class="barra"><span></span></span></span>
+          </div>
+        ))}
+      </div>
+      <div class="total">
+        <span class="rotulo">Cobrar</span>
+        <span class="valor"><small>R$</small>{preco.map((c) => (c === "," ? <span>,</span> :
+          <span class="dig"><i style={`--n:${c}`}>{Array.from({ length: 10 }, (_, n) => <b>{n}</b>)}</i></span>))}</span>
+        <span class="lucro">lucro 40%</span>
+      </div>
+    </>
+  )}
+  {tipo === "ajuste" && (
+    <div class="painel">
+      <span class="arquivo"><b>3MF</b> suporte-celular.3mf</span>
+      {controles.map((c, i) => (
+        <div class="controle" style={`--i:${i};--de:${c.de};--para:${c.para}`}>
+          <span class="nome">{c.nome}</span>
+          <span class="trilho"><span class="cheio"></span><span class="curso"><span class="pino"></span></span></span>
+        </div>
+      ))}
+      <span class="pronto">✓ Ajustado pela IA</span>
+    </div>
+  )}
+  {tipo === "dicas" && (
+    <div class="baralho">
+      <span class="sombra s2"></span>
+      <span class="sombra s1"></span>
+      {dicas.map((n, i) => (
+        <div class="carta" style={`--i:${i}`}>
+          <span class="topo"><span class="selo">Dica</span><svg aria-hidden="true"><use href="#i-bulb"/></svg></span>
+          <span class="numero">{n}</span>
+          <span class="linha"></span>
+          <span class="linha curta"></span>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+
+<style>
+  .anim{position:relative;width:100%;height:100%;container-type:size;overflow:hidden;
+    background:radial-gradient(circle at 80% 20%,rgba(255,255,255,.75),transparent 45%),linear-gradient(135deg,var(--f1),var(--f2));}
+  .calculadora{--cor:#7b5cfa;--cor-clara:#b9a8ff;--suave:#e6dfff;--borda:#d9d0fb;--f1:#f6f3ff;--f2:#dfd6ff;}
+  .ajuste{--cor:#ff6b2c;--cor-clara:#ffb089;--suave:#ffe3d4;--borda:#f8d3bf;--f1:#fff6f0;--f2:#ffd9c4;}
+  .dicas{--cor:#C2255C;--cor-clara:#ee7fa6;--suave:#fbdbe6;--borda:#f3c7d6;--f1:#fff3f7;--f2:#f9d0de;}
+  .nome{font:600 2.7cqw/1.1 var(--sans);color:#1f1c14;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+  /* ----- calculadora: três custos enchem e o preço roda até o valor ----- */
+  .custos{position:absolute;left:6cqw;top:12cqh;width:46cqw;display:flex;flex-direction:column;gap:5cqh;}
+  .custo{display:flex;align-items:center;gap:2.5cqw;height:20cqh;padding:0 2.5cqw;border-radius:2.4cqw;background:#fff;border:1px solid var(--borda);
+    box-shadow:0 1.2cqh 3cqh -1.5cqh rgba(31,28,20,.35);opacity:0;animation:chega 9s var(--mola) infinite;animation-delay:calc(var(--i) * .7s);}
+  .ponto{flex:none;width:7cqw;height:7cqw;border-radius:1.8cqw;background:linear-gradient(135deg,var(--cor-clara),var(--cor));}
+  .info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1.6cqh;}
+  .barra{height:1.6cqh;border-radius:9px;background:var(--suave);overflow:hidden;}
+  .barra span{display:block;height:100%;width:100%;border-radius:inherit;background:linear-gradient(90deg,var(--cor),var(--cor-clara));
+    transform-origin:left;transform:scaleX(0);animation:enche 9s ease-in-out infinite;animation-delay:calc(var(--i) * .7s);}
+  .custo:nth-child(1) .barra span{--ate:.8;} .custo:nth-child(2) .barra span{--ate:.35;} .custo:nth-child(3) .barra span{--ate:.6;}
+  .total{position:absolute;right:6cqw;top:16cqh;bottom:16cqh;width:36cqw;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3cqh;
+    border-radius:3cqw;background:#fff;border:1px solid var(--borda);box-shadow:0 2cqh 5cqh -2.5cqh rgba(60,40,140,.5);animation:pulsa 9s var(--mola) infinite;}
+  .rotulo{font:700 2.4cqw/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--cor);}
+  .valor{display:flex;align-items:flex-end;font:800 8cqw/1 var(--display);font-stretch:112%;color:#1f1c14;}
+  .valor small{font-size:3.2cqw;font-weight:700;margin:0 1cqw .8cqw 0;color:#5c574a;}
+  .dig{display:block;height:1em;overflow:hidden;}
+  .dig i{display:block;font-style:normal;animation:rola 9s cubic-bezier(.3,.7,.2,1) infinite;}
+  .dig b{display:block;height:1em;font-weight:inherit;}
+  .lucro{padding:1.4cqh 2.4cqw;border-radius:99px;background:var(--suave);font:700 2.4cqw/1 var(--sans);color:var(--cor);transform:scale(0);animation:confere 9s var(--mola) infinite;animation-delay:.8s;}
+  @keyframes enche{0%,8%{transform:scaleX(0);}30%,100%{transform:scaleX(var(--ate,1));}}
+  @keyframes rola{0%,22%{transform:translateY(0);}48%,90%{transform:translateY(calc(var(--n) * -1em));}98%,100%{transform:translateY(0);}}
+  @keyframes pulsa{0%,44%{transform:none;}49%{transform:scale(1.06);}54%,100%{transform:none;}}
+
+  /* ----- ajuste 3MF: os controles deslizam até o ponto sugerido ----- */
+  .painel{position:absolute;inset:10cqh 7cqw;display:flex;flex-direction:column;justify-content:space-between;padding:5cqh 4cqw;border-radius:3cqw;background:#fff;
+    border:1px solid var(--borda);box-shadow:0 2cqh 5cqh -2.5cqh rgba(140,60,20,.5);}
+  .arquivo{display:flex;align-items:center;gap:2cqw;font:600 2.7cqw/1 var(--sans);color:#5c574a;}
+  .arquivo b{padding:1.2cqh 1.6cqw;border-radius:1.2cqw;background:linear-gradient(135deg,var(--cor-clara),var(--cor));color:#fff;font:800 2.4cqw/1 var(--display);font-stretch:112%;}
+  .controle{display:flex;align-items:center;gap:3cqw;}
+  .controle .nome{flex:none;width:26cqw;}
+  .trilho{position:relative;flex:1;height:2cqh;border-radius:9px;background:var(--suave);}
+  .cheio{position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,var(--cor),var(--cor-clara));transform-origin:left;transform:scaleX(var(--de));
+    animation:cheio 9s ease-in-out infinite;animation-delay:calc(var(--i) * .5s);}
+  .curso{position:absolute;inset:0;transform:translateX(calc(var(--de) * 100%));animation:desliza 9s ease-in-out infinite;animation-delay:calc(var(--i) * .5s);}
+  .pino{position:absolute;top:50%;left:0;width:4.6cqw;height:4.6cqw;margin:-2.3cqw 0 0 -2.3cqw;border-radius:50%;background:#fff;border:.7cqw solid var(--cor);
+    box-shadow:0 .8cqh 1.6cqh -.6cqh rgba(31,28,20,.5);}
+  .pronto{align-self:flex-start;padding:1.8cqh 2.6cqw;border-radius:99px;background:#1f8f4e;color:#fff;font:700 2.6cqw/1 var(--sans);transform:scale(0);transform-origin:left center;
+    animation:confere 9s var(--mola) infinite;animation-delay:1.4s;}
+  @keyframes cheio{0%,12%{transform:scaleX(var(--de));}34%,88%{transform:scaleX(var(--para));}98%,100%{transform:scaleX(var(--de));}}
+  @keyframes desliza{0%,12%{transform:translateX(calc(var(--de) * 100%));}34%,88%{transform:translateX(calc(var(--para) * 100%));}98%,100%{transform:translateX(calc(var(--de) * 100%));}}
+
+  /* ----- dicas: cartões numerados passando, um de cada vez ----- */
+  .baralho{position:absolute;left:24cqw;right:24cqw;top:14cqh;bottom:14cqh;}
+  .sombra,.carta{position:absolute;inset:0;border-radius:3.4cqw;background:#fff;border:1px solid var(--borda);}
+  .s1{transform:rotate(4deg) translate(2cqw,1cqh);opacity:.75;}
+  .s2{transform:rotate(-5deg) translate(-2cqw,1.5cqh);opacity:.5;}
+  .carta{display:flex;flex-direction:column;justify-content:center;gap:3.4cqh;padding:0 5cqw;box-shadow:0 2cqh 5cqh -2.5cqh rgba(140,20,70,.55);
+    opacity:0;animation:passa 9s var(--mola) infinite;animation-delay:calc(var(--i) * 3s);}
+  .topo{display:flex;align-items:center;justify-content:space-between;}
+  .selo{padding:1.4cqh 2.4cqw;border-radius:99px;background:var(--suave);font:700 2.4cqw/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--cor);}
+  .topo svg{width:6cqw;height:6cqw;color:var(--cor);}
+  .numero{font:800 15cqw/.9 var(--display);font-stretch:112%;color:var(--cor);}
+  .linha{height:2cqh;border-radius:9px;background:var(--suave);}
+  .linha.curta{width:60%;}
+  @keyframes passa{0%{opacity:0;transform:translateY(8cqh) scale(.92);}6%,30%{opacity:1;transform:none;}38%,100%{opacity:0;transform:translateX(-34cqw) rotate(-10deg);}}
+
+  @keyframes chega{0%{opacity:0;transform:translateX(-6cqw);}6%,90%{opacity:1;transform:none;}97%,100%{opacity:0;transform:translateY(-2cqh);}}
+  @keyframes confere{0%,40%{transform:scale(0);}47%,88%{transform:scale(1);}96%,100%{transform:scale(0);}}
+
+  @media (prefers-reduced-motion:reduce){
+    .custo,.barra span,.total,.dig i,.lucro,.cheio,.curso,.pronto,.carta{animation:none;}
+    .custo,.carta:first-of-type{opacity:1;}
+    .barra span{transform:scaleX(var(--ate,1));}
+    .dig i{transform:translateY(calc(var(--n) * -1em));}
+    .lucro,.pronto{transform:scale(1);}
+    .cheio{transform:scaleX(var(--para));}
+    .curso{transform:translateX(calc(var(--para) * 100%));}
+  }
+</style>
