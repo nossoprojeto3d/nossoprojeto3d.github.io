@@ -51,7 +51,7 @@ p{margin:0;}
   transition:transform .35s var(--mola),box-shadow .3s ease,background-color .2s ease;}
 .botao:hover{transform:translateY(-2px);}
 .botao svg{flex:none;}
-.botao-ouro{background:var(--ouro-grad);color:var(--sobre-ouro);box-shadow:0 8px 22px -8px rgba(201,162,39,.7);}
+.botao-ouro{background:var(--ouro-grad) border-box;color:var(--sobre-ouro);box-shadow:0 8px 22px -8px rgba(201,162,39,.7);}
 .botao-claro{background:var(--surface);border-color:var(--line);color:var(--text);}
 .botao-zap{background:var(--verde-zap);color:#fff;}
 
