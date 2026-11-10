@@ -345,9 +345,12 @@ const fotosQuemSomos = ["01-casal"];
     .portas{grid-template-columns:1fr;gap:12px;}
     .porta{min-height:172px;}
     /* no celular a vitrine vai para a metade direita e o texto fica à esquerda */
-    .janela{left:50%;right:-8%;top:16px;}
+    .janela{left:54%;right:-8%;top:16px;}
     .porta::after{background:linear-gradient(90deg,rgba(255,255,255,.98) 44%,rgba(255,255,255,.6) 62%,transparent 80%);}
-    .porta-texto{padding:18px;max-width:62%;}
+    /* o texto fica todo na metade esquerda e quebra a linha antes da vitrine */
+    .porta-texto{padding:18px 8px 18px 18px;width:54%;}
+    .porta strong{font-size:21px;}
+    .porta-sub{font-size:13.5px;line-height:1.35;}
     .quem{grid-template-columns:1fr;}
     .quem-foto{max-width:440px;}
   }
