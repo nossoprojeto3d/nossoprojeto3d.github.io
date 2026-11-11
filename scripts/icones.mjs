@@ -1,6 +1,6 @@
 // Gera os ícones do site a partir de public/assets/logo.png.  npm run icones
 // - Aba do navegador (favicon): só o NP, sem fundo e ocupando a altura toda, no mesmo padrão dos outros
-//   projetos (catálogo verde, calculadora lilás, Ajuste 3MF laranja); o do site é o dourado.
+//   projetos (catálogo verde, calculadora lilás, Fatiô laranja); o do site é o dourado.
 // - Tela inicial do celular (apple-touch, 192, 512): NP dourado sobre o fundo escuro, porque o sistema não aceita transparência.
 import { writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";

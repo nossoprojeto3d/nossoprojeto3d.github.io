@@ -30,7 +30,7 @@ export const LINKS = {
     voolt: "https://afiliado.c2cseller.com/voolt3d-nosso-projeto-b0e5828bb12818a1"
   },
   ajuste3mf: {
-    site: "https://nossoprojeto3d.com.br/ajustes/"
+    site: "https://nossoprojeto3d.com.br/fatio/"
   },
   dicas: {
     site: "https://nossoprojeto3d.com.br/dicas/"

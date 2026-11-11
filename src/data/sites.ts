@@ -23,7 +23,7 @@ export const GRUPOS_SITES: { titulo: string; sites: Site[] }[] = [
     titulo: "Para criadores",
     sites: [
       { nome: "Calculadora de custos", texto: "Calcule o custo real das suas impressões 3D.", href: LINKS.calculadora.site, link: "calculadora.site", icone: "i-calc" },
-      { nome: "Ajuste 3MF", texto: "A IA sugere as configurações do seu 3MF para o Bambu Studio.", href: LINKS.ajuste3mf.site, link: "ajuste3mf.site", icone: "i-sliders" },
+      { nome: "Fatiô", texto: "A IA ajusta o fatiamento do seu projeto do Bambu Studio.", href: LINKS.ajuste3mf.site, link: "ajuste3mf.site", icone: "i-sliders" },
       { nome: "STLs grátis", texto: "Arquivos prontos para você imprimir em casa.", href: LINKS.hub.stlsGratis, link: "hub.stlsGratis", icone: "i-cube" },
       { nome: "Dicas", texto: "As dicas de impressão 3D dos nossos vídeos, uma por ficha.", href: LINKS.dicas.site, link: "dicas.site", icone: "i-bulb" }
     ]
