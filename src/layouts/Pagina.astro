@@ -5,6 +5,7 @@ import Icones from "../components/Icones.astro";
 import Topo from "../components/v4/Topo.astro";
 import Rodape from "../components/v4/Rodape.astro";
 import Natal from "../components/v4/Natal.astro";
+import AvisoStl from "../components/v4/AvisoStl.astro";
 import { LINKS, SITE_URL, TELEFONE, url } from "../data/links";
 
 interface Props {
@@ -77,6 +78,7 @@ const negocio = {
   </main>
 
   <Rodape />
+  <AvisoStl />
   <script>
     // .surge: aparece ao chegar na tela. A página começa visível; só ganha o efeito se o JS rodar.
     const surgem = document.querySelectorAll(".surge");
