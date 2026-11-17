@@ -188,7 +188,7 @@ const HORA = 3600e3, AGORA = Date.now();
 const PROMPT = 'Crie uma imagem quadrada 1080x1080 para um post de cupom de desconto em um grupo de WhatsApp de makers e impressão 3D. Fundo verde escuro de tapete de corte (#0E3A34) com uma grade fina e discreta. No centro, um cupom grande em perspectiva 3D, cor creme (#FFF4D6), com linhas horizontais de camada como uma peça impressa em 3D, um símbolo de % e os recortes redondos nas laterais. Abaixo, o título "Saiu cupom!" em letras grandes, grossas e amarelas (#FFD23F), e a linha menor "Ativa pelo link e usa o código aqui embaixo" em branco. No rodapé, pequeno: "Junior e Thai, do Nosso Projeto 3D". Estilo limpo, divertido, sem fotos e sem logos de outras marcas.';
 
 const S = {
-  envio: null, dentro: false, criar: false, user: null, view: 'novo', tipo: 'oferta', step: 'form',
+  tituloIdx: 0, envio: null, dentro: false, criar: false, user: null, view: 'novo', tipo: 'oferta', step: 'form',
   msg: '', link: '', draft: null, coladaEm: null, fraseIdx: 0,
   cupons: [{ code: 'MAKER15', regra: '15% OFF acima de R$ 99' }, { code: 'BANCADA20', regra: 'R$ 20 OFF acima de R$ 150' }],
   linkCupom: '', addAberto: false, img: null, avisarRepetido: true,
@@ -291,6 +291,34 @@ const ABERTURAS = [
   "Mais um cupom pra sua coleção de desculpas 🎟️"
 ];
 const CHAMADA = 'Ativa por aqui antes de comprar 👇';
+const TITULOS = [
+  "Achado misterioso do dia 👀",
+  "Não sei o nome, só sei que quero",
+  "Aquele negócio que todo maker precisa",
+  "Olha esse trem aqui",
+  "O nome é difícil, o preço é fácil",
+  "Coisa boa sem nome",
+  "Achadinho sem legenda",
+  "Abre que é coisa boa",
+  "Sem nome, sem defeito",
+  "O vendedor não caprichou no nome, mas no preço sim",
+  "Negócio bom demais da conta",
+  "Surpresinha maker",
+  "Isso aqui, ó 👇",
+  "Produto surpresa, do tipo bom",
+  "Aquilo que você tava procurando",
+  "Item número 1 da lista de desejos",
+  "Trem bom detectado",
+  "Clica pra descobrir, vale a pena",
+  "A gente também não sabe o nome, mas comprou",
+  "Pra bancada, com carinho",
+  "Nome a gente vê depois. O preço é agora",
+  "Mistério da vez na bancada",
+  "Batiza você, a gente só achou",
+  "Esse dispensa apresentação",
+  "O famoso \"aquele lá\""
+];
+S.tituloIdx = Math.floor(Math.random() * TITULOS.length);
 const FRASES_ABS = [
   "🚨 Alguém no ML vai ser demitido por esse preço",
   "🚨 Conferimos três vezes. Não é erro de fatiamento",
@@ -351,7 +379,10 @@ function ler(msg) {
   produto = produto.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}️]/gu, '').replace(/\s{2,}/g, ' ').replace(/[\s\-–—:|]+$/, '').trim();
   return { produto, preco, cupom, linkOrig };
 }
-const dados = () => S.draft || ler(S.msg);
+const bruto = () => S.draft || ler(S.msg);
+/* sem nome de produto, o app cria um título */
+const semNome = () => !bruto().produto.trim() && (S.manual || !!S.msg.trim());
+const dados = () => { const d = bruto(); return semNome() ? { ...d, produto: TITULOS[S.tituloIdx % TITULOS.length] } : d; };
 const frasesValidas = () => dados().cupom ? FRASES.concat(FRASES_CUPOM) : FRASES;
 const fraseAtual = () => { if (S.frase !== null) return S.frase; const f = frasesValidas(); return f[S.fraseIdx % f.length]; };
 const abreAtual = () => S.cAbre !== null ? S.cAbre : ABERTURAS[S.cAbreIdx % ABERTURAS.length];
@@ -404,6 +435,7 @@ function bolhasOferta() {
 }
 function avisosOferta() {
   let h = '';
+  if (semNome()) h += `<div class="row"><span class="hint">Sem nome de produto: o app criou um título.</span><button class="btn link" data-a="trocar-titulo">${ico('trocar', 16)}Trocar</button></div>`;
   if (repetido()) h += chk('warn', 'Esse produto já foi pro grupo hoje.');
   if (S.coladaEm && S.msg.trim()) { const min = Math.max(0, Math.round((Date.now() - S.coladaEm) / 60000)); h += chk('warn', `Colada há ${min} min. Abra o link e confira se a oferta ainda vale.`); }
   return h;
@@ -417,7 +449,7 @@ function previaOferta() {
   </div>
   <h2 class="so-web">Prévia do post</h2>
   ${S.manual ? '<!--' : ''}<div class="dados">
-    <label>Produto<input class="in" data-i="d-produto" value="${esc(d.produto)}" autocomplete="off"></label>
+    <label>Produto<input class="in" data-i="d-produto" value="${esc(bruto().produto)}" placeholder="O app criou um título" autocomplete="off"></label>
     <label>Preço<input class="in" data-i="d-preco" value="${esc(d.preco)}" autocomplete="off"></label>
     <label>Cupom<input class="in mono" data-i="d-cupom" value="${esc(d.cupom)}" placeholder="sem cupom" autocomplete="off" autocapitalize="characters"></label>
   </div>${S.manual ? '-->' : ''}
@@ -450,7 +482,7 @@ function telaOferta() {
       </div>
       <div class="field">
         <label for="m-produto">Produto</label>
-        <input class="in" id="m-produto" data-i="d-produto" value="${esc(d.produto)}" placeholder="Nome que vai no post" autocomplete="off">
+        <input class="in" id="m-produto" data-i="d-produto" value="${esc(bruto().produto)}" placeholder="Em branco, o app cria um título" autocomplete="off">
       </div>
       <div class="field">
         <label for="m-preco">Preço com o cupom</label>
@@ -662,16 +694,15 @@ const A = {
   nova() { S.manual = true; S.msg = ''; S.link = ''; S.coladaEm = null; S.draft = { produto: '', preco: '', cupom: '', linkOrig: '' }; S.frase = null; S.step = 'form'; render(); const c = $('#m-cupom'); if (c) c.focus(); },
   'modo-colar'() { S.manual = false; S.draft = null; S.link = ''; S.step = 'form'; render(); },
   montar() {
-    if (S.manual && !dados().produto.trim()) return erro('#erro-oferta', 'Escreva o nome do produto.');
     if (!S.manual && !S.msg.trim()) return erro('#erro-oferta', 'Cole a mensagem da oferta primeiro.');
-    if (!dados().produto) return erro('#erro-oferta', 'Não achei o nome do produto na mensagem. Confira o texto colado.');
     if (!linkOfertaOK()) return erro('#erro-oferta', 'Cole o seu link de afiliado do Mercado Livre.');
-    S.draft = dados(); S.step = 'previa'; render(); topo();
+    S.draft = bruto(); S.step = 'previa'; render(); topo();
   },
   voltar() { S.step = 'form'; render(); },
+  'trocar-titulo'() { S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); atualizaOferta(false); },
   trocar() { S.frase = null; S.fraseIdx = sorteia(frasesValidas().length, S.fraseIdx); atualizaOferta(false); },
   'trocar-abs'() { S.fraseAbs = null; S.absIdx = sorteia(FRASES_ABS.length, S.absIdx); $('#frase-abs').value = absAtual(); atualizaOferta(false); },
-  descartar() { S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.msg = ''; S.link = ''; S.draft = null; S.coladaEm = null; S.step = 'form'; render(); topo(); toast('Campos limpos.'); },
+  descartar() { S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); S.msg = ''; S.link = ''; S.draft = null; S.coladaEm = null; S.step = 'form'; render(); topo(); toast('Campos limpos.'); },
   'enviar-oferta'(n, ev) {
     if (!podeOferta()) { ev.preventDefault(); return; }
     const d = dados();
@@ -747,7 +778,7 @@ function concluiEnvio() {
   const post = { tipo: e.tipo, titulo: e.titulo, detalhe: e.detalhe, cupom: e.cupom, ts: Date.now(), quem: S.user };
   S.historico.push(post);
   salvaPost(post).then(ok => { if (!ok) toast('Enviado, mas não salvou no histórico compartilhado.'); });
-  if (e.tipo === 'oferta') { S.msg = ''; S.link = ''; S.draft = null; S.coladaEm = null; S.step = 'form'; S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); }
+  if (e.tipo === 'oferta') { S.msg = ''; S.link = ''; S.draft = null; S.coladaEm = null; S.step = 'form'; S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); }
   else { S.cupons = []; S.linkCupom = ''; S.cAbre = null; S.cChama = null; S.cAbreIdx = sorteia(ABERTURAS.length, S.cAbreIdx); }
   S.envio = null; S.view = 'historico'; render(); topo();
   toast('Salvo no histórico.');
@@ -782,7 +813,7 @@ document.addEventListener('input', e => {
   const v = e.target.value;
   if (k === 'msg') { if (!S.msg.trim() && v.trim()) S.coladaEm = Date.now(); if (!v.trim()) S.coladaEm = null; S.msg = v; S.draft = null; erro('#erro-oferta', ''); atualizaOferta(true); }
   else if (k === 'link') { S.link = v; erro('#erro-oferta', ''); atualizaOferta(false); }
-  else if (k.startsWith('d-')) { erro('#erro-oferta', ''); S.draft = { ...dados(), [k.slice(2)]: k === 'd-cupom' ? v.toUpperCase().replace(/\s/g, '') : v }; if (k === 'd-cupom' && e.target.value !== S.draft.cupom) e.target.value = S.draft.cupom; atualizaOferta(false); }
+  else if (k.startsWith('d-')) { erro('#erro-oferta', ''); S.draft = { ...bruto(), [k.slice(2)]: k === 'd-cupom' ? v.toUpperCase().replace(/\s/g, '') : v }; if (k === 'd-cupom' && e.target.value !== S.draft.cupom) e.target.value = S.draft.cupom; atualizaOferta(false); }
   else if (k === 'linkc') { S.linkCupom = v; poe('#chk-linkc', chkLink(v)); poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), textoCupom); }
   else if (k === 'avisar') { S.avisarRepetido = e.target.checked; guarda('na-avisar', S.avisarRepetido ? '1' : '0'); }
   else if (k === 'c-abre') { S.cAbre = v; poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), textoCupom); }
