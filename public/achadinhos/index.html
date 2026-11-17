@@ -101,7 +101,7 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 .capa.mini .tk{font-size:13px;border-radius:4px;box-shadow:1px 2px 0 #A59565}
 .thumb{width:64px;height:64px;flex-shrink:0;border-radius:10px;object-fit:cover}
 
-.dados{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.dados{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
 .dados .prod{grid-column:1/-1;display:flex;flex-direction:column;gap:2px}
 .dados .prod label{font-size:12px;color:var(--muted)}
 .ph{opacity:.55;font-style:italic}
@@ -378,22 +378,66 @@ const P = {
 const ico = (n, s = 20) => `<svg aria-hidden="true" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${P[n]}</svg>`;
 
 /* ---------- leitura da mensagem ---------- */
+/* siglas que ficam em maiúsculas quando o nome vem todo em caixa alta */
+const SIGLAS = /^(PLA|PETG|ABS|ASA|TPU|PEI|AMS|USB|LED|UV|RGB|CF|HF|SSD|HD|TV|PC|LCD|FDM|CNC|DIY)$/;
+const EMOJI = /[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}️‍]/gu;
+const NAO_CUPOM = /^(CUPOM|CUPONS|OFF|PIX|MIN|MAX|FRETE|GRATIS|MERCADO|LIVRE|PAGO|LINK|AQUI|USE|CODIGO)$/;
+const TEM_CUPOM = /\u{1F39F}|cupo[mn]/iu;
+function capitaliza(t) {
+  const l = t.replace(/[^A-Za-zÀ-ÿ]/g, '');
+  if (l.length < 4 || l !== l.toUpperCase()) return t;
+  return t.toLowerCase().replace(/\S+/g, w => { const W = w.toUpperCase(); return /\d/.test(w) || SIGLAS.test(W.replace(/[^A-Z]/g, '')) ? W : w.charAt(0).toUpperCase() + w.slice(1); });
+}
 function ler(msg) {
   const linkOrig = (msg.match(/https?:\/\/\S+/) || [''])[0];
   const semLink = msg.replace(/https?:\/\/\S+/g, ' ');
-  const preco = (semLink.match(/R\$\s?\d[\d.]*(?:,\d{1,2})?/) || [''])[0].replace(/R\$\s?/, 'R$ ');
-  let cupom = '';
-  let m = semLink.match(/\u{1F39F}️?\s*([A-Z0-9]{4,20})(?![a-z])/u) || semLink.match(/[Cc][Uu][Pp][Oo][Mm]\s*:?\s+([A-Z][A-Z0-9]{3,19})(?![a-z])/);
-  if (m) cupom = m[1];
-  else {
-    const cand = (semLink.match(/\b[A-Z][A-Z0-9]{5,19}\b/g) || []).filter(t => /\d/.test(t));
-    if (cand.length) cupom = cand[cand.length - 1];
+  const linhas = semLink.split('\n').map(l => l.trim());
+  /* preço, com "no Pix" ou parcelamento quando a mensagem diz */
+  const pm = semLink.match(/R\$\s?(\d[\d.]*(?:,\d{1,2})?)/);
+  let preco = pm ? 'R$ ' + pm[1] : '';
+  if (pm) {
+    const resto = ((linhas.find(l => l.includes(pm[0])) || '').split(pm[0])[1] || '');
+    const parc = semLink.match(/(\d{1,2})\s*x\s*sem\s*juros/i);
+    if (/\bpix\b/i.test(resto)) preco += ' no Pix';
+    else if (parc) preco += ` em até ${parc[1]}x sem juros`;
   }
-  let produto = (semLink.split('\n').map(l => l.trim()).find(l => l) || '');
-  produto = produto.split(/R\$/)[0];
-  if (cupom) produto = produto.replace(cupom, '');
-  produto = produto.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}️]/gu, '').replace(/\s{2,}/g, ' ').replace(/[\s\-–—:|]+$/, '').trim();
-  return { produto, preco, cupom, linkOrig };
+  /* cupons: um por linha com 🎟️ ou a palavra cupom; a regra vem nas linhas logo abaixo */
+  const cupons = [], regras = {};
+  linhas.forEach((l, i) => {
+    if (!TEM_CUPOM.test(l)) return;
+    const toks = l.replace(EMOJI, ' ').match(/\b[A-Z][A-Z0-9]{3,19}\b/g) || [];
+    const c = toks.find(t => !NAO_CUPOM.test(t) && !cupons.includes(t));
+    if (!c) return;
+    cupons.push(c);
+    const r = [];
+    for (let k = i + 1; k < linhas.length && linhas[k] && !TEM_CUPOM.test(linhas[k]); k++) {
+      const t = linhas[k].replace(EMOJI, '').trim();
+      const mn = t.match(/MIN\s*:?\s*(\d+)/i);
+      if (mn) { if (+mn[1] > 1) r.push(`a partir de ${mn[1]} un.`); continue; }
+      if (/%|R\$/.test(t)) r.push(t.replace(/[!.\s]+$/, '').replace(/\ba partir de\b/i, 'acima de').replace(/,\s*limitad[oa] a\s*(.*)$/i, ' (até $1)'));
+    }
+    if (r.length) regras[c] = r.join(', ');
+  });
+  if (!cupons.length) {
+    const cand = (semLink.match(/\b[A-Z][A-Z0-9]{5,19}\b/g) || []).filter(t => /\d/.test(t));
+    if (cand.length) cupons.push(cand[cand.length - 1]);
+  }
+  /* nome: primeira linha, sem preço, cupom, emoji, grito de abertura ("PARCELADOOOO!!") nem "por" no fim */
+  let produto = (linhas.find(l => l) || '').split(/R\$/)[0];
+  for (const c of cupons) produto = produto.replace(c, '');
+  produto = produto.replace(EMOJI, ' ');
+  const corte = Math.max(produto.lastIndexOf('!'), produto.lastIndexOf('?'));
+  if (corte >= 0 && produto.slice(corte + 1).trim().split(/\s+/).length >= 2) produto = produto.slice(corte + 1);
+  produto = produto.replace(/\s{2,}/g, ' ').replace(/[\s\-–—:|!?]+$/, '').trim();
+  for (let x = 0; x < 3; x++) produto = produto.replace(/\s+(por|de|sai|saindo|apenas|s[oó]|a partir de)$/i, '').trim();
+  return { produto: capitaliza(produto), preco, cupom: cupons.join(' '), regras, linkOrig };
+}
+const codigos = d => (d.cupom || '').split(/\s+/).filter(Boolean);
+/* um cupom vai na linha do preço; dois ou mais vão um por linha, com a regra de cada */
+function partesCupom(d) {
+  const cs = codigos(d);
+  if (cs.length < 2) return { linha: (d.preco + (cs[0] ? ` 💥🎟️ ${cs[0]}` : '')).trim(), lista: '' };
+  return { linha: (d.preco + ' 💥').trim(), lista: cs.map(c => `🎟️ ${c}${d.regras && d.regras[c] ? ': ' + d.regras[c] : ''}`).join('\n') };
 }
 const bruto = () => S.draft || ler(S.msg);
 /* sem nome de produto, o app cria um título */
@@ -415,7 +459,8 @@ function chk(tipo, txt) { return txt ? `<div class="chk ${tipo}">${ico(tipo === 
 function chkMsg() {
   if (!S.msg.trim()) return '';
   const d = ler(S.msg);
-  return d.cupom ? chk('ok', `Cupom encontrado: <span class="mono" style="color:var(--text)">${esc(d.cupom)}</span>`) : chk('neu', 'Sem cupom nessa mensagem. Vai só a oferta.');
+  const cs = codigos(d);
+  return cs.length ? chk('ok', `${cs.length > 1 ? 'Cupons encontrados' : 'Cupom encontrado'}: <span class="mono" style="color:var(--text)">${cs.map(esc).join(' e ')}</span>`) : chk('neu', 'Sem cupom nessa mensagem. Vai só a oferta.');
 }
 function chkLink(v, orig) {
   v = v.trim();
@@ -431,7 +476,8 @@ function capa(mini) {
 const wa = t => 'https://wa.me/?text=' + encodeURIComponent(t);
 function textoOferta() {
   const d = dados(), fr = fraseAtual().trim(), ab = S.absurda ? absAtual().trim() : '';
-  return (ab ? ab + '\n\n' : '') + d.produto.trim() + '\n' + (d.preco + (d.cupom ? ` 💥🎟️ ${d.cupom}` : '')).trim() + '\n\n' + (fr ? fr + '\n' : '') + 'Entra aqui: ' + S.link.trim();
+  const pc = partesCupom(d);
+  return (ab ? ab + '\n\n' : '') + d.produto.trim() + '\n' + pc.linha + '\n\n' + (pc.lista ? pc.lista + '\n\n' : '') + (fr ? fr + '\n' : '') + 'Entra aqui: ' + S.link.trim();
 }
 function textoCupom() {
   const a = abreAtual().trim(), c = chamaAtual().trim();
@@ -460,10 +506,10 @@ function areaEnvio(id, pode, txt) {
 function bolhasOferta() {
   const d = dados();
   if (!S.manual && !S.msg.trim()) return '<div class="vazio">Cole uma mensagem para ver como o post chega no grupo.</div>';
-  const fr = fraseAtual(), lk = S.link.trim() || 'seu link aqui';
+  const pc = partesCupom(d), fr = fraseAtual(), lk = S.link.trim() || 'seu link aqui';
   const ab = S.absurda && absAtual().trim() ? esc(absAtual().trim()) + '\n\n' : '';
-  let h = `<div class="bolha">${ab}${d.produto.trim() ? `<b>${esc(d.produto.trim())}</b>` : '<b class="ph">Nome do produto</b>'}\n${esc(d.preco)}${d.cupom ? ` 💥🎟️ ${esc(d.cupom)}` : ''}\n\n${fr.trim() ? esc(fr.trim()) + '\n' : ''}Entra aqui: <span class="lk">${esc(lk)}</span></div>`;
-  if (d.cupom) h += `<div class="bolha">${esc(d.cupom)}</div>`;
+  let h = `<div class="bolha">${ab}${d.produto.trim() ? `<b>${esc(d.produto.trim())}</b>` : '<b class="ph">Nome do produto</b>'}\n${esc(pc.linha)}\n\n${pc.lista ? esc(pc.lista) + '\n\n' : ''}${fr.trim() ? esc(fr.trim()) + '\n' : ''}Entra aqui: <span class="lk">${esc(lk)}</span></div>`;
+  codigos(d).forEach(c => { h += `<div class="bolha">${esc(c)}</div>`; });
   return h;
 }
 function avisosOferta() {
@@ -484,7 +530,8 @@ function previaOferta() {
   ${S.manual ? '<!--' : ''}<div class="dados">
     <div class="prod"><div class="row"><label for="d-produto">Produto</label><button class="btn link" data-a="gerar-titulo">${ico('trocar', 16)}Gerar título</button></div><input class="in" id="d-produto" data-i="d-produto" value="${esc(bruto().produto)}" placeholder="Escreva o nome ou gere um título" autocomplete="off"></div>
     <label>Preço<input class="in" data-i="d-preco" value="${esc(d.preco)}" autocomplete="off"></label>
-    <label>Cupom<input class="in mono" data-i="d-cupom" value="${esc(d.cupom)}" placeholder="sem cupom" autocomplete="off" autocapitalize="characters"></label>
+    <label>Cupom<input class="in mono" data-i="d-cupom" value="${esc(d.cupom)}" placeholder="sem cupom" autocomplete="off" autocapitalize="characters" aria-describedby="dica-cupom"></label>
+    <p class="hint" id="dica-cupom" style="grid-column:1/-1;margin:0">Mais de um cupom: separe por espaço.</p>
   </div>${S.manual ? '-->' : ''}
   <div class="wa"><div class="cap">Como chega no grupo</div><div id="bolhas" style="display:contents">${bolhasOferta()}</div></div>
   <div class="field">
@@ -506,7 +553,7 @@ function telaOferta() {
   const campos = S.manual ? `
       <div class="field">
         <label for="m-cupom">Cupom</label>
-        <input class="in mono" id="m-cupom" data-i="d-cupom" value="${esc(d.cupom)}" placeholder="Opcional" autocomplete="off" autocapitalize="characters">
+        <input class="in mono" id="m-cupom" data-i="d-cupom" value="${esc(d.cupom)}" placeholder="Opcional. Vários: separe por espaço" autocomplete="off" autocapitalize="characters">
       </div>
       <div class="field">
         <label for="link">Seu link de afiliado</label>
@@ -774,8 +821,8 @@ const A = {
   'enviar-oferta'(n, ev) {
     if (!podeOferta()) { ev.preventDefault(); return; }
     const d = dados();
-    if (n !== 'manual' && roboAtivo()) return disparo({ tipo: 'oferta', titulo: d.produto.trim(), detalhe: d.preco || 'Sem preço', cupom: d.cupom, mensagens: [{ tipo: 'texto', texto: textoOferta() }].concat(d.cupom ? [{ tipo: 'texto', texto: d.cupom }] : []) });
-    iniciaEnvio({ tipo: 'oferta', titulo: d.produto.trim(), detalhe: d.preco || 'Sem preço', cupom: d.cupom, texto: textoOferta(), passos: d.cupom ? [d.cupom] : [] });
+    if (n !== 'manual' && roboAtivo()) return disparo({ tipo: 'oferta', titulo: d.produto.trim(), detalhe: d.preco || 'Sem preço', cupom: d.cupom, mensagens: [{ tipo: 'texto', texto: textoOferta() }].concat(codigos(d).map(c => ({ tipo: 'texto', texto: c }))) });
+    iniciaEnvio({ tipo: 'oferta', titulo: d.produto.trim(), detalhe: d.preco || 'Sem preço', cupom: d.cupom, texto: textoOferta(), passos: codigos(d) });
   },
   'abrir-add'() { S.addAberto = true; poe('#add', formCupom()); $('#c-code').focus(); },
   'fechar-add'() { S.addAberto = false; poe('#add', formCupom()); },
@@ -1045,7 +1092,7 @@ document.addEventListener('input', e => {
   const v = e.target.value;
   if (k === 'msg') { if (!S.msg.trim() && v.trim()) S.coladaEm = Date.now(); if (!v.trim()) S.coladaEm = null; S.msg = v; S.draft = null; erro('#erro-oferta', ''); atualizaOferta(true); }
   else if (k === 'link') { S.link = v; erro('#erro-oferta', ''); atualizaOferta(false); }
-  else if (k.startsWith('d-')) { erro('#erro-oferta', ''); S.draft = { ...bruto(), [k.slice(2)]: k === 'd-cupom' ? v.toUpperCase().replace(/\s/g, '') : v }; if (k === 'd-cupom' && e.target.value !== S.draft.cupom) e.target.value = S.draft.cupom; atualizaOferta(false); }
+  else if (k.startsWith('d-')) { erro('#erro-oferta', ''); S.draft = { ...bruto(), [k.slice(2)]: k === 'd-cupom' ? v.toUpperCase().replace(/[,;\/]+/g, ' ').replace(/\s{2,}/g, ' ').replace(/^\s+/, '') : v }; if (k === 'd-cupom' && e.target.value !== S.draft.cupom) e.target.value = S.draft.cupom; atualizaOferta(false); }
   else if (k === 'linkc') { S.linkCupom = v; poe('#chk-linkc', chkLink(v)); poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), textoCupom); }
   else if (k === 'grupo') {
     const g = S.robo.grupos.find(x => x.jid === e.target.dataset.n); if (g) g.ativo = e.target.checked;
