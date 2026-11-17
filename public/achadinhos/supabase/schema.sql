@@ -1,7 +1,8 @@
 -- Nossos Achadinhos: histórico compartilhado dos posts enviados.
--- Rode este arquivo inteiro em Supabase > SQL Editor > New query > Run.
+-- Já aplicado no projeto do Supabase (o mesmo do Caixa) em 16/11/2026, migração "achadinhos_posts".
+-- Usa a função public.is_membro() do Caixa: só quem tem linha em public.perfis lê e grava.
 
-create table if not exists public.posts (
+create table if not exists public.achadinhos_posts (
   id          bigint generated always as identity primary key,
   created_at  timestamptz not null default now(),
   user_id     uuid not null default auth.uid() references auth.users (id),
@@ -12,16 +13,13 @@ create table if not exists public.posts (
   cupom       text
 );
 
-create index if not exists posts_created_at_idx on public.posts (created_at desc);
+create index if not exists achadinhos_posts_created_at_idx on public.achadinhos_posts (created_at desc);
+create index if not exists achadinhos_posts_user_id_idx on public.achadinhos_posts (user_id);
 
-alter table public.posts enable row level security;
+alter table public.achadinhos_posts enable row level security;
 
--- Quem está logado vê tudo (Junior e Thai enxergam os posts um do outro).
-drop policy if exists "logados leem" on public.posts;
-create policy "logados leem" on public.posts
-  for select to authenticated using (true);
+create policy achadinhos_posts_ler on public.achadinhos_posts
+  for select to authenticated using ((select public.is_membro()));
 
--- Cada um só grava posts em seu próprio nome.
-drop policy if exists "logado grava o seu" on public.posts;
-create policy "logado grava o seu" on public.posts
-  for insert to authenticated with check (user_id = auth.uid());
+create policy achadinhos_posts_gravar on public.achadinhos_posts
+  for insert to authenticated with check ((select public.is_membro()) and user_id = (select auth.uid()));
