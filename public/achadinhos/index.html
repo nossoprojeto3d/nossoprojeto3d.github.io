@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0E3A34">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Achadinhos">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icone-180.png">
+<link rel="icon" type="image/png" href="icone-192.png">
+<title>Nossos Achadinhos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0E3A34; --bg2:#0B312C; --surface:#134840; --line:#2B6358; --text:#EEF6F1; --muted:#A9C7BC;
+  --accent:#FFD23F; --on-accent:#0E3A34; --tk1:#FFF4D6; --tk2:#EFE0B4; --tksh:#07211D; --tktext:#0E3A34; --tksub:#2E5A50;
+  --ok:#9BE8B9; --warn:#FFC98A; --wa-bg:#0B141A; --wa-out:#005C4B;
+  --disp:'Bricolage Grotesque',system-ui,sans-serif; --body:'Instrument Sans',system-ui,sans-serif; --mono:'DM Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%;
+  background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:32px 32px}
+h1,h2,h3,p{margin:0}
+h1{font-family:var(--disp);font-weight:700;font-size:32px;letter-spacing:-.02em;line-height:1.05}
+h2{font-family:var(--disp);font-weight:700;font-size:22px;letter-spacing:-.01em}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid #fff;outline-offset:2px}
+[hidden]{display:none!important}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono)}
+
+/* estrutura */
+.shell{min-height:100dvh;display:flex;flex-direction:column}
+.side{display:none}
+.main{flex:1;width:100%;max-width:560px;margin:0 auto;padding:max(28px,env(safe-area-inset-top)) 20px 28px;display:flex;flex-direction:column;gap:16px}
+.tabs{position:sticky;bottom:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--bg2);border-top:1px solid var(--line);padding:6px 12px max(10px,env(safe-area-inset-bottom))}
+.tab{height:52px;border:0;background:none;color:var(--muted);font-size:13px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.tab[aria-current="page"]{color:var(--accent)}
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.top .seg{flex:1 1 100%}
+
+/* controles */
+.btn{min-height:52px;padding:0 18px;border-radius:14px;border:1px solid var(--line);background:transparent;color:var(--text);font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:10px;transition:transform .08s}
+.btn:active{transform:scale(.98)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent);min-height:56px;font-size:17px}
+.btn.pri:disabled{background:var(--surface);border-color:var(--line);color:var(--muted);cursor:not-allowed}
+a.btn{text-decoration:none}
+a.btn.off{background:var(--surface);border-color:var(--line);color:var(--muted);cursor:not-allowed}
+.btn.sm{min-height:44px;font-size:14px;border-radius:10px;padding:0 14px}
+.btn.link{border:0;color:var(--accent);min-height:44px;padding:0 10px}
+.btn.block{width:100%}
+.seg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;padding:4px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
+.seg button{height:44px;border-radius:10px;border:0;background:none;color:var(--muted);font-size:15px;font-weight:600}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.field{display:flex;flex-direction:column;gap:8px}
+.field label,.lbl{font-size:15px;font-weight:600}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.in{width:100%;min-height:52px;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:16px}
+.in::placeholder{color:#7FA89B}
+textarea.in{min-height:160px;resize:vertical;line-height:1.4}
+.chk{display:flex;align-items:flex-start;gap:8px;font-size:14px;min-height:20px}
+.chk.ok{color:var(--ok)} .chk.warn{color:var(--warn)} .chk.neu{color:var(--muted)}
+.chk svg{flex-shrink:0;margin-top:1px}
+.hint{font-size:14px;color:var(--muted)}
+.card{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:14px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.stack.tight{gap:8px}
+
+/* cupom impresso em camadas */
+.ticket{position:relative;min-height:58px;border-radius:10px;color:var(--tktext);display:flex;align-items:center;gap:12px;padding:6px 6px 6px 22px;
+  background:repeating-linear-gradient(0deg,var(--tk1) 0 3px,var(--tk2) 3px 4px);box-shadow:0 3px 0 var(--tksh)}
+.ticket::before{content:"";position:absolute;left:-9px;top:50%;width:18px;height:18px;margin-top:-9px;border-radius:50%;background:var(--bg)}
+.ticket .code{font-family:var(--mono);font-size:17px}
+.ticket .regra{flex:1;font-size:13px;font-weight:500;color:var(--tksub)}
+.ticket button{width:44px;height:44px;border:0;background:none;color:var(--tktext);display:flex;align-items:center;justify-content:center}
+.dashed{border-style:dashed;border-color:var(--muted);color:var(--accent)}
+
+/* prévia do WhatsApp */
+.wa{border-radius:18px;background:var(--wa-bg);padding:16px 14px;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.wa .cap{align-self:flex-start;font-size:12px;color:#8696A0}
+.bolha{max-width:min(310px,100%);border-radius:12px 12px 2px 12px;background:var(--wa-out);padding:10px 12px;font-family:system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.38;color:#E9EDEF;white-space:pre-wrap;overflow-wrap:anywhere}
+.bolha b{font-weight:600}
+.bolha .lk{color:#53BDEB}
+.bolha.img{padding:4px 4px 10px;width:min(290px,100%)}
+.bolha.img .txt{padding:8px 8px 0}
+.bolha.img img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:9px}
+.vazio{align-self:stretch;text-align:center;color:#8696A0;font-size:14px;padding:28px 8px}
+.capa{aspect-ratio:1/1;border-radius:9px;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;overflow:hidden;
+  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:24px 24px}
+.capa .tk{width:58%;aspect-ratio:2.1/1;border-radius:12px;background:repeating-linear-gradient(0deg,var(--tk1) 0 3px,var(--tk2) 3px 4px);transform:perspective(600px) rotateX(22deg) rotateY(-22deg) rotateZ(-5deg);
+  box-shadow:2px 2px 0 #C9B98A,4px 4px 0 #B7A777,6px 6px 0 #A59565,18px 26px 30px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:700;font-size:34px;color:var(--tktext)}
+.capa .tt{font-family:var(--disp);font-weight:700;font-size:34px;line-height:1;color:var(--accent)}
+.capa.mini{width:64px;height:64px;flex-shrink:0;border-radius:10px;gap:0}
+.capa.mini .tk{font-size:13px;border-radius:4px;box-shadow:1px 2px 0 #A59565}
+.thumb{width:64px;height:64px;flex-shrink:0;border-radius:10px;object-fit:cover}
+
+.dados{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.dados label:first-child{grid-column:1/-1}
+.dados label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.dados .in{min-height:46px;padding:10px 12px;border-radius:10px;font-size:16px}
+.frase{display:flex;align-items:center;gap:12px;padding:6px 6px 6px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
+.frase div{flex:1;padding:8px 0}
+.frase small{display:block;font-size:12px;color:var(--muted)}
+
+/* histórico e ajustes */
+.item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
+.item .t{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .d{display:flex;gap:8px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.item .d .mono{color:var(--accent)}
+.quem{width:26px;height:26px;border-radius:50%;border:1px solid var(--muted);color:var(--accent);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center}
+.dia{font-size:14px;font-weight:600;color:var(--muted)}
+.linha{display:flex;align-items:center;gap:8px;padding:4px 4px 4px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:15px}
+.linha span{flex:1;padding:8px 0}
+.linha button{width:44px;height:44px;border:0;background:none;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:52px}
+.sw input{appearance:none;-webkit-appearance:none;width:52px;height:32px;border-radius:16px;background:var(--bg2);border:1px solid var(--line);position:relative;flex-shrink:0;transition:background .15s;cursor:pointer}
+.sw input::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--muted);transition:transform .15s,background .15s}
+.sw input:checked{background:var(--accent)} .sw input:checked::after{transform:translateX(20px);background:var(--on-accent)}
+
+/* login */
+.login{min-height:100dvh;max-width:440px;margin:0 auto;padding:max(40px,env(safe-area-inset-top)) 28px 32px;display:flex;flex-direction:column}
+.marca{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:15px;font-weight:500}
+.np{width:40px;height:40px;border:2px solid var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:700;font-size:16px;color:var(--accent)}
+.palco{height:230px;display:flex;align-items:center;justify-content:center;perspective:900px;touch-action:pan-y}
+.heroi{position:relative;width:250px;height:118px;border-radius:14px;display:flex;align-items:center;color:var(--tktext);
+  background:repeating-linear-gradient(0deg,var(--tk1) 0 3px,var(--tk2) 3px 4px);
+  transform:rotateX(calc(22deg + var(--rx,0deg))) rotateY(calc(-22deg + var(--ry,0deg))) rotateZ(-5deg);transition:transform .25s ease-out;
+  box-shadow:1px 1px 0 #D8C99A,2px 2px 0 #D0C08F,3px 3px 0 #C7B784,4px 4px 0 #BEAE7A,5px 5px 0 #B5A570,6px 6px 0 #AC9C67,7px 7px 0 #A3935E,8px 8px 0 #9A8A55,9px 9px 0 #91814D,34px 46px 50px rgba(0,0,0,.5)}
+.heroi::before,.heroi::after{content:"";position:absolute;top:46px;width:26px;height:26px;border-radius:50%;background:var(--bg)}
+.heroi::before{left:-13px}.heroi::after{right:-13px}
+.heroi .pct{width:66px;height:78px;margin-left:22px;border-right:2px dashed #8E8256;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:700;font-size:30px}
+.heroi .cd{padding-left:18px}.heroi .cd small{display:block;font-size:12px;font-weight:600;color:var(--tksub)}.heroi .cd span{font-family:var(--mono);font-size:24px}
+.boia{animation:boia 5s ease-in-out infinite}
+@keyframes boia{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.login h1{font-size:42px}
+.erro{color:var(--warn);font-size:14px}
+
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translate(-50%,20px);max-width:min(420px,calc(100vw - 32px));background:var(--tk1);color:var(--tktext);font-size:15px;font-weight:500;padding:12px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:10}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* celular: oferta em dois passos */
+.duo{display:flex;flex-direction:column;gap:16px}
+.duo[data-step="form"] .pane-previa,.duo[data-step="previa"] .pane-form{display:none}
+.pane{display:flex;flex-direction:column;gap:16px;min-width:0}
+.so-web{display:none}
+
+@media (min-width:960px){
+  .shell{flex-direction:row}
+  .tabs{display:none}
+  .side{display:flex;flex-direction:column;gap:28px;width:240px;flex-shrink:0;padding:28px 20px;background:var(--bg2);border-right:1px solid var(--line);position:sticky;top:0;height:100dvh}
+  .side nav{display:flex;flex-direction:column;gap:4px}
+  .side .tab{flex-direction:row;justify-content:flex-start;gap:10px;height:44px;padding:0 14px;border-radius:10px;font-size:15px}
+  .side .tab[aria-current="page"]{background:var(--surface)}
+  .side .pe{margin-top:auto;display:flex;align-items:center;gap:10px}
+  .main{max-width:1080px;margin:0;padding:36px 40px 48px;gap:24px}
+  h1{font-size:40px}
+  .top .seg{flex:0 0 260px}
+  .duo{flex-direction:row;gap:32px;align-items:flex-start}
+  .duo .pane{flex:1}
+  .duo[data-step] .pane-previa,.duo[data-step] .pane-form{display:flex}
+  .so-cel{display:none!important}
+  .so-web{display:block}
+  .estreito{max-width:620px}
+}
+@media (prefers-reduced-motion:reduce){.boia{animation:none}.heroi,.btn,.toast,.sw input,.sw input::after{transition:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<input id="arquivo" type="file" accept="image/*" hidden>
+<script src="config.js"></script>
+
+<script>
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ML = /^https?:\/\/(meli\.la|(?:[\w-]+\.)*mercadolivre\.com(?:\.br)?)\/\S+/i;
+const HORA = 3600e3, AGORA = Date.now();
+
+const PROMPT = 'Crie uma imagem quadrada 1080x1080 para um post de cupom de desconto em um grupo de WhatsApp de makers e impressão 3D. Fundo verde escuro de tapete de corte (#0E3A34) com uma grade fina e discreta. No centro, um cupom grande em perspectiva 3D, cor creme (#FFF4D6), com linhas horizontais de camada como uma peça impressa em 3D, um símbolo de % e os recortes redondos nas laterais. Abaixo, o título "Saiu cupom!" em letras grandes, grossas e amarelas (#FFD23F), e a linha menor "Ativa pelo link e usa o código aqui embaixo" em branco. No rodapé, pequeno: "Junior e Thai, do Nosso Projeto 3D". Estilo limpo, divertido, sem fotos e sem logos de outras marcas.';
+
+const S = {
+  envio: null, user: null, view: 'novo', tipo: 'oferta', step: 'form',
+  msg: '', link: '', draft: null, coladaEm: null, fraseIdx: 0,
+  cupons: [{ code: 'MAKER15', regra: '15% OFF acima de R$ 99' }, { code: 'BANCADA20', regra: 'R$ 20 OFF acima de R$ 150' }],
+  linkCupom: '', addAberto: false, img: null, avisarRepetido: true,
+  manual: false,
+  cAbre: null, cAbreIdx: 0, cChama: null,
+  frase: null, absurda: false, fraseAbs: null, absIdx: 0,
+
+  historico: []
+};
+
+const FRASES = [
+  "Seu cartão pediu pra você não abrir esse link 💳",
+  "\"É só uma ferramentinha\", disse o maker pela 47ª vez",
+  "Mais barato que o filamento que você perdeu em espaguete essa semana 🍝",
+  "Não resolve mesa desnivelada, mas ajuda no resto",
+  "A gente não precisa. A gente quer. É diferente",
+  "Compra agora e explica em casa depois 😅",
+  "Cabe na bancada? Não. Vamos comprar? Vamos",
+  "O boleto que lute",
+  "Esse aqui dá menos trabalho que tirar suporte",
+  "Terapia de maker é carrinho cheio",
+  "Pior que tá barato mesmo",
+  "Avisa em casa que foi a gente que mandou 🙈",
+  "Mais um item pra lista \"depois eu uso\"",
+  "Não é compra por impulso se você pensou por 4 segundos",
+  "A impressora pediu. A gente só tá repassando o recado",
+  "Custa menos que uma impressão de 14 horas que falhou em 97%",
+  "Sua bancada tá muito vazia, a gente reparou",
+  "Se a primeira camada der errado, pelo menos a compra deu certo",
+  "Dinheiro a gente imprime depois 🖨️",
+  "O carrinho tá ali, sozinho, te esperando",
+  "Maker não acumula tralha, maker tem estoque estratégico",
+  "Chega mais rápido que a sua impressão termina",
+  "Prometo que é o último. Mentira",
+  "Entupiu o bico? Compra isso aqui e esquece o problema por uns minutos",
+  "Tá mais em conta que errar o fatiamento de novo",
+  "A Thai disse não. O Junior já comprou",
+  "O Junior disse não. A Thai já comprou",
+  "Você não tem espaço, mas quem tem?",
+  "Se organizar direitinho, cabe mais uma gaveta de ferramenta",
+  "Não julgamos. A gente também comprou",
+  "Pode fingir que é presente pra impressora 🎁",
+  "Pra quem diz \"vou só olhar\"",
+  "Esse preço descolou da mesa",
+  "Isso aqui tem mais utilidade que metade dos seus STL salvos",
+  "Você tem 300 modelos baixados e nenhum impresso. Compra isso pelo menos",
+  "Menos dor de cabeça que warping no ABS",
+  "Barato igual filamento em promoção: some rápido",
+  "A gente testou a desculpa \"é pra trabalhar\". Funciona",
+  "Ninguém precisa saber quanto custou",
+  "Colou na mesa e no nosso coração",
+  "O importante é ter, usar a gente vê depois",
+  "Calma, respira, abre o link",
+  "Era só pra ver o preço e já tá no carrinho",
+  "Mais fácil que nivelar a mesa na mão",
+  "Seu eu do futuro agradece. Seu extrato não",
+  "Quem nunca comprou ferramenta repetida que atire a primeira espátula",
+  "Já avisa o porteiro que vem encomenda 📦",
+  "Isso sim é uma boa primeira camada pro dia",
+  "Não é gasto, é upgrade",
+  "A gente só indica. A culpa é toda sua 😇",
+  "Seu setup viu isso e ficou com inveja",
+  "Hoje o stringing é só no cartão",
+  "Pode comprar sem medo. Medo é trocar bico quente",
+  "Se der ruim, a gente imprime outra desculpa",
+  "Tava faltando isso pra você procrastinar com mais conforto",
+  "Se fosse STL você já tinha baixado",
+  "A gente viu e pensou em você. E na nossa comissão, mas principalmente em você",
+  "Fica a dica. E fica o boleto",
+  "Rende mais que rolo de 1 kg",
+  "Essa nem precisa de suporte pra se sustentar"
+];
+const FRASES_CUPOM = [
+  "Com cupom nem conta como gasto, é investimento",
+  "Cupom aplicado, culpa reduzida em 15%",
+  "Sem cupom a gente nem tinha mandado, né",
+  "Cupom é igual suporte: sem ele não sai",
+  "Usa o cupom antes que ele descole da mesa",
+  "Com cupom você pode dizer em casa que economizou",
+  "Cupom funcionando. A gente testou porque também comprou",
+  "Quem paga sem cupom também imprime sem aquecer a mesa",
+  "O cupom tá aqui embaixo. Não vale reclamar depois",
+  "Cupom: a única coisa que entra fácil hoje",
+  "Preço cheio é pra quem não tá no grupo. Usa o cupom",
+  "Esse cupom dura menos que filamento úmido",
+  "Copiou o cupom? Então pode ir",
+  "Cupom na mão, juízo no bolso",
+  "Sem o cupom é caro. Com o cupom é \"ops, comprei\""
+];
+const ABERTURAS = [
+  "Saiu cupom no ML, gente! 🎟️",
+  "Cupom novo. Esconde o cartão 🎟️",
+  "Chegou cupom e a gente não se responsabiliza 🎟️",
+  "Atenção, bancada: cupom liberado 🎟️",
+  "Tem cupom fresquinho, direto da extrusora 🎟️",
+  "O ML soltou cupom e a gente veio correndo 🎟️",
+  "Cupom no ar. Seu extrato já tá com medo 🎟️",
+  "Hoje tem cupom. Amanhã tem encomenda 🎟️",
+  "Pausa a impressão que saiu cupom 🎟️",
+  "Mais um cupom pra sua coleção de desculpas 🎟️"
+];
+const CHAMADA = 'Ativa por aqui antes de comprar 👇';
+const FRASES_ABS = [
+  "🚨 Alguém no ML vai ser demitido por esse preço",
+  "🚨 Conferimos três vezes. Não é erro de fatiamento",
+  "🚨 Nesse preço, até quem não imprime compra",
+  "🚨 PARA A IMPRESSÃO e olha isso aqui",
+  "🚨 Isso aqui tá mais barato que deveria. Ninguém conta pro vendedor",
+  "🚨 A gente nunca viu tão barato. E a gente olha todo dia",
+  "🚨 Preço bugado? Não sabemos, mas já compramos",
+  "🚨 Se você tava esperando um sinal, é esse. Em letras garrafais",
+  "🚨 Corre. Não anda. CORRE",
+  "🚨 O estagiário errou o preço e a gente agradece",
+  "🚨 Tá tão barato que a gente desconfiou. Mas é isso mesmo",
+  "🚨 Essa oferta vai acabar antes da sua mesa aquecer",
+  "🚨 Hoje é dia de falir com alegria",
+  "🚨 A melhor que já passou por esse grupo. Sério",
+  "🚨 Larga o que tá fazendo. Menos a impressão, deixa ela rodando"
+];
+
+const EXEMPLOS = [
+    { tipo: 'cupom', titulo: 'Post de cupom, 2 códigos', detalhe: 'Cupons', cupom: 'MAKER15', ts: AGORA - 3 * HORA, quem: 'Thai' },
+    { tipo: 'oferta', titulo: 'Alicate de corte pra suporte', detalhe: 'R$ 32,90', cupom: 'MAKER15', ts: AGORA - 5 * HORA, quem: 'Junior' },
+    { tipo: 'oferta', titulo: 'Filamento PLA 1 kg', detalhe: 'R$ 79,90', cupom: 'BANCADA20', ts: AGORA - 26 * HORA, quem: 'Thai' },
+    { tipo: 'oferta', titulo: 'Jogo de espátulas pra mesa', detalhe: 'R$ 24,90', cupom: '', ts: AGORA - 30 * HORA, quem: 'Junior' }
+  ];
+
+/* ---------- ícones ---------- */
+const P = {
+  mais: '<path d="M12 5v14M5 12h14"/>',
+  relogio: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  ajustes: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
+  ok: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  alerta: '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17.5v.5"/>',
+  x: '<path d="M6 6l12 12M18 6L6 18"/>',
+  enviar: '<path d="M4 12l16-8-6 16-3-7-7-1z"/>',
+  voltar: '<path d="M15 5l-7 7 7 7"/>',
+  colar: '<rect x="8" y="3" width="8" height="4" rx="1"/><path d="M8 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>',
+  copiar: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
+  subir: '<path d="M12 16V5M7 10l5-5 5 5M5 19h14"/>',
+  trocar: '<path d="M20 11a8 8 0 0 0-14.6-4.5L4 8M4 4v4h4M4 13a8 8 0 0 0 14.6 4.5L20 16m0 4v-4h-4"/>'
+};
+const ico = (n, s = 20) => `<svg aria-hidden="true" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${P[n]}</svg>`;
+
+/* ---------- leitura da mensagem ---------- */
+function ler(msg) {
+  const linkOrig = (msg.match(/https?:\/\/\S+/) || [''])[0];
+  const semLink = msg.replace(/https?:\/\/\S+/g, ' ');
+  const preco = (semLink.match(/R\$\s?\d[\d.]*(?:,\d{1,2})?/) || [''])[0].replace(/R\$\s?/, 'R$ ');
+  let cupom = '';
+  let m = semLink.match(/\u{1F39F}️?\s*([A-Z0-9]{4,20})(?![a-z])/u) || semLink.match(/[Cc][Uu][Pp][Oo][Mm]\s*:?\s+([A-Z][A-Z0-9]{3,19})(?![a-z])/);
+  if (m) cupom = m[1];
+  else {
+    const cand = (semLink.match(/\b[A-Z][A-Z0-9]{5,19}\b/g) || []).filter(t => /\d/.test(t));
+    if (cand.length) cupom = cand[cand.length - 1];
+  }
+  let produto = (semLink.split('\n').map(l => l.trim()).find(l => l) || '');
+  produto = produto.split(/R\$/)[0];
+  if (cupom) produto = produto.replace(cupom, '');
+  produto = produto.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}️]/gu, '').replace(/\s{2,}/g, ' ').replace(/[\s\-–—:|]+$/, '').trim();
+  return { produto, preco, cupom, linkOrig };
+}
+const dados = () => S.draft || ler(S.msg);
+const frasesValidas = () => dados().cupom ? FRASES.concat(FRASES_CUPOM) : FRASES;
+const fraseAtual = () => { if (S.frase !== null) return S.frase; const f = frasesValidas(); return f[S.fraseIdx % f.length]; };
+const abreAtual = () => S.cAbre !== null ? S.cAbre : ABERTURAS[S.cAbreIdx % ABERTURAS.length];
+const chamaAtual = () => S.cChama !== null ? S.cChama : CHAMADA;
+const absAtual = () => S.fraseAbs !== null ? S.fraseAbs : FRASES_ABS[S.absIdx % FRASES_ABS.length];
+const sorteia = (n, atual) => { let i; do { i = Math.floor(Math.random() * n); } while (n > 1 && i === atual % n); return i; };
+const linkOfertaOK = () => ML.test(S.link.trim()) && S.link.trim() !== ler(S.msg).linkOrig;
+const podeOferta = () => !!dados().produto.trim() && linkOfertaOK();
+const podeCupom = () => S.cupons.length > 0 && ML.test(S.linkCupom.trim());
+const mesmoDia = (a, b) => new Date(a).toDateString() === new Date(b).toDateString();
+const repetido = () => { const d = dados(); return S.avisarRepetido && d.produto && S.historico.some(h => h.tipo === 'oferta' && mesmoDia(h.ts, Date.now()) && h.titulo.toLowerCase() === d.produto.toLowerCase()); };
+
+/* ---------- pedaços de tela ---------- */
+function chk(tipo, txt) { return txt ? `<div class="chk ${tipo}">${ico(tipo === 'ok' ? 'ok' : tipo === 'warn' ? 'alerta' : 'relogio', 18)}<span>${txt}</span></div>` : ''; }
+function chkMsg() {
+  if (!S.msg.trim()) return '';
+  const d = ler(S.msg);
+  return d.cupom ? chk('ok', `Cupom encontrado: <span class="mono" style="color:var(--text)">${esc(d.cupom)}</span>`) : chk('neu', 'Sem cupom nessa mensagem. Vai só a oferta.');
+}
+function chkLink(v, orig) {
+  v = v.trim();
+  if (!v) return '';
+  if (!ML.test(v)) return chk('warn', 'Esse link não parece do Mercado Livre.');
+  if (orig && v === orig) return chk('warn', 'Esse é o link da mensagem original. Cole o seu.');
+  return chk('ok', orig !== undefined ? 'É do Mercado Livre e não é o link da mensagem.' : 'É um link do Mercado Livre.');
+}
+function capa(mini) {
+  if (S.img) return mini ? `<img class="thumb" src="${S.img}" alt="Imagem atual do post de cupom">` : `<img src="${S.img}" alt="Imagem do post de cupom">`;
+  return `<div class="capa${mini ? ' mini' : ''}" role="img" aria-label="Imagem padrão do post de cupom"><div class="tk">%</div>${mini ? '' : '<div class="tt">Saiu cupom!</div>'}</div>`;
+}
+const wa = t => 'https://wa.me/?text=' + encodeURIComponent(t);
+function textoOferta() {
+  const d = dados(), fr = fraseAtual().trim(), ab = S.absurda ? absAtual().trim() : '';
+  return (ab ? ab + '\n\n' : '') + d.produto.trim() + '\n' + (d.preco + (d.cupom ? ` 💥🎟️ ${d.cupom}` : '')).trim() + '\n\n' + (fr ? fr + '\n' : '') + 'Entra aqui: ' + S.link.trim();
+}
+function textoCupom() {
+  const a = abreAtual().trim(), c = chamaAtual().trim();
+  return (a ? a + '\n' : '') + S.cupons.map(x => x.code + (x.regra ? ': ' + x.regra : '')).join('\n') + '\n\n' + (c ? c + '\n' : '') + S.linkCupom.trim();
+}
+const btnEnviar = (id, pode, txt) => `<a class="btn pri block${pode ? '' : ' off'}" id="${id}" data-a="${id}" ${pode ? `href="${esc(wa(txt()))}"` : 'aria-disabled="true"'} target="_blank" rel="noopener">${ico('enviar')}Enviar pro grupo</a>`;
+function ligaEnviar(id, pode, txt) { const b = $('#' + id); if (!b) return; b.classList.toggle('off', !pode); if (pode) { b.href = wa(txt()); b.removeAttribute('aria-disabled'); } else { b.removeAttribute('href'); b.setAttribute('aria-disabled', 'true'); } }
+function bolhasOferta() {
+  const d = dados();
+  if (!d.produto) return '<div class="vazio">Cole uma mensagem para ver como o post chega no grupo.</div>';
+  const fr = fraseAtual(), lk = S.link.trim() || 'seu link aqui';
+  const ab = S.absurda && absAtual().trim() ? esc(absAtual().trim()) + '\n\n' : '';
+  let h = `<div class="bolha">${ab}<b>${esc(d.produto)}</b>\n${esc(d.preco)}${d.cupom ? ` 💥🎟️ ${esc(d.cupom)}` : ''}\n\n${fr.trim() ? esc(fr.trim()) + '\n' : ''}Entra aqui: <span class="lk">${esc(lk)}</span></div>`;
+  if (d.cupom) h += `<div class="bolha">${esc(d.cupom)}</div>`;
+  return h;
+}
+function avisosOferta() {
+  let h = '';
+  if (repetido()) h += chk('warn', 'Esse produto já foi pro grupo hoje.');
+  if (S.coladaEm && S.msg.trim()) { const min = Math.max(0, Math.round((Date.now() - S.coladaEm) / 60000)); h += chk('warn', `Colada há ${min} min. Abra o link e confira se a oferta ainda vale.`); }
+  return h;
+}
+function previaOferta() {
+  const d = dados();
+  return `
+  <div class="row so-cel" style="justify-content:flex-start">
+    <button class="btn link" data-a="voltar" aria-label="Voltar para a mensagem" style="margin-left:-10px">${ico('voltar', 24)}</button>
+    <h2>Prévia do post</h2>
+  </div>
+  <h2 class="so-web">Prévia do post</h2>
+  ${S.manual ? '<!--' : ''}<div class="dados">
+    <label>Produto<input class="in" data-i="d-produto" value="${esc(d.produto)}" autocomplete="off"></label>
+    <label>Preço<input class="in" data-i="d-preco" value="${esc(d.preco)}" autocomplete="off"></label>
+    <label>Cupom<input class="in mono" data-i="d-cupom" value="${esc(d.cupom)}" placeholder="sem cupom" autocomplete="off" autocapitalize="characters"></label>
+  </div>${S.manual ? '-->' : ''}
+  <div class="wa"><div class="cap">Como chega no grupo</div><div id="bolhas" style="display:contents">${bolhasOferta()}</div></div>
+  <div class="field">
+    <div class="row"><label for="frase">Frase de amigo</label><button class="btn link" data-a="trocar">${ico('trocar', 16)}Trocar</button></div>
+    <input class="in" id="frase" data-i="frase" value="${esc(fraseAtual())}" placeholder="Sem frase" autocomplete="off">
+  </div>
+  <div class="card stack tight">
+    <label class="sw"><span><span class="lbl">Oferta absurda</span><span class="hint" style="display:block">Põe um destaque no topo do post.</span></span><input type="checkbox" id="absurda" data-i="absurda" ${S.absurda ? 'checked' : ''}></label>
+    ${S.absurda ? `<div class="row"><label for="frase-abs" class="hint">Destaque</label><button class="btn link" data-a="trocar-abs">${ico('trocar', 16)}Trocar</button></div>
+    <input class="in" id="frase-abs" data-i="frase-abs" value="${esc(absAtual())}" placeholder="Sem destaque" autocomplete="off">` : ''}
+  </div>
+  <div id="avisos" class="stack tight">${avisosOferta()}</div>
+  <p class="hint" style="text-align:center">O cupom vai sozinho logo abaixo da oferta. Sem cupom, vai só a oferta.</p>
+  ${btnEnviar('enviar-oferta', podeOferta(), textoOferta)}
+  <button class="btn link block" data-a="descartar" style="color:var(--muted)">Limpar</button>`;
+}
+function telaOferta() {
+  const d = dados();
+  const campos = S.manual ? `
+      <div class="field">
+        <label for="m-cupom">Cupom</label>
+        <input class="in mono" id="m-cupom" data-i="d-cupom" value="${esc(d.cupom)}" placeholder="Opcional" autocomplete="off" autocapitalize="characters">
+      </div>
+      <div class="field">
+        <label for="link">Seu link de afiliado</label>
+        <input class="in mono" id="link" data-i="link" type="url" inputmode="url" placeholder="https://meli.la/..." value="${esc(S.link)}" autocomplete="off" autocapitalize="none">
+        <div id="chk-link">${chkLink(S.link)}</div>
+      </div>
+      <div class="field">
+        <label for="m-produto">Produto</label>
+        <input class="in" id="m-produto" data-i="d-produto" value="${esc(d.produto)}" placeholder="Nome que vai no post" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="m-preco">Preço com o cupom</label>
+        <input class="in" id="m-preco" data-i="d-preco" value="${esc(d.preco)}" placeholder="R$ 0,00" inputmode="decimal" autocomplete="off">
+      </div>` : `
+      <div class="field">
+        <div class="row"><label for="msg">Mensagem que você viu</label><button class="btn link" data-a="colar">${ico('colar', 18)}Colar</button></div>
+        <textarea class="in" id="msg" data-i="msg" placeholder="Cole aqui a mensagem do grupo, com preço, cupom e link.">${esc(S.msg)}</textarea>
+        <div id="chk-msg">${chkMsg()}</div>
+      </div>
+      <div class="field">
+        <label for="link">Seu link de afiliado</label>
+        <input class="in mono" id="link" data-i="link" type="url" inputmode="url" placeholder="https://meli.la/..." value="${esc(S.link)}" autocomplete="off" autocapitalize="none">
+        <div id="chk-link">${chkLink(S.link, ler(S.msg).linkOrig)}</div>
+      </div>`;
+  return `
+  <div class="duo" data-step="${S.step}">
+    <section class="pane pane-form" aria-label="${S.manual ? 'Oferta nova' : 'Mensagem e link'}">
+      ${S.manual ? '<h2>Oferta nova</h2>' : ''}${campos}
+      <p class="erro" id="erro-oferta" role="alert" hidden></p>
+      <button class="btn pri block so-cel" data-a="montar">Montar post</button>
+      <div class="row" style="flex-wrap:wrap">
+        ${S.manual ? `<button class="btn" style="flex:2 1 200px" data-a="modo-colar">Colar mensagem</button>` : `<button class="btn" style="flex:2 1 200px" data-a="nova">${ico('mais', 18)}Criar uma nova</button>`}
+        <button class="btn so-cel" style="flex:1 1 100px" data-a="descartar">Limpar</button>
+      </div>
+      ${S.manual ? '' : '<p class="hint">No WhatsApp, compartilhe a mensagem com o atalho Nossos Achadinhos e ela já chega colada aqui.</p>'}
+    </section>
+    <section class="pane pane-previa" id="previa" aria-label="Prévia do post">${previaOferta()}</section>
+  </div>`;
+}
+function listaCupons() {
+  return S.cupons.map((c, i) => `<div class="ticket"><span class="code">${esc(c.code)}</span><span class="regra">${esc(c.regra)}</span><button data-a="rm-cupom" data-n="${i}" aria-label="Remover cupom ${esc(c.code)}">${ico('x', 18)}</button></div>`).join('')
+    || '<p class="hint">Nenhum cupom ainda. Adicione o primeiro.</p>';
+}
+function formCupom() {
+  if (!S.addAberto) return `<button class="btn sm block dashed" data-a="abrir-add">${ico('mais', 18)}Adicionar cupom</button>`;
+  return `<form class="card stack tight" id="form-cupom">
+    <div class="field"><label for="c-code">Código</label><input class="in mono" id="c-code" placeholder="MAKER15" autocomplete="off" autocapitalize="characters"></div>
+    <div class="field"><label for="c-regra">O que ele dá</label><input class="in" id="c-regra" placeholder="15% OFF acima de R$ 99" autocomplete="off"></div>
+    <p class="erro" id="erro-cupom" role="alert" hidden></p>
+    <div class="row"><button type="button" class="btn sm" data-a="fechar-add">Cancelar</button><button type="submit" class="btn sm" style="background:var(--accent);border-color:var(--accent);color:var(--on-accent);flex:1">Adicionar</button></div>
+  </form>`;
+}
+function blocoImagem() {
+  return `<div class="card stack tight">
+    <div class="row" style="justify-content:flex-start;gap:12px">${capa(true)}<div><div class="lbl">Imagem do post de cupom</div><div class="hint">A que você enviar vale para os próximos posts.</div></div></div>
+    <div class="row" style="flex-wrap:wrap"><button class="btn sm" style="flex:1 1 150px;white-space:nowrap" data-a="subir-img">${ico('subir', 18)}Enviar imagem</button><button class="btn sm" style="flex:1 1 150px;white-space:nowrap" data-a="copiar-prompt">${ico('copiar', 18)}Copiar prompt</button></div>
+    ${S.img ? '<button class="btn link sm" data-a="img-padrao" style="color:var(--muted)">Voltar para a imagem padrão</button>' : ''}
+  </div>`;
+}
+function bolhasCupom() {
+  if (!S.cupons.length) return '<div class="vazio">Adicione um cupom para ver o post.</div>';
+  const lk = S.linkCupom.trim() || 'seu link aqui';
+  const linhas = S.cupons.map(c => `${esc(c.code)}${c.regra ? ': ' + esc(c.regra) : ''}`).join('\n');
+  return `<div class="bolha img">${capa(false)}<div class="txt">${abreAtual().trim() ? '<b>' + esc(abreAtual().trim()) + '</b>\n' : ''}${linhas}\n\n${chamaAtual().trim() ? esc(chamaAtual().trim()) + '\n' : ''}<span class="lk">${esc(lk)}</span></div></div>`
+    + S.cupons.map(c => `<div class="bolha">${esc(c.code)}</div>`).join('');
+}
+function telaCupom() {
+  return `
+  <div class="duo" data-step="todos">
+    <section class="pane" aria-label="Cupons e link">
+      <div class="stack tight" id="cupons">${listaCupons()}</div>
+      <div id="add">${formCupom()}</div>
+      <div class="field">
+        <label for="linkc">Seu link para ativar</label>
+        <input class="in mono" id="linkc" data-i="linkc" type="url" inputmode="url" placeholder="https://meli.la/..." value="${esc(S.linkCupom)}" autocomplete="off" autocapitalize="none">
+        <div id="chk-linkc">${chkLink(S.linkCupom)}</div>
+      </div>
+      <div class="field">
+        <div class="row"><label for="c-abre">Texto de abertura</label><button class="btn link" data-a="trocar-abre">${ico('trocar', 16)}Trocar</button></div>
+        <input class="in" id="c-abre" data-i="c-abre" value="${esc(abreAtual())}" placeholder="Sem abertura" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="c-chama">Chamada do link</label>
+        <input class="in" id="c-chama" data-i="c-chama" value="${esc(chamaAtual())}" placeholder="Sem chamada" autocomplete="off">
+      </div>
+      <div id="bloco-img">${blocoImagem()}</div>
+    </section>
+    <section class="pane" aria-label="Prévia do post de cupom">
+      <h2 class="so-web">Prévia do post</h2>
+      <div class="wa"><div class="cap">Como chega no grupo</div><div id="bolhas-c" style="display:contents">${bolhasCupom()}</div></div>
+      <p class="hint" style="text-align:center">Depois do post vai uma mensagem só com cada código, pra copiar fácil.</p>
+      ${btnEnviar('enviar-cupom', podeCupom(), textoCupom)}
+      ${podeArquivo() ? `<button class="btn block" data-a="share-img">${ico('subir', 18)}Compartilhar a imagem</button><p class="hint" style="text-align:center">A imagem vai separada, antes do texto.</p>` : '<p class="hint" style="text-align:center">Aqui a imagem não vai junto. No app publicado aparece o botão de compartilhar a imagem.</p>'}
+      <button class="btn link block" data-a="limpar-cupom" style="color:var(--muted)">Limpar</button>
+    </section>
+  </div>`;
+}
+function telaPassos() {
+  const e = S.envio, c = e.passos[e.i], n = e.passos.length;
+  return `<div class="stack estreito">
+    <h1>${n > 1 ? `Código ${e.i + 1} de ${n}` : 'Agora o cupom'}</h1>
+    <p class="muted">${e.i === 0 ? 'O post abriu no WhatsApp. Depois de enviar lá, volte aqui e mande o código.' : 'Mande o próximo código.'}</p>
+    <div class="ticket" style="min-height:72px"><span class="code" id="passo-code" style="font-size:22px">${esc(c)}</span><span class="regra"></span></div>
+    <p class="hint">O código já está copiado. Dá pra colar direto na conversa.</p>
+    <a class="btn pri block" id="passo" data-a="passo" href="${esc(wa(c))}" target="_blank" rel="noopener">${ico('enviar')}Enviar o código no WhatsApp</a>
+    <button class="btn block" data-a="copiar-code">${ico('copiar', 18)}Copiar de novo</button>
+    <a class="btn block" href="${esc(wa(e.texto))}" target="_blank" rel="noopener">Abrir o post de novo no WhatsApp</a>
+    <button class="btn link block" data-a="concluir" style="color:var(--muted)">Concluir sem enviar o resto</button>
+  </div>`;
+}
+function telaNovo() {
+  if (S.envio) return telaPassos();
+  return `<div class="top"><h1>Novo post</h1>
+    <div class="seg" role="group" aria-label="Tipo de post"><button data-a="tipo" data-n="oferta" aria-pressed="${S.tipo === 'oferta'}">Oferta</button><button data-a="tipo" data-n="cupom" aria-pressed="${S.tipo === 'cupom'}">Cupom</button></div></div>
+  ${S.tipo === 'oferta' ? telaOferta() : telaCupom()}`;
+}
+const hora = ts => new Date(ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+function nomeDia(ts) {
+  if (mesmoDia(ts, Date.now())) return 'Hoje';
+  if (mesmoDia(ts, Date.now() - 24 * HORA)) return 'Ontem';
+  return new Date(ts).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
+}
+function telaHistorico() {
+  const itens = [...S.historico].sort((a, b) => b.ts - a.ts);
+  let h = `<div class="stack tight estreito"><h1>Histórico</h1><p class="muted">O que já foi pro grupo, para não repetir.</p></div>`;
+  if (!itens.length) return h + `<div class="card estreito"><p>Nada enviado ainda.</p><p class="hint">O primeiro post aparece aqui assim que você enviar.</p><button class="btn sm" data-a="ir" data-n="novo" style="margin-top:12px">Criar um post</button></div>`;
+  let dia = '';
+  h += '<div class="stack tight estreito">';
+  for (const p of itens) {
+    const n = nomeDia(p.ts);
+    if (n !== dia) { h += `<h2 class="dia" style="font-family:var(--body);margin-top:${dia ? 12 : 0}px">${n}</h2>`; dia = n; }
+    h += `<div class="item"><div style="flex:1;min-width:0"><div class="t">${esc(p.titulo)}</div><div class="d"><span>${esc(p.detalhe)}</span>${p.cupom ? `<span class="mono">${esc(p.cupom)}</span>` : '<span>sem cupom</span>'}</div></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="hint">${hora(p.ts)}</span><span class="quem" role="img" aria-label="Enviado por ${esc(p.quem)}">${esc(p.quem[0])}</span></div></div>`;
+  }
+  return h + '</div>';
+}
+function telaAjustes() {
+  return `<h1>Ajustes</h1>
+  <div class="stack estreito">
+    <section class="stack tight"><h2>Imagem do cupom</h2><div id="bloco-img">${blocoImagem()}</div></section>
+    <section class="stack tight"><h2>Avisos</h2>
+      <label class="sw card"><span>Avisar quando o produto já foi enviado hoje</span><input type="checkbox" data-i="avisar" ${S.avisarRepetido ? 'checked' : ''}></label>
+    </section>
+    <section class="stack tight"><h2>Conta</h2>
+      <div class="card row"><div><div class="lbl">${esc(S.user)}</div><div class="hint">${NUVEM ? 'Histórico compartilhado entre vocês dois.' : 'Versão de teste: o histórico some ao recarregar.'}</div></div><button class="btn sm" data-a="sair">Sair</button></div>
+    </section>
+  </div>`;
+}
+function telaLogin() {
+  return `<div class="login">
+    <div class="marca"><div class="np" aria-hidden="true">NP</div>Nosso Projeto 3D</div>
+    <div class="palco" id="palco" aria-hidden="true"><div class="boia"><div class="heroi" id="heroi"><div class="pct">%</div><div class="cd"><small>cupom</small><span>MAKER15</span></div></div></div></div>
+    <h1>Nossos Achadinhos</h1>
+    <p class="muted" style="margin-top:12px">Vocês escolhem o que vai pro grupo. O app monta o post.</p>
+    <form id="form-login" class="stack" style="margin-top:28px" novalidate>
+      <div class="field"><label for="email">E-mail</label><input class="in" id="email" type="email" inputmode="email" placeholder="voce@email.com" autocomplete="username" autocapitalize="none"></div>
+      <div class="field"><label for="senha">Senha</label><input class="in" id="senha" type="password" placeholder="Sua senha" autocomplete="current-password"></div>
+      <p class="erro" id="erro-login" role="alert" hidden></p>
+      <button class="btn pri block" type="submit">Entrar</button>
+      ${NUVEM ? '' : '<p class="hint" style="text-align:center">Versão de teste: qualquer e-mail e senha entram.</p>'}
+    </form>
+  </div>`;
+}
+const ABAS = [['novo', 'Novo post', 'mais'], ['historico', 'Histórico', 'relogio'], ['ajustes', 'Ajustes', 'ajustes']];
+const abas = () => ABAS.map(([id, nome, ic]) => `<button class="tab" data-a="ir" data-n="${id}" ${S.view === id ? 'aria-current="page"' : ''}>${ico(ic, 22)}${nome}</button>`).join('');
+function render() {
+  const app = $('#app');
+  if (!S.user) { app.innerHTML = telaLogin(); return; }
+  const tela = S.view === 'novo' ? telaNovo() : S.view === 'historico' ? telaHistorico() : telaAjustes();
+  app.innerHTML = `<div class="shell">
+    <aside class="side"><div class="marca" style="color:var(--text)"><div class="np" aria-hidden="true">NP</div><span style="font-family:var(--disp);font-weight:700;font-size:19px;line-height:1.05">Nossos Achadinhos</span></div>
+      <nav aria-label="Principal">${abas()}</nav>
+      <div class="pe"><span class="quem" aria-hidden="true" style="width:36px;height:36px;font-size:14px">${esc(S.user[0])}</span><span class="lbl">${esc(S.user)}</span></div></aside>
+    <main class="main" id="main">${tela}</main>
+    <nav class="tabs" aria-label="Principal">${abas()}</nav>
+  </div>`;
+}
+
+/* ---------- atualizações parciais (não tiram o foco do campo) ---------- */
+const poe = (id, html) => { const e = $(id); if (e) e.innerHTML = html; };
+function atualizaOferta(refazPrevia) {
+  poe('#chk-msg', chkMsg());
+  poe('#chk-link', S.manual ? chkLink(S.link) : chkLink(S.link, ler(S.msg).linkOrig));
+  if (refazPrevia) poe('#previa', previaOferta());
+  else { poe('#bolhas', bolhasOferta()); poe('#avisos', avisosOferta()); const f = $('#frase'); if (f && document.activeElement !== f) f.value = fraseAtual(); ligaEnviar('enviar-oferta', podeOferta(), textoOferta); }
+}
+function atualizaCupom() {
+  poe('#cupons', listaCupons()); poe('#add', formCupom()); poe('#chk-linkc', chkLink(S.linkCupom)); poe('#bolhas-c', bolhasCupom());
+  ligaEnviar('enviar-cupom', podeCupom(), textoCupom);
+}
+let tToast;
+function toast(t) { const e = $('#toast'); e.textContent = t; e.classList.add('on'); clearTimeout(tToast); tToast = setTimeout(() => e.classList.remove('on'), 3600); }
+function erro(id, t) { const e = $(id); if (!e) return; e.textContent = t; e.hidden = !t; }
+function topo() { window.scrollTo(0, 0); }
+
+/* ---------- ações ---------- */
+const A = {
+  ir(n) { if (S.envio && n !== 'novo') return toast('Termine o envio ou toque em Concluir.'); S.view = n; render(); topo(); if (n === 'historico' && sb) carregaHistorico().then(() => { if (S.view === 'historico') render(); }); },
+  tipo(n) { S.tipo = n; render(); },
+  sair() { if (sb) sb.auth.signOut().catch(() => {}); S.user = null; S.historico = []; S.view = 'novo'; render(); topo(); },
+  async colar() {
+    try { const t = await navigator.clipboard.readText(); if (t) { S.msg = t; S.draft = null; S.coladaEm = Date.now(); $('#msg').value = t; atualizaOferta(true); return; } } catch (e) {}
+    $('#msg').focus(); toast('Toque no campo e escolha Colar.');
+  },
+  nova() { S.manual = true; S.msg = ''; S.link = ''; S.coladaEm = null; S.draft = { produto: '', preco: '', cupom: '', linkOrig: '' }; S.frase = null; S.step = 'form'; render(); const c = $('#m-cupom'); if (c) c.focus(); },
+  'modo-colar'() { S.manual = false; S.draft = null; S.link = ''; S.step = 'form'; render(); },
+  montar() {
+    if (S.manual && !dados().produto.trim()) return erro('#erro-oferta', 'Escreva o nome do produto.');
+    if (!S.manual && !S.msg.trim()) return erro('#erro-oferta', 'Cole a mensagem da oferta primeiro.');
+    if (!dados().produto) return erro('#erro-oferta', 'Não achei o nome do produto na mensagem. Confira o texto colado.');
+    if (!linkOfertaOK()) return erro('#erro-oferta', 'Cole o seu link de afiliado do Mercado Livre.');
+    S.draft = dados(); S.step = 'previa'; render(); topo();
+  },
+  voltar() { S.step = 'form'; render(); },
+  trocar() { S.frase = null; S.fraseIdx = sorteia(frasesValidas().length, S.fraseIdx); atualizaOferta(false); },
+  'trocar-abs'() { S.fraseAbs = null; S.absIdx = sorteia(FRASES_ABS.length, S.absIdx); $('#frase-abs').value = absAtual(); atualizaOferta(false); },
+  descartar() { S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.msg = ''; S.link = ''; S.draft = null; S.coladaEm = null; S.step = 'form'; render(); topo(); toast('Campos limpos.'); },
+  'enviar-oferta'(n, ev) {
+    if (!podeOferta()) { ev.preventDefault(); return; }
+    const d = dados();
+    iniciaEnvio({ tipo: 'oferta', titulo: d.produto.trim(), detalhe: d.preco || 'Sem preço', cupom: d.cupom, texto: textoOferta(), passos: d.cupom ? [d.cupom] : [] });
+  },
+  'abrir-add'() { S.addAberto = true; poe('#add', formCupom()); $('#c-code').focus(); },
+  'fechar-add'() { S.addAberto = false; poe('#add', formCupom()); },
+  'rm-cupom'(n) { S.cupons.splice(+n, 1); atualizaCupom(); },
+  'enviar-cupom'(n, ev) {
+    if (!podeCupom()) { ev.preventDefault(); return; }
+    const q = S.cupons.length;
+    iniciaEnvio({ tipo: 'cupom', titulo: `Post de cupom, ${q} ${q === 1 ? 'código' : 'códigos'}`, detalhe: 'Cupons', cupom: S.cupons[0].code, texto: textoCupom(), passos: S.cupons.map(c => c.code) });
+  },
+  passo() { const e = S.envio; if (!e) return; setTimeout(() => { if (S.envio !== e) return; e.i++; if (e.i >= e.passos.length) concluiEnvio(); else { copia(e.passos[e.i]); render(); topo(); } }, 500); },
+  'copiar-code'() { const e = S.envio; if (e) copia(e.passos[e.i]).then(ok => toast(ok ? 'Código copiado.' : 'Não deu pra copiar. Segure o dedo no código.')); },
+  concluir() { concluiEnvio(); },
+  async 'share-img'() {
+    try { const f = await arquivoImagem(); await navigator.share({ files: [f] }); }
+    catch (e) { if (e && e.name !== 'AbortError') toast('Não deu pra compartilhar a imagem aqui.'); }
+  },
+  'trocar-abre'() { S.cAbre = null; S.cAbreIdx = sorteia(ABERTURAS.length, S.cAbreIdx); $('#c-abre').value = abreAtual(); poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), textoCupom); },
+  'limpar-cupom'() { S.cupons = []; S.linkCupom = ''; S.cAbre = null; S.cChama = null; S.addAberto = false; render(); topo(); toast('Campos limpos.'); },
+  'subir-img'() { $('#arquivo').click(); },
+  'img-padrao'() { S.img = null; guarda('na-img', null); refazImagem(); toast('Voltou para a imagem padrão.'); },
+  async 'copiar-prompt'() {
+    try { await navigator.clipboard.writeText(PROMPT); toast('Prompt copiado. Cole no gerador de imagem e edite.'); }
+    catch (e) { toast('Não deu pra copiar aqui. Tente de novo pelo navegador.'); }
+  }
+};
+/* ---------- nuvem (Supabase): login de verdade e histórico compartilhado ---------- */
+const CFG = window.NA_CONFIG || {};
+const NUVEM = !!(CFG.supabaseUrl && CFG.supabaseKey);
+let sb = null;
+const guarda = (k, v) => { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
+const le = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const nomeDe = u => (u.user_metadata && u.user_metadata.nome) || (/tha/i.test(u.email || '') ? 'Thai' : 'Junior');
+function carregaScript(src) { return new Promise((ok, erro) => { const t = document.createElement('script'); t.src = src; t.onload = ok; t.onerror = erro; document.head.appendChild(t); }); }
+async function ligaNuvem() {
+  if (!NUVEM) return;
+  try {
+    if (!window.supabase) await carregaScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');
+    sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey);
+    const { data } = await sb.auth.getSession();
+    if (data && data.session) await entra(data.session.user);
+  } catch (e) { sb = null; toast('Sem conexão com o servidor. Tente de novo em instantes.'); }
+}
+async function entra(u) { S.user = nomeDe(u); await carregaHistorico(); render(); topo(); }
+async function carregaHistorico() {
+  if (!sb) return;
+  const { data, error } = await sb.from('posts').select('tipo,titulo,detalhe,cupom,quem,created_at').order('created_at', { ascending: false }).limit(300);
+  if (error) { toast('Não consegui carregar o histórico.'); return; }
+  S.historico = data.map(p => ({ tipo: p.tipo, titulo: p.titulo, detalhe: p.detalhe || '', cupom: p.cupom || '', quem: p.quem || '?', ts: Date.parse(p.created_at) }));
+}
+async function salvaPost(p) {
+  if (!sb) return true;
+  const { error } = await sb.from('posts').insert({ tipo: p.tipo, titulo: p.titulo, detalhe: p.detalhe, cupom: p.cupom, quem: p.quem });
+  return !error;
+}
+async function copia(t) { try { await navigator.clipboard.writeText(t); return true; } catch (e) { return false; } }
+function iniciaEnvio(e) {
+  e.i = 0;
+  if (e.passos.length) copia(e.passos[0]);
+  /* espera o link abrir o WhatsApp antes de trocar a tela */
+  setTimeout(() => { S.envio = e; if (!e.passos.length) concluiEnvio(); else { render(); topo(); } }, 500);
+}
+function concluiEnvio() {
+  const e = S.envio; if (!e) return;
+  const post = { tipo: e.tipo, titulo: e.titulo, detalhe: e.detalhe, cupom: e.cupom, ts: Date.now(), quem: S.user };
+  S.historico.push(post);
+  salvaPost(post).then(ok => { if (!ok) toast('Enviado, mas não salvou no histórico compartilhado.'); });
+  if (e.tipo === 'oferta') { S.msg = ''; S.link = ''; S.draft = null; S.coladaEm = null; S.step = 'form'; S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); }
+  else { S.cupons = []; S.linkCupom = ''; S.cAbre = null; S.cChama = null; S.cAbreIdx = sorteia(ABERTURAS.length, S.cAbreIdx); }
+  S.envio = null; S.view = 'historico'; render(); topo();
+  toast('Salvo no histórico.');
+}
+function podeArquivo() { try { return !!navigator.canShare && navigator.canShare({ files: [new File([''], 'a.png', { type: 'image/png' })] }); } catch (e) { return false; } }
+async function arquivoImagem() {
+  if (S.img) { const b = await (await fetch(S.img)).blob(); return new File([b], 'cupom.' + (b.type.split('/')[1] || 'png'), { type: b.type }); }
+  const c = document.createElement('canvas'); c.width = c.height = 1080; const x = c.getContext('2d');
+  x.fillStyle = '#0B312C'; x.fillRect(0, 0, 1080, 1080);
+  x.strokeStyle = 'rgba(255,255,255,.06)'; x.lineWidth = 2;
+  for (let i = 0; i <= 1080; i += 90) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, 1080); x.moveTo(0, i); x.lineTo(1080, i); x.stroke(); }
+  x.save(); x.translate(540, 400); x.rotate(-0.14);
+  x.fillStyle = '#07211D'; x.beginPath(); x.roundRect(-296, -126, 620, 290, 34); x.fill();
+  x.fillStyle = '#FFF4D6'; x.beginPath(); x.roundRect(-310, -145, 620, 290, 34); x.fill();
+  x.strokeStyle = '#EFE0B4'; x.lineWidth = 3; for (let y = -135; y < 140; y += 10) { x.beginPath(); x.moveTo(-300, y); x.lineTo(300, y); x.stroke(); }
+  x.fillStyle = '#0B312C'; for (const px of [-310, 310]) { x.beginPath(); x.arc(px, 0, 34, 0, 7); x.fill(); }
+  x.fillStyle = '#0E3A34'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = "700 170px 'Bricolage Grotesque', system-ui, sans-serif"; x.fillText('%', 0, 8);
+  x.restore();
+  x.textAlign = 'center'; x.fillStyle = '#FFD23F'; x.font = "700 150px 'Bricolage Grotesque', system-ui, sans-serif"; x.fillText('Saiu cupom!', 540, 770);
+  x.fillStyle = '#EEF6F1'; x.font = "500 40px 'Instrument Sans', system-ui, sans-serif"; x.fillText('Ativa pelo link e usa o código aqui embaixo.', 540, 860);
+  x.fillStyle = '#A9C7BC'; x.font = "500 30px 'Instrument Sans', system-ui, sans-serif"; x.fillText('Junior e Thai, do Nosso Projeto 3D', 540, 990);
+  const b = await new Promise(r => c.toBlob(r, 'image/png')); return new File([b], 'cupom.png', { type: 'image/png' });
+}
+function refazImagem() { poe('#bloco-img', blocoImagem()); poe('#bolhas-c', bolhasCupom()); }
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-a]');
+  if (b && A[b.dataset.a]) A[b.dataset.a](b.dataset.n, e);
+});
+document.addEventListener('input', e => {
+  const k = e.target.dataset && e.target.dataset.i; if (!k) return;
+  const v = e.target.value;
+  if (k === 'msg') { if (!S.msg.trim() && v.trim()) S.coladaEm = Date.now(); if (!v.trim()) S.coladaEm = null; S.msg = v; S.draft = null; erro('#erro-oferta', ''); atualizaOferta(true); }
+  else if (k === 'link') { S.link = v; erro('#erro-oferta', ''); atualizaOferta(false); }
+  else if (k.startsWith('d-')) { erro('#erro-oferta', ''); S.draft = { ...dados(), [k.slice(2)]: k === 'd-cupom' ? v.toUpperCase().replace(/\s/g, '') : v }; if (k === 'd-cupom' && e.target.value !== S.draft.cupom) e.target.value = S.draft.cupom; atualizaOferta(false); }
+  else if (k === 'linkc') { S.linkCupom = v; poe('#chk-linkc', chkLink(v)); poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), textoCupom); }
+  else if (k === 'avisar') { S.avisarRepetido = e.target.checked; guarda('na-avisar', S.avisarRepetido ? '1' : '0'); }
+  else if (k === 'c-abre') { S.cAbre = v; poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), textoCupom); }
+  else if (k === 'c-chama') { S.cChama = v; poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), textoCupom); }
+  else if (k === 'frase') { S.frase = v; atualizaOferta(false); }
+  else if (k === 'frase-abs') { S.fraseAbs = v; atualizaOferta(false); }
+  else if (k === 'absurda') { S.absurda = e.target.checked; poe('#previa', previaOferta()); const c = $('#absurda'); if (c) c.focus(); }
+});
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  const id = e.target.id;
+  if (id === 'form-login') {
+    const em = $('#email').value.trim(), se = $('#senha').value;
+    if (!em || !se) return erro('#erro-login', 'Preencha o e-mail e a senha.');
+    if (!/^\S+@\S+\.\S+$/.test(em)) return erro('#erro-login', 'Esse e-mail parece incompleto.');
+    if (NUVEM) {
+      if (!sb) return erro('#erro-login', 'Sem conexão com o servidor. Tente de novo em instantes.');
+      const bt = e.target.querySelector('button[type=submit]'); bt.disabled = true; erro('#erro-login', '');
+      sb.auth.signInWithPassword({ email: em, password: se }).then(({ data, error }) => {
+        if (error || !data.user) { bt.disabled = false; return erro('#erro-login', 'E-mail ou senha incorretos.'); }
+        return entra(data.user);
+      }).catch(() => { bt.disabled = false; erro('#erro-login', 'Sem conexão com o servidor. Tente de novo em instantes.'); });
+      return;
+    }
+    S.user = /tha/i.test(em) ? 'Thai' : 'Junior'; S.historico = EXEMPLOS.slice(); render(); topo();
+  } else if (id === 'form-cupom') {
+    const code = $('#c-code').value.toUpperCase().replace(/\s/g, ''), regra = $('#c-regra').value.trim();
+    if (!code) return erro('#erro-cupom', 'Digite o código do cupom.');
+    if (S.cupons.some(c => c.code === code)) return erro('#erro-cupom', 'Esse cupom já está na lista.');
+    S.cupons.push({ code, regra }); S.addAberto = false; atualizaCupom();
+  }
+});
+$('#arquivo').addEventListener('change', e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  if (!f.type.startsWith('image/')) return toast('Esse arquivo não é uma imagem.');
+  const r = new FileReader();
+  r.onload = () => { S.img = r.result; guarda('na-img', S.img); refazImagem(); toast('Imagem trocada. Vale para os próximos posts de cupom.'); };
+  r.onerror = () => toast('Não consegui ler essa imagem. Tente outra.');
+  r.readAsDataURL(f);
+});
+/* cupom 3D do login acompanha o dedo ou o mouse */
+document.addEventListener('pointermove', e => {
+  const h = $('#heroi'); if (!h || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const x = e.clientX / innerWidth - .5, y = e.clientY / innerHeight - .5;
+  h.style.setProperty('--ry', (x * 26).toFixed(1) + 'deg'); h.style.setProperty('--rx', (-y * 18).toFixed(1) + 'deg');
+});
+(function entrada() {
+  try {
+    let m = new URLSearchParams(location.search).get('msg');
+    if (!m && location.hash.startsWith('#msg=')) m = decodeURIComponent(location.hash.slice(5));
+    if (!m || !m.trim()) return;
+    S.msg = m.trim(); S.manual = false; S.tipo = 'oferta'; S.view = 'novo'; S.step = 'form'; S.coladaEm = Date.now();
+    history.replaceState(null, '', location.pathname);
+  } catch (e) {}
+})();
+S.img = le('na-img'); if (le('na-avisar') === '0') S.avisarRepetido = false;
+render();
+ligaNuvem();
+</script>
+</body>
+</html>

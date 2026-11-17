@@ -38,6 +38,7 @@ npm run fotos      # prepara as fotos da pasta ~/Desktop/Fotos do site
 - `src/data/sites.ts`: os sites da casa (rodapé).
 - `src/components/v4/`: `Topo` (cabeçalho; no celular só logo e WhatsApp), `Rodape`, `Historia`, `Redireciona`. `src/layouts/Pagina.astro`: cabeçalho HTML, SEO e o efeito `.surge`. `src/components/Icones.astro`: os ícones (`<use href="#i-nome"/>`).
 - `src/styles/v4.css`: tokens de cor e tipografia, botões, seções.
+- `public/achadinhos/`: o app **Nossos Achadinhos** (https://nossoprojeto3d.com.br/achadinhos/), que monta os posts do grupo de ofertas no WhatsApp. É uma página só (`index.html`), fora do Astro e com identidade própria (verde escuro e amarelo); não aparece no site nem no sitemap (`noindex`). `config.js` guarda o endereço e a chave pública do Supabase (vazio = modo de teste, nada fica salvo); `supabase/schema.sql` cria a tabela `posts`.
 - `public/`: vai pro ar como está. `assets/medicao.js` é o Google Analytics compartilhado com os outros projetos: se mudar aqui, avisar que precisa copiar pros outros. `googlee4343bf2118f52f0.html` é a verificação do Google Search Console (não apagar nem renomear). `sitemap.xml`: atualizar o `lastmod` quando o conteúdo mudar.
 - `public/assets/og/og-image.html`: fonte da prévia que aparece no WhatsApp. Depois de editar, gere de novo o `og-image.jpg` em 1200×630 e aumente o `?v=` em `Pagina.astro` (o WhatsApp guarda a prévia antiga).
 
