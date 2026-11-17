@@ -683,6 +683,19 @@ function telaQuem() {
     <button class="btn pri block" data-a="quem" data-n="Thai">Thai</button>
   </div>`;
 }
+/* enquanto confere a sessão salva, mostra a marca em vez do login */
+function telaAbrindo() {
+  return `<div class="login" style="justify-content:center;align-items:center;gap:20px" aria-busy="true">
+    <div class="palco" aria-hidden="true"><div class="boia"><div class="heroi"><div class="pct">%</div><div class="cd"><small>cupom</small><span>MAKER15</span></div></div></div></div>
+    <h1 style="font-size:34px;text-align:center">Nossos Achadinhos</h1>
+    <p class="muted" role="status">Abrindo…</p>
+  </div>`;
+}
+function temSessaoSalva() {
+  try { for (let i = 0; i < localStorage.length; i++) if (/^sb-.+-auth-token$/.test(localStorage.key(i) || '')) return true; } catch (e) {}
+  return false;
+}
+function fimAbrindo() { if (!S.abrindo) return; S.abrindo = false; if (!S.dentro) render(); }
 function telaLogin() {
   return `<div class="login">
     <div class="marca"><div class="np" aria-hidden="true">NP</div>Nosso Projeto 3D</div>
@@ -703,6 +716,7 @@ const ABAS = [['novo', 'Novo post', 'mais'], ['historico', 'Histórico', 'relogi
 const abas = () => ABAS.map(([id, nome, ic]) => `<button class="tab" data-a="ir" data-n="${id}" ${S.view === id ? 'aria-current="page"' : ''}>${ico(ic, 22)}${nome}</button>`).join('');
 function render() {
   const app = $('#app');
+  if (S.abrindo) { app.innerHTML = telaAbrindo(); return; }
   if (!S.dentro) { app.innerHTML = telaLogin(); return; }
   if (!S.user) { app.innerHTML = telaQuem(); return; }
   const tela = S.view === 'novo' ? telaNovo() : S.view === 'historico' ? telaHistorico() : telaAjustes();
@@ -962,8 +976,10 @@ async function ligaNuvem() {
     const { data } = await sb.auth.getSession();
     if (data && data.session) await entra(data.session.user);
   } catch (e) { sb = null; toast('Sem conexão com o servidor. Tente de novo em instantes.'); }
+  fimAbrindo();
 }
 async function entra(u) {
+  S.abrindo = false;
   /* a conta é uma só para os dois; quem está no aparelho fica guardado nele */
   const { data, error } = await sb.from('achadinhos_membros').select('user_id').eq('user_id', u.id).maybeSingle();
   if (error || !data) { await sb.auth.signOut().catch(() => {}); S.dentro = false; render(); erro('#erro-login', 'Essa conta não tem acesso ao Nossos Achadinhos.'); return; }
@@ -1102,6 +1118,8 @@ document.addEventListener('pointermove', e => {
 })();
 S.img = le('na-img'); if (le('na-avisar') === '0') S.avisarRepetido = false;
 iniciaRobo();
+S.abrindo = NUVEM && temSessaoSalva();
+if (S.abrindo) setTimeout(fimAbrindo, 10000);
 render();
 ligaNuvem();
 </script>
