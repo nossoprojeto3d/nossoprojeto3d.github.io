@@ -102,7 +102,9 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 .thumb{width:64px;height:64px;flex-shrink:0;border-radius:10px;object-fit:cover}
 
 .dados{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.dados label:first-child{grid-column:1/-1}
+.dados .prod{grid-column:1/-1;display:flex;flex-direction:column;gap:2px}
+.dados .prod label{font-size:12px;color:var(--muted)}
+.ph{opacity:.55;font-style:italic}
 .dados label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
 .dados .in{min-height:46px;padding:10px 12px;border-radius:10px;font-size:16px}
 .frase{display:flex;align-items:center;gap:12px;padding:6px 6px 6px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
@@ -395,8 +397,7 @@ function ler(msg) {
 }
 const bruto = () => S.draft || ler(S.msg);
 /* sem nome de produto, o app cria um título */
-const semNome = () => !bruto().produto.trim() && (S.manual || !!S.msg.trim());
-const dados = () => { const d = bruto(); return semNome() ? { ...d, produto: TITULOS[S.tituloIdx % TITULOS.length] } : d; };
+const dados = () => bruto();
 const frasesValidas = () => dados().cupom ? FRASES.concat(FRASES_CUPOM) : FRASES;
 const fraseAtual = () => { if (S.frase !== null) return S.frase; const f = frasesValidas(); return f[S.fraseIdx % f.length]; };
 const abreAtual = () => S.cAbre !== null ? S.cAbre : ABERTURAS[S.cAbreIdx % ABERTURAS.length];
@@ -458,16 +459,16 @@ function areaEnvio(id, pode, txt) {
 }
 function bolhasOferta() {
   const d = dados();
-  if (!d.produto) return '<div class="vazio">Cole uma mensagem para ver como o post chega no grupo.</div>';
+  if (!S.manual && !S.msg.trim()) return '<div class="vazio">Cole uma mensagem para ver como o post chega no grupo.</div>';
   const fr = fraseAtual(), lk = S.link.trim() || 'seu link aqui';
   const ab = S.absurda && absAtual().trim() ? esc(absAtual().trim()) + '\n\n' : '';
-  let h = `<div class="bolha">${ab}<b>${esc(d.produto)}</b>\n${esc(d.preco)}${d.cupom ? ` 💥🎟️ ${esc(d.cupom)}` : ''}\n\n${fr.trim() ? esc(fr.trim()) + '\n' : ''}Entra aqui: <span class="lk">${esc(lk)}</span></div>`;
+  let h = `<div class="bolha">${ab}${d.produto.trim() ? `<b>${esc(d.produto.trim())}</b>` : '<b class="ph">Nome do produto</b>'}\n${esc(d.preco)}${d.cupom ? ` 💥🎟️ ${esc(d.cupom)}` : ''}\n\n${fr.trim() ? esc(fr.trim()) + '\n' : ''}Entra aqui: <span class="lk">${esc(lk)}</span></div>`;
   if (d.cupom) h += `<div class="bolha">${esc(d.cupom)}</div>`;
   return h;
 }
 function avisosOferta() {
   let h = '';
-  if (semNome()) h += `<div class="row"><span class="hint">Sem nome de produto: o app criou um título.</span><button class="btn link" data-a="trocar-titulo">${ico('trocar', 16)}Trocar</button></div>`;
+  if (!dados().produto.trim()) h += chk('warn', 'Falta o nome do produto. Escreva um ou toque em Gerar título.');
   if (repetido()) h += chk('warn', 'Esse produto já foi pro grupo hoje.');
   if (S.coladaEm && S.msg.trim()) { const min = Math.max(0, Math.round((Date.now() - S.coladaEm) / 60000)); h += chk('warn', `Colada há ${min} min. Abra o link e confira se a oferta ainda vale.`); }
   return h;
@@ -481,7 +482,7 @@ function previaOferta() {
   </div>
   <h2 class="so-web">Prévia do post</h2>
   ${S.manual ? '<!--' : ''}<div class="dados">
-    <label>Produto<input class="in" data-i="d-produto" value="${esc(bruto().produto)}" placeholder="O app criou um título" autocomplete="off"></label>
+    <div class="prod"><div class="row"><label for="d-produto">Produto</label><button class="btn link" data-a="gerar-titulo">${ico('trocar', 16)}Gerar título</button></div><input class="in" id="d-produto" data-i="d-produto" value="${esc(bruto().produto)}" placeholder="Escreva o nome ou gere um título" autocomplete="off"></div>
     <label>Preço<input class="in" data-i="d-preco" value="${esc(d.preco)}" autocomplete="off"></label>
     <label>Cupom<input class="in mono" data-i="d-cupom" value="${esc(d.cupom)}" placeholder="sem cupom" autocomplete="off" autocapitalize="characters"></label>
   </div>${S.manual ? '-->' : ''}
@@ -513,8 +514,8 @@ function telaOferta() {
         <div id="chk-link">${chkLink(S.link)}</div>
       </div>
       <div class="field">
-        <label for="m-produto">Produto</label>
-        <input class="in" id="m-produto" data-i="d-produto" value="${esc(bruto().produto)}" placeholder="Em branco, o app cria um título" autocomplete="off">
+        <div class="row"><label for="m-produto">Produto</label><button class="btn link" data-a="gerar-titulo">${ico('trocar', 16)}Gerar título</button></div>
+        <input class="in" id="m-produto" data-i="d-produto" value="${esc(bruto().produto)}" placeholder="Escreva o nome ou gere um título" autocomplete="off">
       </div>
       <div class="field">
         <label for="m-preco">Preço com o cupom</label>
@@ -766,7 +767,7 @@ const A = {
     S.draft = bruto(); S.step = 'previa'; render(); topo();
   },
   voltar() { S.step = 'form'; render(); },
-  'trocar-titulo'() { S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); atualizaOferta(false); },
+  'gerar-titulo'() { S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); const t = TITULOS[S.tituloIdx]; S.draft = { ...bruto(), produto: t }; document.querySelectorAll('[data-i=d-produto]').forEach(el => { el.value = t; }); erro('#erro-oferta', ''); atualizaOferta(false); },
   trocar() { S.frase = null; S.fraseIdx = sorteia(frasesValidas().length, S.fraseIdx); atualizaOferta(false); },
   'trocar-abs'() { S.fraseAbs = null; S.absIdx = sorteia(FRASES_ABS.length, S.absIdx); $('#frase-abs').value = absAtual(); atualizaOferta(false); },
   descartar() { S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); S.msg = ''; S.link = ''; S.draft = null; S.coladaEm = null; S.step = 'form'; render(); topo(); toast('Campos limpos.'); },
