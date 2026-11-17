@@ -90,7 +90,7 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 .bolha .lk{color:#53BDEB}
 .bolha.img{padding:4px 4px 10px;width:min(290px,100%)}
 .bolha.img .txt{padding:8px 8px 0}
-.bolha.img img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:9px}
+.bolha.img img{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;border-radius:9px}
 .vazio{align-self:stretch;text-align:center;color:#8696A0;font-size:14px;padding:28px 8px}
 .capa{aspect-ratio:1/1;border-radius:9px;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;overflow:hidden;
   background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:24px 24px}
@@ -485,6 +485,14 @@ function chkMsg() {
   const cs = codigos(d);
   return cs.length ? chk('ok', `${cs.length > 1 ? 'Cupons encontrados' : 'Cupom encontrado'}: <span class="mono" style="color:var(--text)">${cs.map(esc).join(' e ')}</span>`) : chk('neu', 'Sem cupom nessa mensagem. Vai só a oferta.');
 }
+/* Link fixo do post de cupom: a lista "Nossos Achadinhos Maker" no Perfil Social do ML */
+const LINK_FIXO_PADRAO = 'https://meli.la/17SDCZ2';
+const linkFixo = () => le('na-link-cupom') || LINK_FIXO_PADRAO;
+function fixoLink() {
+  const v = S.linkCupom.trim();
+  if (v === linkFixo()) return '<span class="hint">Link fixo. Pode trocar só neste post.</span>';
+  return `<div class="row"><button class="btn link" data-a="link-fixo-volta">Voltar ao link fixo</button>${ML.test(v) ? '<button class="btn link" data-a="link-fixo-salva">Deixar este fixo</button>' : ''}</div>`;
+}
 function chkLink(v, orig) {
   v = v.trim();
   if (!v) return '';
@@ -492,8 +500,11 @@ function chkLink(v, orig) {
   if (orig && v === orig) return chk('warn', 'Esse é o link da mensagem original. Cole o seu.');
   return chk('ok', orig !== undefined ? 'É do Mercado Livre e não é o link da mensagem.' : 'É um link do Mercado Livre.');
 }
+/* Imagem padrão do post de cupom (1080×1080, feita pelo prompt da tela) */
+const IMG_PADRAO = 'cupom-padrao.jpg';
 function capa(mini) {
-  if (S.img) return mini ? `<img class="thumb" src="${S.img}" alt="Imagem atual do post de cupom">` : `<img src="${S.img}" alt="Imagem do post de cupom">`;
+  const src = S.img || IMG_PADRAO;
+  if (src) return mini ? `<img class="thumb" src="${src}" alt="Imagem atual do post de cupom">` : `<img src="${src}" alt="Imagem do post de cupom" width="1080" height="1080">`;
   return `<div class="capa${mini ? ' mini' : ''}" role="img" aria-label="Imagem padrão do post de cupom"><div class="tk">%</div>${mini ? '' : '<div class="tt">Saiu cupom!</div>'}</div>`;
 }
 const wa = t => 'https://wa.me/?text=' + encodeURIComponent(t);
@@ -680,6 +691,7 @@ function telaCupom() {
         <label for="linkc">Seu link para ativar</label>
         <input class="in mono" id="linkc" data-i="linkc" type="url" inputmode="url" placeholder="https://meli.la/..." value="${esc(S.linkCupom)}" autocomplete="off" autocapitalize="none">
         <div id="chk-linkc">${chkLink(S.linkCupom)}</div>
+        <div id="fixo-linkc">${fixoLink()}</div>
       </div>
       <div class="field">
         <div class="row"><label for="c-abre">Texto de abertura</label><button class="btn link" data-a="trocar-abre">${ico('trocar', 16)}Trocar</button></div>
@@ -898,8 +910,10 @@ const A = {
     catch (e) { if (e && e.name !== 'AbortError') toast('Não deu pra compartilhar a imagem aqui.'); }
   },
   'trocar-abre'() { S.cAbre = null; S.cAbreIdx = sorteia(ABERTURAS.length, S.cAbreIdx); $('#c-abre').value = abreAtual(); poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), txtC); },
-  'limpar-cupom'() { S.ed.cupom = null; S.edAberto.cupom = false; S.cupons = []; S.linkCupom = ''; S.cAbre = null; S.cChama = null; S.addAberto = false; render(); topo(); toast('Campos limpos.'); },
+  'limpar-cupom'() { S.ed.cupom = null; S.edAberto.cupom = false; S.cupons = []; S.linkCupom = linkFixo(); S.cAbre = null; S.cChama = null; S.addAberto = false; render(); topo(); toast('Campos limpos.'); },
   'subir-img'() { $('#arquivo').click(); },
+  'link-fixo-volta'() { S.linkCupom = linkFixo(); render(); toast('Voltou para o link fixo.'); },
+  'link-fixo-salva'() { guarda('na-link-cupom', S.linkCupom.trim()); poe('#fixo-linkc', fixoLink()); toast('Pronto, esse virou o link fixo.'); },
   'img-padrao'() { S.img = null; guarda('na-img', null); refazImagem(); toast('Voltou para a imagem padrão.'); },
   'disparo-parar'() { if (S.disparo) { S.disparo.parar = true; toast('Parando depois do grupo atual.'); } },
   'disparo-reenviar'() { const d = S.disparo; if (!d || d.ativo) return; d.grupos.forEach(g => { if (g.status === 'falhou' || g.status === 'parado') { g.status = 'fila'; g.erro = ''; } }); rodaDisparo(); },
@@ -1025,7 +1039,7 @@ function fechaDisparo() { const d = S.disparo; S.disparo = null; if (d && d.salv
 function limpaPost(tipo) {
   S.ed[tipo] = null; S.edAberto[tipo] = false;
   if (tipo === 'oferta') { S.msg = ''; S.link = ''; S.draft = null; S.coladaEm = null; S.step = 'form'; S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); }
-  else { S.cupons = []; S.linkCupom = ''; S.cAbre = null; S.cChama = null; S.cAbreIdx = sorteia(ABERTURAS.length, S.cAbreIdx); }
+  else { S.cupons = []; S.linkCupom = linkFixo(); S.cAbre = null; S.cChama = null; S.cAbreIdx = sorteia(ABERTURAS.length, S.cAbreIdx); }
 }
 function refazRobo() { poe('#bloco-robo', blocoRobo()); }
 /* QR de mentira para a demonstração: só o desenho, não conecta nada */
@@ -1122,7 +1136,8 @@ function concluiEnvio() {
 }
 function podeArquivo() { try { return !!navigator.canShare && navigator.canShare({ files: [new File([''], 'a.png', { type: 'image/png' })] }); } catch (e) { return false; } }
 async function arquivoImagem() {
-  if (S.img) { const b = await (await fetch(S.img)).blob(); return new File([b], 'cupom.' + (b.type.split('/')[1] || 'png'), { type: b.type }); }
+  const src = S.img || IMG_PADRAO;
+  if (src) { try { const b = await (await fetch(src)).blob(); if (b.size) return new File([b], 'cupom.' + ((b.type.split('/')[1] || 'jpeg').replace('jpeg', 'jpg')), { type: b.type || 'image/jpeg' }); } catch (e) {} }
   const c = document.createElement('canvas'); c.width = c.height = 1080; const x = c.getContext('2d');
   x.fillStyle = '#0B312C'; x.fillRect(0, 0, 1080, 1080);
   x.strokeStyle = 'rgba(255,255,255,.06)'; x.lineWidth = 2;
@@ -1151,7 +1166,7 @@ document.addEventListener('input', e => {
   if (k === 'msg') { S.ed.oferta = null; S.edAberto.oferta = false; if (!S.msg.trim() && v.trim()) S.coladaEm = Date.now(); if (!v.trim()) S.coladaEm = null; S.msg = v; S.draft = null; erro('#erro-oferta', ''); atualizaOferta(true); }
   else if (k === 'link') { S.link = v; erro('#erro-oferta', ''); atualizaOferta(false); }
   else if (k.startsWith('d-')) { erro('#erro-oferta', ''); S.draft = { ...bruto(), [k.slice(2)]: k === 'd-cupom' ? v.toUpperCase().replace(/[,;\/]+/g, ' ').replace(/\s{2,}/g, ' ').replace(/^\s+/, '') : v }; if (k === 'd-cupom' && e.target.value !== S.draft.cupom) e.target.value = S.draft.cupom; atualizaOferta(false); }
-  else if (k === 'linkc') { S.linkCupom = v; poe('#chk-linkc', chkLink(v)); poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), txtC); }
+  else if (k === 'linkc') { S.linkCupom = v; poe('#chk-linkc', chkLink(v)); poe('#fixo-linkc', fixoLink()); poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), txtC); }
   else if (k === 'grupo') {
     const g = S.robo.grupos.find(x => x.jid === e.target.dataset.n); if (g) g.ativo = e.target.checked;
     if (S.robo.demo) salvaGruposDemo(); else guarda('na-robo-sel', JSON.stringify(gruposAtivos().map(x => x.jid)));
@@ -1224,7 +1239,7 @@ document.addEventListener('pointermove', e => {
     history.replaceState(null, '', location.pathname);
   } catch (e) {}
 })();
-S.img = le('na-img'); if (le('na-avisar') === '0') S.avisarRepetido = false;
+S.linkCupom = linkFixo(); S.img = le('na-img'); if (le('na-avisar') === '0') S.avisarRepetido = false;
 iniciaRobo();
 S.abrindo = NUVEM && temSessaoSalva();
 if (S.abrindo) setTimeout(fimAbrindo, 10000);
