@@ -129,7 +129,8 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 /* login */
 .login{min-height:100dvh;max-width:440px;margin:0 auto;padding:max(40px,env(safe-area-inset-top)) 28px 32px;display:flex;flex-direction:column}
 .marca{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:15px;font-weight:500}
-.np{width:40px;height:40px;border:2px solid var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:700;font-size:16px;color:var(--accent)}
+.np{width:44px;height:44px;flex-shrink:0;border-radius:10px;background:var(--tk1);display:flex;align-items:center;justify-content:center}
+.np img{display:block;width:26px;height:auto}
 .palco{height:230px;display:flex;align-items:center;justify-content:center;perspective:900px;touch-action:pan-y}
 .heroi{position:relative;width:250px;height:118px;border-radius:14px;display:flex;align-items:center;color:var(--tktext);
   background:repeating-linear-gradient(0deg,var(--tk1) 0 3px,var(--tk2) 3px 4px);
@@ -165,24 +166,44 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 .duo{display:flex;flex-direction:column;gap:16px}
 .duo[data-step="form"] .pane-previa,.duo[data-step="previa"] .pane-form{display:none}
 .pane{display:flex;flex-direction:column;gap:16px;min-width:0}
+.pv{display:flex;flex-direction:column;gap:16px;min-width:0}
+.envio-pe{display:flex;flex-direction:column;gap:10px}
+.passo-tit{align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--muted)}
+.passo-tit b{width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:inline-flex;align-items:center;justify-content:center;font-size:12px}
 .so-web{display:none}
 
 @media (min-width:960px){
-  .shell{flex-direction:row}
+  /* computador: o novo post cabe numa tela só, em colunas que rolam cada uma por si */
+  .shell{flex-direction:row;height:100dvh;overflow:hidden}
   .tabs{display:none}
-  .side{display:flex;flex-direction:column;gap:28px;width:240px;flex-shrink:0;padding:28px 20px;background:var(--bg2);border-right:1px solid var(--line);position:sticky;top:0;height:100dvh}
-  .side nav{display:flex;flex-direction:column;gap:4px}
-  .side .tab{flex-direction:row;justify-content:flex-start;gap:10px;height:44px;padding:0 14px;border-radius:10px;font-size:15px}
+  .side{display:flex;flex-direction:column;align-items:center;gap:20px;width:88px;flex-shrink:0;padding:18px 8px;background:var(--bg2);border-right:1px solid var(--line);height:100dvh;box-sizing:border-box}
+  .side .marca span{display:none}
+  .side nav{display:flex;flex-direction:column;gap:6px}
+  .side .tab{width:72px;height:64px;padding:0;border-radius:12px;font-size:11px;gap:4px}
   .side .tab[aria-current="page"]{background:var(--surface)}
-  .side .pe{margin-top:auto;display:flex;align-items:center;gap:10px}
-  .main{max-width:1080px;margin:0;padding:36px 40px 48px;gap:24px}
-  h1{font-size:40px}
-  .top .seg{flex:0 0 260px}
-  .duo{flex-direction:row;gap:32px;align-items:flex-start}
-  .duo .pane{flex:1}
-  .duo[data-step] .pane-previa,.duo[data-step] .pane-form{display:flex}
+  .side .pe{margin-top:auto}
+  .side .pe .lbl{display:none}
+  .main{flex:1;min-width:0;max-width:none;margin:0;height:100dvh;overflow-y:auto;padding:18px 28px 0;gap:14px;box-sizing:border-box}
+  .main.fixa{overflow:hidden}
+  h1{font-size:30px}
+  .top .seg{flex:0 0 240px}
+  .duo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;flex:1;min-height:0}
+  .duo[data-step="todos"]{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}
+  .duo .pane,.duo .pv{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 6px 18px 2px;gap:12px}
+  .duo .pane-previa{display:contents!important}
+  .duo[data-step] .pane-form{display:flex}
+  .duo .in{min-height:44px;padding:10px 14px}
+  .duo textarea.in{min-height:150px}
+  .duo .btn.pri{min-height:50px;font-size:16px}
+  .duo .field{gap:6px}
+  .duo .wa{padding:12px}
+  .duo .card{padding:12px}
+  .envio-pe{position:sticky;bottom:-18px;margin-top:auto;padding:10px 0 12px;gap:4px;background:var(--bg);box-shadow:0 -14px 14px -6px var(--bg)}
+  .duo .bolha.img{width:min(230px,100%)}
+  .duo #ed-oferta,.duo #ed-cupom{min-height:170px!important}
   .so-cel{display:none!important}
   .so-web{display:block}
+  .passo-tit.so-web{display:flex}
   .estreito{max-width:620px}
 }
 @media (prefers-reduced-motion:reduce){.barra span{transition:none}.boia{animation:none}.heroi,.btn,.toast,.sw input,.sw input::after{transition:none}}
@@ -544,15 +565,14 @@ function previaOferta() {
     <button class="btn link" data-a="voltar" aria-label="Voltar para a mensagem" style="margin-left:-10px">${ico('voltar', 24)}</button>
     <h2>Prévia do post</h2>
   </div>
-  <h2 class="so-web">Prévia do post</h2>
+  <div class="pv pv-campos">
+  <div class="passo-tit so-web"><b>2</b>Ajuste o post</div>
   ${S.manual ? '<!--' : ''}<div class="dados">
     <div class="prod"><div class="row"><label for="d-produto">Produto</label><button class="btn link" data-a="gerar-titulo">${ico('trocar', 16)}Gerar título</button></div><input class="in" id="d-produto" data-i="d-produto" value="${esc(bruto().produto)}" placeholder="Escreva o nome ou gere um título" autocomplete="off"></div>
     <label>Preço<input class="in" data-i="d-preco" value="${esc(d.preco)}" autocomplete="off"></label>
     <label>Cupom<input class="in mono" data-i="d-cupom" value="${esc(d.cupom)}" placeholder="sem cupom" autocomplete="off" autocapitalize="characters" aria-describedby="dica-cupom"></label>
     <p class="hint" id="dica-cupom" style="grid-column:1/-1;margin:0">Mais de um cupom: separe por espaço.</p>
   </div>${S.manual ? '-->' : ''}
-  <div class="wa"><div class="cap">Como chega no grupo</div><div id="bolhas" style="display:contents">${bolhasOferta()}</div></div>
-  <div id="ed-oferta-box">${editor('oferta')}</div>
   <div class="field">
     <div class="row"><label for="frase">Frase de amigo</label><button class="btn link" data-a="trocar">${ico('trocar', 16)}Trocar</button></div>
     <input class="in" id="frase" data-i="frase" value="${esc(fraseAtual())}" placeholder="Sem frase" autocomplete="off">
@@ -562,10 +582,18 @@ function previaOferta() {
     ${S.absurda ? `<div class="row"><label for="frase-abs" class="hint">Destaque</label><button class="btn link" data-a="trocar-abs">${ico('trocar', 16)}Trocar</button></div>
     <input class="in" id="frase-abs" data-i="frase-abs" value="${esc(absAtual())}" placeholder="Sem destaque" autocomplete="off">` : ''}
   </div>
+  </div>
+  <div class="pv pv-saida">
+  <div class="passo-tit so-web"><b>3</b>Confira e envie</div>
+  <div class="wa"><div class="cap">Como chega no grupo</div><div id="bolhas" style="display:contents">${bolhasOferta()}</div></div>
+  <div id="ed-oferta-box">${editor('oferta')}</div>
   <div id="avisos" class="stack tight">${avisosOferta()}</div>
-  <p class="hint" style="text-align:center">O cupom vai sozinho logo abaixo da oferta. Sem cupom, vai só a oferta.</p>
+  <div class="envio-pe">
+  <p class="hint so-cel" style="text-align:center">O cupom vai sozinho logo abaixo da oferta. Sem cupom, vai só a oferta.</p>
   ${areaEnvio('enviar-oferta', podeOferta(), txtO)}
-  <button class="btn link block" data-a="descartar" style="color:var(--muted)">Limpar</button>`;
+  <button class="btn link block" data-a="descartar" style="color:var(--muted)">Limpar</button>
+  </div>
+  </div>`;
 }
 function telaOferta() {
   const d = dados();
@@ -600,7 +628,8 @@ function telaOferta() {
   return `
   <div class="duo" data-step="${S.step}">
     <section class="pane pane-form" aria-label="${S.manual ? 'Oferta nova' : 'Mensagem e link'}">
-      ${S.manual ? '<h2>Oferta nova</h2>' : ''}${campos}
+      <div class="passo-tit so-web"><b>1</b>${S.manual ? 'Oferta nova' : 'Cole a oferta'}</div>
+      ${S.manual ? '<h2 class="so-cel">Oferta nova</h2>' : ''}${campos}
       <p class="erro" id="erro-oferta" role="alert" hidden></p>
       <button class="btn pri block so-cel" data-a="montar">Montar post</button>
       <div class="row" style="flex-wrap:wrap">
@@ -644,6 +673,7 @@ function telaCupom() {
   return `
   <div class="duo" data-step="todos">
     <section class="pane" aria-label="Cupons e link">
+      <div class="passo-tit so-web"><b>1</b>Monte o post de cupom</div>
       <div class="stack tight" id="cupons">${listaCupons()}</div>
       <div id="add">${formCupom()}</div>
       <div class="field">
@@ -662,13 +692,15 @@ function telaCupom() {
       <div id="bloco-img">${blocoImagem()}</div>
     </section>
     <section class="pane" aria-label="Prévia do post de cupom">
-      <h2 class="so-web">Prévia do post</h2>
+      <div class="passo-tit so-web"><b>2</b>Confira e envie</div>
       <div class="wa"><div class="cap">Como chega no grupo</div><div id="bolhas-c" style="display:contents">${bolhasCupom()}</div></div>
       <div id="ed-cupom-box">${editor('cupom')}</div>
-      <p class="hint" style="text-align:center">Depois do post vai uma mensagem só com cada código, pra copiar fácil.</p>
+      <div class="envio-pe">
+      <p class="hint so-cel" style="text-align:center">Depois do post vai uma mensagem só com cada código, pra copiar fácil.</p>
       ${areaEnvio('enviar-cupom', podeCupom(), txtC)}
       ${roboAtivo() ? '<p class="hint" style="text-align:center">O robô manda a imagem junto com o post.</p>' : podeArquivo() ? `<button class="btn block" data-a="share-img">${ico('subir', 18)}Compartilhar a imagem</button><p class="hint" style="text-align:center">A imagem vai separada, antes do texto.</p>` : '<p class="hint" style="text-align:center">Aqui a imagem não vai junto. No app publicado aparece o botão de compartilhar a imagem.</p>'}
       <button class="btn link block" data-a="limpar-cupom" style="color:var(--muted)">Limpar</button>
+      </div>
     </section>
   </div>`;
 }
@@ -767,7 +799,7 @@ function temSessaoSalva() {
 function fimAbrindo() { if (!S.abrindo) return; S.abrindo = false; if (!S.dentro) render(); }
 function telaLogin() {
   return `<div class="login">
-    <div class="marca"><div class="np" aria-hidden="true">NP</div>Nosso Projeto 3D</div>
+    <div class="marca"><div class="np"><img src="logo-np-verde.png" alt="Nosso Projeto 3D" width="26" height="31"></div>Nosso Projeto 3D</div>
     <div class="palco" id="palco" aria-hidden="true"><div class="boia"><div class="heroi" id="heroi"><div class="pct">%</div><div class="cd"><small>cupom</small><span>MAKER15</span></div></div></div></div>
     <h1>Nossos Achadinhos</h1>
     <p class="muted" style="margin-top:12px">Vocês escolhem o que vai pro grupo. O app monta o post.</p>
@@ -790,10 +822,10 @@ function render() {
   if (!S.user) { app.innerHTML = telaQuem(); return; }
   const tela = S.view === 'novo' ? telaNovo() : S.view === 'historico' ? telaHistorico() : telaAjustes();
   app.innerHTML = `<div class="shell">
-    <aside class="side"><div class="marca" style="color:var(--text)"><div class="np" aria-hidden="true">NP</div><span style="font-family:var(--disp);font-weight:700;font-size:19px;line-height:1.05">Nossos Achadinhos</span></div>
+    <aside class="side"><div class="marca" style="color:var(--text)"><div class="np"><img src="logo-np-verde.png" alt="Nosso Projeto 3D" width="26" height="31"></div><span style="font-family:var(--disp);font-weight:700;font-size:19px;line-height:1.05">Nossos Achadinhos</span></div>
       <nav aria-label="Principal">${abas()}</nav>
       <div class="pe"><span class="quem" aria-hidden="true" style="width:36px;height:36px;font-size:14px">${esc(S.user[0])}</span><span class="lbl">${esc(S.user)}</span></div></aside>
-    <main class="main" id="main">${tela}</main>
+    <main class="main${S.view === 'novo' && !S.disparo && !S.envio ? ' fixa' : ''}" id="main">${tela}</main>
     <nav class="tabs" aria-label="Principal">${abas()}</nav>
   </div>`;
 }
