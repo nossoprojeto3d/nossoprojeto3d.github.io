@@ -992,7 +992,7 @@ function numeros() {
       <div class="tipo-g"><div class="cv cv-tipo"><canvas id="g-tipo" aria-label="Ofertas: ${nO}, cupons: ${nC}"></canvas><div class="fb tipo-fb" style="--p:${nO + nC ? Math.round(nO / (nO + nC) * 100) : 50}%"></div></div>
       <div class="tipo-l"><span><i class="lg a"></i>Ofertas <b>${nO}</b></span><span><i class="lg b"></i>Cupons <b>${nC}</b></span>${S.hf.quem === 'todos' ? `<span class="hint">Junior ${ps.filter(p => /^j/i.test(p.quem)).length} · Thai ${ps.filter(p => /^t/i.test(p.quem)).length}</span>` : ''}</div></div></div>
     <div class="card graf gc-cupons"><div class="graf-t"><span>Cupons mais usados</span><small>${periodo}</small></div>
-      ${top.length ? `<div class="cv cv-cupons" style="height:${top.length * 30 + 10}px"><canvas id="g-cupons" aria-label="Cupons mais usados"></canvas><div class="rank fb">${top.map(([c, n]) => { const st = statusCupom(c); const fora = st && st.acao === 'esgotou'; return `<div class="rank-l"><span class="mono${fora ? ' esgotado' : ''}">${esc(c)}</span><div class="rank-b"><i style="width:${Math.round(n / cmax * 100)}%"></i></div><b>${n}×</b></div>`; }).join('')}</div></div>` : '<p class="hint">Nenhum cupom no período.</p>'}
+      ${top.length ? `<div class="cv cv-cupons" style="height:${top.length * 28 + 8}px"><canvas id="g-cupons" aria-label="Cupons mais usados"></canvas><div class="rank fb">${top.map(([c, n]) => { const st = statusCupom(c); const fora = st && st.acao === 'esgotou'; return `<div class="rank-l"><span class="mono${fora ? ' esgotado' : ''}">${esc(c)}</span><div class="rank-b"><i style="width:${Math.round(n / cmax * 100)}%"></i></div><b>${n}×</b></div>`; }).join('')}</div></div>` : '<p class="hint">Nenhum cupom no período.</p>'}
       ${top.some(([c]) => { const st = statusCupom(c); return st && st.acao === 'esgotou'; }) ? '<p class="hint">Riscado = esgotou e ainda não voltou.</p>' : ''}</div>
   </div>`;
 }
@@ -1046,9 +1046,9 @@ function desenhaGraficos() {
       options: { ...base, cutout: '64%', plugins: { ...base.plugins, tooltip: nO + nC ? { ...dica, callbacks: { label: it => { const t = nO + nC; return ` ${it.label}: ${it.parsed} (${Math.round(it.parsed / t * 100)}%)`; } } } : { enabled: false } } } }); }
   c = cv('g-cupons');
   if (c) { const top = topCupons(ps);
-    graficos.cupons = new C(c, { type: 'bar', data: { labels: top.map(([k]) => k), datasets: [{ label: 'Usos', data: top.map(([, v]) => v), backgroundColor: top.map(([k]) => { const st = statusCupom(k); return st && st.acao === 'esgotou' ? LN : A; }), borderRadius: 4, barThickness: 16 }] },
+    graficos.cupons = new C(c, { type: 'bar', data: { labels: top.map(([k]) => k), datasets: [{ label: 'Usos', data: top.map(([, v]) => v), backgroundColor: top.map(([k]) => { const st = statusCupom(k); return st && st.acao === 'esgotou' ? LN : A; }), borderRadius: 4, barThickness: 14, maxBarThickness: 14 }] },
       options: { ...base, indexAxis: 'y', plugins: { ...base.plugins, tooltip: { ...dica, displayColors: false, callbacks: { label: it => { const st = statusCupom(it.label); return `${it.parsed.x} ${it.parsed.x === 1 ? 'uso' : 'usos'}${st && st.acao === 'esgotou' ? ' · esgotou' : ''}`; } } } },
-        scales: { x: { beginAtZero: true, grid: { color: LN }, border: { display: false }, ticks: { precision: 0, maxTicksLimit: 4 } }, y: { grid: { display: false }, border: { display: false }, ticks: { color: A, font: { family: cor('--mono'), size: 12 } } } } } }); }
+        scales: { x: { display: false, beginAtZero: true }, y: { grid: { display: false }, border: { display: false }, ticks: { autoSkip: false, color: A, font: { family: cor('--mono'), size: 12 }, callback: (v, i) => `${top[i][0]} ${top[i][1]}×` } } } } }); }
 }
 function listaHistorico() {
   const q = S.busca.trim().toLowerCase();
