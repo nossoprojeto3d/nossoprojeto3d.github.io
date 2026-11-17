@@ -149,6 +149,33 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 .item.aviso .mono{color:var(--accent)}
 .aviso-ico{font-size:18px}
 .hist{display:flex;flex-direction:column;gap:12px}
+.hf{display:flex;gap:8px;flex-wrap:wrap}
+.seg.mini{flex:1;min-width:0;grid-template-columns:repeat(3,minmax(0,1fr));border-radius:12px}
+.seg.mini button{height:34px;font-size:13px;padding:0 6px;border-radius:8px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kpi{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:14px;background:var(--surface);border:1px solid var(--line);min-width:0}
+.kpi-l{font-size:12px;color:var(--muted)}
+.kpi b{font-family:var(--disp);font-size:26px;line-height:1.1;color:var(--accent)}
+.kpi-s{font-size:11.5px;color:var(--muted);line-height:1.3}
+.kpi-s.sobe{color:var(--ok)}
+.kpi-s.desce{color:var(--warn)}
+.cv{position:relative;width:100%}
+.cv canvas{display:none}
+.cv.cj canvas{display:block}
+.cv.cj .fb{display:none}
+.cv-dias{height:130px}
+.cv-dias .barras{height:100%}
+.cv-horas{height:84px}
+.cv-horas .fb{padding-top:30px}
+.tipo-g{display:flex;align-items:center;gap:16px}
+.cv-tipo{width:96px;height:96px;flex-shrink:0}
+.tipo-fb{width:100%;height:100%;border-radius:50%;background:conic-gradient(var(--accent) 0 var(--p),var(--tk2) var(--p) 100%);-webkit-mask:radial-gradient(circle,transparent 58%,#000 60%);mask:radial-gradient(circle,transparent 58%,#000 60%)}
+.tipo-l{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
+.tipo-l b{color:var(--text);margin-left:4px}
+.lg{display:inline-block;width:9px;height:9px;border-radius:3px;margin:0 4px 0 8px;vertical-align:0}
+.tipo-l .lg{margin-left:0}
+.lg.a{background:var(--accent)}
+.lg.b{background:var(--tk2)}
 .hist-graf,.hist-col{display:flex;flex-direction:column;gap:12px;min-width:0}
 .graf-extra{display:none;flex-direction:column;gap:12px}
 .graf-extra.on{display:flex}
@@ -263,9 +290,16 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
   .duo .bolha.img{width:min(180px,100%)}
   /* histórico: números de um lado, lista e busca do outro */
   .main.fixa .hist-cab{max-width:none}
-  .hist{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:24px;flex:1;min-height:0}
+  .hist{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(340px,1fr);gap:24px;flex:1;min-height:0}
+  .hist-graf{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:10px}
+  .hist-graf .hf,.hist-graf .kpis{grid-column:1/-1}
+  .hist-graf .graf-extra{display:contents!important}
+  .gc-dias{order:3}.gc-cupons{order:4}.gc-horas{order:5}.gc-tipo{order:6}
+  .hist-graf .hf{order:1}.hist-graf .kpis{order:2}
+  .hist-col{container-type:inline-size}
   .hist-graf,.hist-col{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 6px 18px 2px}
   .hist-col{max-width:760px}
+  @container (max-width:560px){.hist-col .txt-reusar{display:none}}
   .hist-col input[type=search]{position:sticky;top:0;z-index:2;flex-shrink:0;box-shadow:0 -6px 0 6px var(--bg)}
   .graf-extra{display:flex!important}
   .graf-tog{display:none!important}
@@ -318,7 +352,7 @@ const S = {
   cAbre: null, cAbreIdx: 0, cChama: null,
   frase: null, absurda: false, fraseAbs: null, absIdx: 0,
 
-  historico: [], busca: '', avisoAberto: null
+  historico: [], busca: '', avisoAberto: null, hf: { dias: 30, quem: 'todos' }, grafAberto: false
 };
 
 const FRASES = [
@@ -892,45 +926,135 @@ function barraDupla(rotA, nA, rotB, nB) {
   return `<div class="dupla"><div class="dupla-b" role="img" aria-label="${rotA}: ${nA}, ${rotB}: ${nB}"><i style="width:${t ? pa : 50}%"></i><i class="b" style="width:${t ? 100 - pa : 50}%"></i></div>
     <div class="dupla-l"><span><b class="pa"></b>${rotA} <strong>${nA}</strong></span><span>${rotB} <strong>${nB}</strong><b class="pb"></b></span></div></div>`;
 }
-function numeros() {
-  const agora = Date.now(), posts = S.historico.filter(ehPost);
-  const hoje = posts.filter(p => mesmoDia(p.ts, agora)).length;
-  const semana = posts.filter(p => agora - p.ts < 7 * 864e5);
-  const mes = posts.filter(p => agora - p.ts < 30 * 864e5);
-  const dias = [...Array(7)].map((_, i) => { const t = agora - (6 - i) * 864e5; return { t, n: semana.filter(p => mesmoDia(p.ts, t)).length }; });
-  const max = Math.max(1, ...dias.map(d => d.n));
-  const sem = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
-  const resumo = `<div class="card nums">
-    <div class="nums-top"><div><b>${hoje}</b><span>${hoje === 1 ? 'post hoje' : 'posts hoje'}</span></div><div><b>${semana.length}</b><span>nos últimos 7 dias</span></div><div><b>${(semana.length / 7).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}</b><span>por dia, em média</span></div></div>
-    <div class="barras" role="img" aria-label="Posts por dia nos últimos 7 dias: ${dias.map(d => d.n).join(', ')}">${dias.map(d => `<div><em>${d.n || ''}</em><i style="height:${Math.round(d.n / max * 100)}%"></i><span>${sem[new Date(d.t).getDay()]}</span></div>`).join('')}</div>
-  </div>`;
-  /* horários: em que hora do dia vocês mais postam (30 dias) */
-  const hs = Array(24).fill(0); mes.forEach(p => hs[new Date(p.ts).getHours()]++);
-  const hmax = Math.max(1, ...hs), pico = hs.indexOf(Math.max(...hs));
-  const horas = `<div class="card graf"><div class="graf-t"><span>Horário dos posts</span><small>${mes.length ? `pico às ${pico}h · ` : ''}30 dias</small></div>
-    <div class="horas" role="img" aria-label="Posts por hora do dia">${hs.map((n, h) => `<i title="${h}h: ${n}" style="opacity:${n ? .25 + .75 * n / hmax : .08}"></i>`).join('')}</div>
-    <div class="horas-l"><span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>23h</span></div>
-    ${mes.length ? '' : '<p class="hint">Ainda sem posts nos últimos 30 dias.</p>'}</div>`;
-  /* tipo e quem postou */
-  const nO = mes.filter(p => p.tipo === 'oferta').length, nC = mes.filter(p => p.tipo === 'cupom').length;
-  const nJ = mes.filter(p => /^j/i.test(p.quem)).length, nT = mes.filter(p => /^t/i.test(p.quem)).length;
-  const divisao = `<div class="card graf"><div class="graf-t"><span>Ofertas e cupons</span><small>30 dias</small></div>${barraDupla('Ofertas', nO, 'Cupons', nC)}
-    <div class="graf-t" style="margin-top:6px"><span>Quem postou</span></div>${barraDupla('Junior', nJ, 'Thai', nT)}</div>`;
-  /* cupons mais usados e esgotados */
+/* ---------- painel do histórico (gráficos com Chart.js; sem ele, desenho em CSS) ---------- */
+const DIA = 864e5;
+const PERIODOS = [[7, '7 dias'], [30, '30 dias'], [0, 'Tudo']];
+const casaQuem = p => S.hf.quem === 'todos' || (S.hf.quem === 'Thai' ? /^t/i.test(p.quem) : /^j/i.test(p.quem));
+/* posts (sem avisos) do período escolhido; volta=1 pega o período anterior, pra comparar */
+function noPeriodo(volta = 0, comAvisos = false) {
+  const agora = Date.now(), d = S.hf.dias;
+  return S.historico.filter(p => (comAvisos || ehPost(p)) && casaQuem(p) && (!d || (p.ts > agora - (volta + 1) * d * DIA && p.ts <= agora - volta * d * DIA)));
+}
+function diasDoGrafico() {
+  if (S.hf.dias) return S.hf.dias;
+  const prim = Math.min(...S.historico.map(p => p.ts));
+  return Math.max(7, Math.min(90, Math.ceil((Date.now() - prim) / DIA) + 1));
+}
+function serieDias() {
+  const n = diasDoGrafico(), ps = S.historico.filter(p => ehPost(p) && casaQuem(p));
+  return [...Array(n)].map((_, i) => {
+    const t = Date.now() - (n - 1 - i) * DIA, doDia = ps.filter(p => mesmoDia(p.ts, t));
+    return { t, of: doDia.filter(p => p.tipo === 'oferta').length, cu: doDia.filter(p => p.tipo === 'cupom').length };
+  });
+}
+function rotDia(t, n) { const d = new Date(t); return n <= 7 ? ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'][d.getDay()] : `${d.getDate()}/${d.getMonth() + 1}`; }
+function topCupons(ps) {
   const cont = {};
-  mes.forEach(p => (p.cupom || '').split(/\s+/).filter(Boolean).forEach(c => { cont[c] = (cont[c] || 0) + 1; }));
-  const top = Object.entries(cont).sort((a, b) => b[1] - a[1]).slice(0, 5), cmax = top.length ? top[0][1] : 1;
-  const esg = S.historico.filter(p => p.tipo === 'aviso' && (p.dados || {}).acao !== 'voltou' && agora - p.ts < 30 * 864e5).length;
-  const cupons = `<div class="card graf"><div class="graf-t"><span>Cupons mais usados</span><small>30 dias</small></div>
-    ${top.length ? `<div class="rank">${top.map(([c, n]) => { const st = statusCupom(c); const fora = st && st.acao === 'esgotou'; return `<div class="rank-l"><span class="mono${fora ? ' esgotado' : ''}">${esc(c)}</span><div class="rank-b"><i style="width:${Math.round(n / cmax * 100)}%"></i></div><b>${n}×</b></div>`; }).join('')}</div>` : '<p class="hint">Nenhum cupom ainda.</p>'}
-    <p class="hint">${esg ? `${esg} ${esg === 1 ? 'aviso de esgotado' : 'avisos de esgotado'} no período.` : 'Nenhum cupom esgotado no período.'}</p></div>`;
-  return `${resumo}<button class="btn link so-cel graf-tog" data-a="graf-tog" aria-expanded="${!!S.grafAberto}">${S.grafAberto ? 'Esconder os outros gráficos' : 'Ver mais gráficos'}</button>
-    <div class="graf-extra${S.grafAberto ? ' on' : ''}">${horas}${divisao}${cupons}</div>`;
+  ps.forEach(p => (p.cupom || '').split(/\s+/).filter(Boolean).forEach(c => { cont[c] = (cont[c] || 0) + 1; }));
+  return Object.entries(cont).sort((a, b) => b[1] - a[1]).slice(0, 5);
+}
+const fmtN = n => n.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+function kpi(rot, val, sub, cls = '') { return `<div class="kpi"><span class="kpi-l">${rot}</span><b>${val}</b><span class="kpi-s ${cls}">${sub}</span></div>`; }
+function filtrosHist() {
+  const seg = (tipo, opcoes, atual) => `<div class="seg mini" role="group" aria-label="${tipo === 'dias' ? 'Período' : 'Quem postou'}">${opcoes.map(([v, t]) => `<button data-a="hf" data-n="${tipo}:${v}" aria-pressed="${String(atual) === String(v)}">${t}</button>`).join('')}</div>`;
+  return `<div class="hf">${seg('dias', PERIODOS, S.hf.dias)}${seg('quem', [['todos', 'Todos'], ['Junior', 'Junior'], ['Thai', 'Thai']], S.hf.quem)}</div>`;
+}
+function numeros() {
+  const ps = noPeriodo(), ant = S.hf.dias ? noPeriodo(1) : null;
+  const dias = diasDoGrafico();
+  let varia = 'tudo desde o início', vcls = '';
+  if (ant) {
+    if (!ant.length) varia = ps.length ? 'sem posts no período anterior' : '—';
+    else { const pc = Math.round((ps.length - ant.length) / ant.length * 100); varia = `${pc >= 0 ? '+' : ''}${pc}% vs ${S.hf.dias} dias antes`; vcls = pc > 0 ? 'sobe' : pc < 0 ? 'desce' : ''; }
+  }
+  const hoje = S.historico.filter(p => ehPost(p) && casaQuem(p) && mesmoDia(p.ts, Date.now())).length;
+  const esg = noPeriodo(0, true).filter(p => p.tipo === 'aviso' && (p.dados || {}).acao !== 'voltou').length;
+  const serie = serieDias(), smax = Math.max(1, ...serie.map(d => d.of + d.cu));
+  const fbDias = `<div class="barras fb" role="img" aria-label="Posts por dia" style="grid-template-columns:repeat(${serie.length},1fr);gap:${serie.length > 14 ? 2 : 6}px">${serie.map(d => `<div><i style="height:${Math.round((d.of + d.cu) / smax * 100)}%"></i>${dias <= 7 ? `<span>${rotDia(d.t, dias)}</span>` : ''}</div>`).join('')}</div>`;
+  const hs = Array(24).fill(0); ps.forEach(p => hs[new Date(p.ts).getHours()]++);
+  const hmax = Math.max(1, ...hs), pico = hs.indexOf(Math.max(...hs));
+  const nO = ps.filter(p => p.tipo === 'oferta').length, nC = ps.filter(p => p.tipo === 'cupom').length;
+  const top = topCupons(ps), cmax = top.length ? top[0][1] : 1;
+  const periodo = S.hf.dias ? `${S.hf.dias} dias` : 'tudo';
+  return `${filtrosHist()}
+  <div class="kpis nums-top">
+    ${kpi('Posts', ps.length, varia, vcls)}
+    ${kpi('Por dia', fmtN(ps.length / (S.hf.dias || dias)), `${hoje} ${hoje === 1 ? 'hoje' : 'hoje'}`)}
+    ${kpi('Esgotados', esg, esg === 1 ? 'aviso no período' : 'avisos no período')}
+  </div>
+  <div class="card graf nums gc-dias"><div class="graf-t"><span>Posts por dia</span><small><i class="lg a"></i>ofertas <i class="lg b"></i>cupons</small></div>
+    <div class="cv cv-dias"><canvas id="g-dias" aria-label="Posts por dia, ofertas e cupons"></canvas>${fbDias}</div></div>
+  <button class="btn link so-cel graf-tog" data-a="graf-tog" aria-expanded="${!!S.grafAberto}">${S.grafAberto ? 'Esconder os outros gráficos' : 'Ver mais gráficos'}</button>
+  <div class="graf-extra${S.grafAberto ? ' on' : ''}">
+    <div class="card graf gc-horas"><div class="graf-t"><span>Horário dos posts</span><small>${ps.length ? `pico às ${pico}h · ` : ''}${periodo}</small></div>
+      <div class="cv cv-horas"><canvas id="g-horas" aria-label="Posts por hora do dia"></canvas><div class="fb"><div class="horas">${hs.map((n, h) => `<i title="${h}h: ${n}" style="opacity:${n ? .25 + .75 * n / hmax : .08}"></i>`).join('')}</div><div class="horas-l"><span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>23h</span></div></div></div></div>
+    <div class="card graf gc-tipo"><div class="graf-t"><span>Ofertas e cupons</span><small>${periodo}</small></div>
+      <div class="tipo-g"><div class="cv cv-tipo"><canvas id="g-tipo" aria-label="Ofertas: ${nO}, cupons: ${nC}"></canvas><div class="fb tipo-fb" style="--p:${nO + nC ? Math.round(nO / (nO + nC) * 100) : 50}%"></div></div>
+      <div class="tipo-l"><span><i class="lg a"></i>Ofertas <b>${nO}</b></span><span><i class="lg b"></i>Cupons <b>${nC}</b></span>${S.hf.quem === 'todos' ? `<span class="hint">Junior ${ps.filter(p => /^j/i.test(p.quem)).length} · Thai ${ps.filter(p => /^t/i.test(p.quem)).length}</span>` : ''}</div></div></div>
+    <div class="card graf gc-cupons"><div class="graf-t"><span>Cupons mais usados</span><small>${periodo}</small></div>
+      ${top.length ? `<div class="cv cv-cupons" style="height:${top.length * 30 + 10}px"><canvas id="g-cupons" aria-label="Cupons mais usados"></canvas><div class="rank fb">${top.map(([c, n]) => { const st = statusCupom(c); const fora = st && st.acao === 'esgotou'; return `<div class="rank-l"><span class="mono${fora ? ' esgotado' : ''}">${esc(c)}</span><div class="rank-b"><i style="width:${Math.round(n / cmax * 100)}%"></i></div><b>${n}×</b></div>`; }).join('')}</div></div>` : '<p class="hint">Nenhum cupom no período.</p>'}
+      ${top.some(([c]) => { const st = statusCupom(c); return st && st.acao === 'esgotou'; }) ? '<p class="hint">Riscado = esgotou e ainda não voltou.</p>' : ''}</div>
+  </div>`;
+}
+/* Chart.js: carrega uma vez; se não carregar, ficam os desenhos em CSS */
+let chartPromessa = null;
+const graficos = {};
+function carregaChart() {
+  if (window.Chart) return Promise.resolve(true);
+  if (!chartPromessa) chartPromessa = new Promise(ok => {
+    const t = document.createElement('script');
+    t.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.5.1';
+    t.integrity = 'sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ';
+    t.crossOrigin = 'anonymous';
+    t.onload = () => ok(!!window.Chart); t.onerror = () => ok(false);
+    document.head.appendChild(t);
+  });
+  return chartPromessa;
+}
+function montaGraficos() {
+  Object.keys(graficos).forEach(k => { graficos[k].destroy(); delete graficos[k]; });
+  if (S.view !== 'historico' || !$('#g-dias')) return;
+  carregaChart().then(ok => { if (ok && S.view === 'historico') desenhaGraficos(); });
+}
+function desenhaGraficos() {
+  Object.keys(graficos).forEach(k => { graficos[k].destroy(); delete graficos[k]; });
+  const C = window.Chart, css = getComputedStyle(document.documentElement);
+  const cor = n => css.getPropertyValue(n).trim();
+  const A = cor('--accent'), B = cor('--tk2'), MU = cor('--muted'), LN = cor('--line'), BG = cor('--bg2'), TX = cor('--text');
+  C.defaults.font.family = cor('--body'); C.defaults.font.size = 11; C.defaults.color = MU;
+  const anima = matchMedia('(prefers-reduced-motion: reduce)').matches ? false : { duration: 350 };
+  const dica = { backgroundColor: BG, borderColor: LN, borderWidth: 1, titleColor: TX, bodyColor: TX, padding: 10, displayColors: true, boxPadding: 4 };
+  const base = { responsive: true, maintainAspectRatio: false, animation: anima, plugins: { legend: { display: false }, tooltip: dica } };
+  const serie = serieDias(), n = serie.length;
+  const cv = id => { const c = document.getElementById(id); if (c) c.closest('.cv').classList.add('cj'); return c; };
+  let c = cv('g-dias');
+  if (c) graficos.dias = new C(c, { type: 'bar', data: { labels: serie.map(d => rotDia(d.t, n)), datasets: [
+      { label: 'Ofertas', data: serie.map(d => d.of), backgroundColor: A, borderRadius: 4, stack: 'p' },
+      { label: 'Cupons', data: serie.map(d => d.cu), backgroundColor: B, borderRadius: 4, stack: 'p' }] },
+    options: { ...base, interaction: { mode: 'index', intersect: false }, plugins: { ...base.plugins, tooltip: { ...dica, callbacks: { title: it => { const d = new Date(serie[it[0].dataIndex].t); return d.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' }); }, footer: it => `Total: ${it.reduce((s, x) => s + x.parsed.y, 0)}` } } },
+      scales: { x: { stacked: true, grid: { display: false }, border: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: n <= 7 ? 7 : 6 } },
+        y: { stacked: true, beginAtZero: true, grid: { color: LN }, border: { display: false }, ticks: { precision: 0, maxTicksLimit: 4 } } } } });
+  const ps = noPeriodo();
+  c = cv('g-horas');
+  if (c) { const hs = Array(24).fill(0); ps.forEach(p => hs[new Date(p.ts).getHours()]++);
+    graficos.horas = new C(c, { type: 'bar', data: { labels: hs.map((_, h) => h + 'h'), datasets: [{ label: 'Posts', data: hs, backgroundColor: A, borderRadius: 3, barPercentage: .9, categoryPercentage: .95 }] },
+      options: { ...base, plugins: { ...base.plugins, tooltip: { ...dica, displayColors: false, callbacks: { title: it => `Das ${it[0].dataIndex}h às ${it[0].dataIndex}h59`, label: it => `${it.parsed.y} ${it.parsed.y === 1 ? 'post' : 'posts'}` } } },
+        scales: { x: { grid: { display: false }, border: { display: false }, ticks: { maxRotation: 0, callback: (v, i) => i % 6 === 0 ? i + 'h' : '' } }, y: { display: false, beginAtZero: true } } } }); }
+  c = cv('g-tipo');
+  if (c) { const nO = ps.filter(p => p.tipo === 'oferta').length, nC = ps.filter(p => p.tipo === 'cupom').length;
+    graficos.tipo = new C(c, { type: 'doughnut', data: { labels: ['Ofertas', 'Cupons'], datasets: [{ data: nO + nC ? [nO, nC] : [1, 1], backgroundColor: nO + nC ? [A, B] : [LN, LN], borderColor: cor('--surface'), borderWidth: 2 }] },
+      options: { ...base, cutout: '64%', plugins: { ...base.plugins, tooltip: nO + nC ? { ...dica, callbacks: { label: it => { const t = nO + nC; return ` ${it.label}: ${it.parsed} (${Math.round(it.parsed / t * 100)}%)`; } } } : { enabled: false } } } }); }
+  c = cv('g-cupons');
+  if (c) { const top = topCupons(ps);
+    graficos.cupons = new C(c, { type: 'bar', data: { labels: top.map(([k]) => k), datasets: [{ label: 'Usos', data: top.map(([, v]) => v), backgroundColor: top.map(([k]) => { const st = statusCupom(k); return st && st.acao === 'esgotou' ? LN : A; }), borderRadius: 4, barThickness: 16 }] },
+      options: { ...base, indexAxis: 'y', plugins: { ...base.plugins, tooltip: { ...dica, displayColors: false, callbacks: { label: it => { const st = statusCupom(it.label); return `${it.parsed.x} ${it.parsed.x === 1 ? 'uso' : 'usos'}${st && st.acao === 'esgotou' ? ' · esgotou' : ''}`; } } } },
+        scales: { x: { beginAtZero: true, grid: { color: LN }, border: { display: false }, ticks: { precision: 0, maxTicksLimit: 4 } }, y: { grid: { display: false }, border: { display: false }, ticks: { color: A, font: { family: cor('--mono'), size: 12 } } } } } }); }
 }
 function listaHistorico() {
   const q = S.busca.trim().toLowerCase();
-  const itens = S.historico.map((p, i) => ({ p, i })).filter(({ p }) => !q || p.titulo.toLowerCase().includes(q) || (p.cupom || '').toLowerCase().includes(q)).sort((a, b) => b.p.ts - a.p.ts);
-  if (!itens.length) return `<div class="card"><p>Nada com “${esc(S.busca.trim())}”.</p><p class="hint">Busque pelo nome do produto ou pelo código do cupom.</p></div>`;
+  const lim = S.hf.dias ? Date.now() - S.hf.dias * DIA : 0;
+  const itens = S.historico.map((p, i) => ({ p, i })).filter(({ p }) => casaQuem(p) && p.ts > lim).filter(({ p }) => !q || p.titulo.toLowerCase().includes(q) || (p.cupom || '').toLowerCase().includes(q)).sort((a, b) => b.p.ts - a.p.ts);
+  if (!itens.length) return q ? `<div class="card"><p>Nada com “${esc(S.busca.trim())}”${S.hf.dias || S.hf.quem !== 'todos' ? ' com esses filtros' : ''}.</p><p class="hint">Busque pelo nome do produto ou pelo código do cupom${S.hf.dias ? ', ou troque o período para Tudo' : ''}.</p></div>` : `<div class="card"><p>Nenhum post nesse período.</p><p class="hint">Troque o período ou quem postou, lá em cima.</p></div>`;
   let dia = '', h = '';
   for (const { p, i } of itens) {
     const n = nomeDia(p.ts);
@@ -1023,10 +1147,12 @@ function render() {
     <main class="main${(S.view === 'novo' && !S.disparo && !S.envio) || (S.view === 'historico' && S.historico.length) ? ' fixa' : ''}" id="main">${tela}</main>
     <nav class="tabs" aria-label="Principal">${abas()}</nav>
   </div>`;
+  montaGraficos();
 }
 
 /* ---------- atualizações parciais (não tiram o foco do campo) ---------- */
 const poe = (id, html) => { const e = $(id); if (e) e.innerHTML = html; };
+function refazHist() { poe('.hist-graf', numeros()); poe('#hist-lista', listaHistorico()); montaGraficos(); }
 function atualizaOferta(refazPrevia) {
   poe('#chk-msg', chkMsg());
   poe('#chk-link', S.manual ? chkLink(S.link) : chkLink(S.link, ler(S.msg).linkOrig));
@@ -1047,7 +1173,8 @@ function topo() { window.scrollTo(0, 0); }
 const A = {
   ir(n) { if (S.envio && n !== 'novo') return toast('Termine o envio ou toque em Concluir.'); if (S.disparo && S.disparo.ativo) return toast('Espere o envio terminar ou toque em Parar.'); if (S.disparo) fechaDisparo(); S.view = n; render(); topo(); if (n === 'historico' && sb) carregaHistorico().then(() => { if (S.view === 'historico') render(); }); },
   tipo(n) { S.tipo = n; render(); },
-  'graf-tog'() { S.grafAberto = !S.grafAberto; render(); },
+  'graf-tog'() { S.grafAberto = !S.grafAberto; refazHist(); },
+  hf(n) { const [k, v] = n.split(':'); S.hf[k] = k === 'dias' ? +v : v; refazHist(); },
   'abrir-aviso'(n) { S.avisoAberto = S.avisoAberto === +n ? null : +n; poe('#hist-lista', listaHistorico()); },
   'enviar-aviso'(n) {
     const j = JSON.parse(n), voltou = j.acao === 'voltou';
