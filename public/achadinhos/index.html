@@ -609,7 +609,7 @@ function telaLogin() {
       <div class="field"><label for="senha">Senha</label><input class="in" id="senha" type="password" placeholder="${S.criar ? 'Pelo menos 8 caracteres' : 'Sua senha'}" autocomplete="${S.criar ? 'new-password' : 'current-password'}"></div>
       <p class="erro" id="erro-login" role="alert" hidden></p>
       <button class="btn pri block" type="submit">${S.criar ? 'Criar a conta' : 'Entrar'}</button>
-      ${NUVEM ? `<button class="btn link block" type="button" data-a="modo-criar">${S.criar ? 'Já tenho conta' : 'Criar a conta (só na primeira vez)'}</button>${S.criar ? '<p class="hint" style="text-align:center">Uma conta só, para os dois. Depois de criada, ninguém mais consegue criar outra com acesso.</p>' : ''}` : ''}
+      ${NUVEM ? '<p class="hint" style="text-align:center">Use o mesmo e-mail e senha do Caixa.</p>' : ''}
       ${NUVEM ? '' : '<p class="hint" style="text-align:center">Versão de teste: qualquer e-mail e senha entram.</p>'}
     </form>
   </div>`;

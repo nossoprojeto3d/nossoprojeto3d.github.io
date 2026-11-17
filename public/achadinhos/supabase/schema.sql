@@ -1,8 +1,9 @@
 -- Nossos Achadinhos: tabelas do app dentro do projeto do Supabase do Caixa (plano gratuito só permite 2 projetos).
 -- Tudo tem o prefixo achadinhos_ e não toca em nada do Caixa. Aplicado em 17/11/2026, migração "achadinhos_conta_unica".
 -- Para remover tudo: drop trigger achadinhos_primeiro_membro on auth.users; drop table public.achadinhos_posts, public.achadinhos_membros; drop schema achadinhos_privado cascade;
--- Uma conta só, usada pelo Junior e pela Thai. A primeira conta criada depois desta migração vira membro;
--- contas criadas depois não leem nem gravam nada.
+-- Quem tem acesso: as duas contas do Caixa (Junior e Thai), incluídas em achadinhos_membros em 17/11/2026 com
+--   insert into public.achadinhos_membros (user_id) select id from public.perfis;
+-- O gatilho abaixo só incluiria a primeira conta nova se a tabela estivesse vazia; hoje não inclui ninguém.
 
 create schema if not exists achadinhos_privado;
 
