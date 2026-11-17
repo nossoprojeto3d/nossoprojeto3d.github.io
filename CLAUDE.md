@@ -76,3 +76,30 @@ Usado pelo `/conferir-site`, no build (`npm run build` e `npx astro preview`), n
 6. `/empresas/`, `/eventos/`, `/para-voce/` e `/#voce` caem em "Para você"; os antigos `/site/...`, `/calc-3d`, `/ajuste-3mf` e `/ajustes` levam para os endereços novos.
 7. "Conheça nossa história" abre e fecha o diálogo.
 8. Sem rolagem horizontal em 320px, 375px e 768px.
+
+## Próxima evolução: robô do Nossos Achadinhos
+
+Objetivo: o botão "Enviar pro grupo" do app (`public/achadinhos/`) disparar sozinho, por um número provisório, nos grupos de achadinhos, sem o Junior abrir o WhatsApp. Começa quando o chip estiver comprado e dentro dos grupos.
+
+**O que já está pronto (17/11/2026)**
+- Interface completa em modo demonstração: Ajustes > Robô do WhatsApp (conectar número por QR, grupos que recebem, espera entre grupos, desconectar com confirmação) e a tela de envio (progresso por grupo, falha com motivo, reenviar só os que falharam, parar). Nada é enviado na demonstração.
+- O app já chama a ponte quando `robo: true` em `config.js`: `sb.functions.invoke('achadinhos-robo', { body: { acao, ... } })`, com as ações abaixo. Enquanto `robo: false`, tudo sai pelo WhatsApp do aparelho, como hoje.
+- O envio é um grupo por vez (o app espera o intervalo escolhido entre um e outro); o histórico grava uma vez só, quando pelo menos um grupo recebe.
+- Se o robô cair, Ajustes mostra "Robô fora do ar" e o botão "Enviar pelo meu WhatsApp" continua embaixo do botão principal.
+
+**Roteiro, em ordem**
+1. **Chip (Junior).** Pré-pago com WhatsApp ativo, só para o robô; nunca o número do Nosso Projeto 3D. O chip entra nos grupos como admin. As pessoas entram só por link de convite, nunca adicionadas à mão.
+2. **Onde o robô roda.** Decidir com o Junior: VPS (recomendado, fica ligado sempre) ou o Mac dele (só envia com o Mac ligado). Planos grátis que "dormem" derrubam a conexão. Precisa de HTTPS.
+3. **Evolution API v2** (aberta, conecta como WhatsApp Web, via Baileys) em Docker nesse servidor, com uma instância para o chip. A chave da API nunca vai para o navegador nem para o repositório.
+4. **Ponte no Supabase:** Edge Function `achadinhos-robo` (no mesmo projeto, prefixo `achadinhos`). Segredos: `EVO_URL`, `EVO_KEY`, `EVO_INSTANCIA`. Recusa quem não estiver em `achadinhos_membros`. Ações e o que respondem:
+   - `status` → `{ estado: 'conectado' | 'desconectado', numero }` (estado da conexão da instância).
+   - `qr` → `{ qr: 'data:image/png;base64,...' }` (conectar a instância).
+   - `grupos` → `{ grupos: [{ jid, nome, membros }] }` via `GET /group/fetchAllGroups/{instância}?getParticipants=false`.
+   - `enviar` com `{ jid, mensagens: [{ tipo: 'texto' | 'imagem', texto, imagem? }] }` → `{ ok: true }` ou `{ erro: 'motivo em português' }`. Texto: `POST /message/sendText/{instância}` com `number` = jid do grupo (`...@g.us`). Imagem (post de cupom): envio de mídia com a imagem em base64 e o texto como legenda. Mensagens do mesmo grupo em ordem, com 1 a 3 s entre elas (post, depois cada código sozinho).
+   - `desconectar` → desliga a instância do chip.
+   Conferir na documentação da versão instalada os caminhos de estado, QR, mídia e logout antes de escrever (só `fetchAllGroups` e `sendText` foram conferidos em 17/11/2026).
+5. **Grupos escolhidos no banco.** Hoje a escolha fica no aparelho (`localStorage` `na-robo-sel`), então o Junior e a Thai podem ver seleções diferentes. Criar `achadinhos_grupos (jid pk, nome, ativo, atualizado_em)` com RLS de membro e trocar a leitura/gravação no app. Avaliar coluna `grupos int` em `achadinhos_posts` para o histórico mostrar quantos receberam.
+6. **Ligar:** `robo: true` em `config.js`, publicar, conectar o chip pelo QR em Ajustes.
+7. **Testar** primeiro num grupo só com os dois: oferta com e sem cupom, post de cupom com imagem, ordem das mensagens, falha (chip fora do grupo), parar no meio, robô desligado (app tem que cair para o envio manual), dois aparelhos ao mesmo tempo.
+
+**Cuidados contra banimento:** espera de 10 s ou mais entre grupos, nada de mensagem no privado em massa, não adicionar pessoas aos grupos, não entrar em muitos grupos de uma vez. Se o chip for banido, o grupo continua: o número do Nosso Projeto 3D fica como dono/admin e um chip novo entra no lugar.

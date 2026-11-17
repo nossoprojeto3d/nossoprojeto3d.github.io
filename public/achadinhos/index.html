@@ -142,6 +142,20 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 .login h1{font-size:42px}
 .erro{color:var(--warn);font-size:14px}
 
+/* robô do WhatsApp */
+.dot{width:10px;height:10px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.dot.on{background:var(--ok);box-shadow:0 0 0 4px rgba(155,232,185,.18)}
+.demo{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--accent);color:var(--on-accent);border-radius:12px;padding:4px 4px 4px 14px;font-size:14px;font-weight:600}
+.demo .btn{border-color:var(--on-accent);color:var(--on-accent);flex-shrink:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:6px 10px;border-radius:999px;background:var(--bg2);border:1px solid var(--line);font-size:13px;font-weight:500}
+.barra{height:8px;border-radius:4px;background:var(--bg2);overflow:hidden}
+.barra span{display:block;height:100%;background:var(--accent);transition:width .3s}
+.qr{width:208px;height:208px;align-self:center;background:#fff;border-radius:14px;padding:12px;box-sizing:border-box}
+.qr svg,.qr img{display:block;width:100%;height:100%}
+.ol-qr{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:15px;color:var(--muted)}
+.st{font-size:13px}.st.ok{color:var(--ok)}.st.falhou{color:var(--warn)}.st.enviando{color:var(--accent)}
+.seg3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translate(-50%,20px);max-width:min(420px,calc(100vw - 32px));background:var(--tk1);color:var(--tktext);font-size:15px;font-weight:500;padding:12px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:10}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
@@ -169,7 +183,7 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
   .so-web{display:block}
   .estreito{max-width:620px}
 }
-@media (prefers-reduced-motion:reduce){.boia{animation:none}.heroi,.btn,.toast,.sw input,.sw input::after{transition:none}}
+@media (prefers-reduced-motion:reduce){.barra span{transition:none}.boia{animation:none}.heroi,.btn,.toast,.sw input,.sw input::after{transition:none}}
 </style>
 </head>
 <body>
@@ -423,7 +437,25 @@ function textoCupom() {
   return (a ? a + '\n' : '') + S.cupons.map(x => x.code + (x.regra ? ': ' + x.regra : '')).join('\n') + '\n\n' + (c ? c + '\n' : '') + S.linkCupom.trim();
 }
 const btnEnviar = (id, pode, txt) => `<a class="btn pri block${pode ? '' : ' off'}" id="${id}" data-a="${id}" ${pode ? `href="${esc(wa(txt()))}"` : 'aria-disabled="true"'} target="_blank" rel="noopener">${ico('enviar')}Enviar pro grupo</a>`;
-function ligaEnviar(id, pode, txt) { const b = $('#' + id); if (!b) return; b.classList.toggle('off', !pode); if (pode) { b.href = wa(txt()); b.removeAttribute('aria-disabled'); } else { b.removeAttribute('href'); b.setAttribute('aria-disabled', 'true'); } }
+function ligaEnviar(id, pode, txt) {
+  for (const b of [$('#' + id), $('#' + id + '-manual')]) {
+    if (!b) continue;
+    if (b.tagName === 'BUTTON') { b.disabled = !(pode && gruposAtivos().length); continue; }
+    b.classList.toggle('off', !pode);
+    if (pode) { b.href = wa(txt()); b.removeAttribute('aria-disabled'); } else { b.removeAttribute('href'); b.setAttribute('aria-disabled', 'true'); }
+  }
+}
+/* com o robô conectado, o botão dispara nos grupos; sem ele, abre o WhatsApp como antes */
+function areaEnvio(id, pode, txt) {
+  if (!roboAtivo()) return btnEnviar(id, pode, txt);
+  const gs = gruposAtivos(), n = gs.length;
+  return `<div class="card stack tight">
+      <div class="row"><span class="hint">Vai para</span><button class="btn link" data-a="ir" data-n="ajustes">Mudar</button></div>
+      <div class="chips">${gs.map(g => `<span class="chip">${esc(g.nome)}</span>`).join('') || '<span class="hint">Nenhum grupo escolhido. Escolha em Ajustes.</span>'}</div>
+    </div>
+    <button class="btn pri block" id="${id}" data-a="${id}" ${pode && n ? '' : 'disabled'}>${ico('enviar')}${n > 1 ? `Enviar pros ${n} grupos` : 'Enviar pro grupo'}</button>
+    <a class="btn link block${pode ? '' : ' off'}" id="${id}-manual" data-a="${id}" data-n="manual" ${pode ? `href="${esc(wa(txt()))}"` : 'aria-disabled="true"'} target="_blank" rel="noopener">Enviar pelo meu WhatsApp</a>`;
+}
 function bolhasOferta() {
   const d = dados();
   if (!d.produto) return '<div class="vazio">Cole uma mensagem para ver como o post chega no grupo.</div>';
@@ -465,7 +497,7 @@ function previaOferta() {
   </div>
   <div id="avisos" class="stack tight">${avisosOferta()}</div>
   <p class="hint" style="text-align:center">O cupom vai sozinho logo abaixo da oferta. Sem cupom, vai só a oferta.</p>
-  ${btnEnviar('enviar-oferta', podeOferta(), textoOferta)}
+  ${areaEnvio('enviar-oferta', podeOferta(), textoOferta)}
   <button class="btn link block" data-a="descartar" style="color:var(--muted)">Limpar</button>`;
 }
 function telaOferta() {
@@ -565,8 +597,8 @@ function telaCupom() {
       <h2 class="so-web">Prévia do post</h2>
       <div class="wa"><div class="cap">Como chega no grupo</div><div id="bolhas-c" style="display:contents">${bolhasCupom()}</div></div>
       <p class="hint" style="text-align:center">Depois do post vai uma mensagem só com cada código, pra copiar fácil.</p>
-      ${btnEnviar('enviar-cupom', podeCupom(), textoCupom)}
-      ${podeArquivo() ? `<button class="btn block" data-a="share-img">${ico('subir', 18)}Compartilhar a imagem</button><p class="hint" style="text-align:center">A imagem vai separada, antes do texto.</p>` : '<p class="hint" style="text-align:center">Aqui a imagem não vai junto. No app publicado aparece o botão de compartilhar a imagem.</p>'}
+      ${areaEnvio('enviar-cupom', podeCupom(), textoCupom)}
+      ${roboAtivo() ? '<p class="hint" style="text-align:center">O robô manda a imagem junto com o post.</p>' : podeArquivo() ? `<button class="btn block" data-a="share-img">${ico('subir', 18)}Compartilhar a imagem</button><p class="hint" style="text-align:center">A imagem vai separada, antes do texto.</p>` : '<p class="hint" style="text-align:center">Aqui a imagem não vai junto. No app publicado aparece o botão de compartilhar a imagem.</p>'}
       <button class="btn link block" data-a="limpar-cupom" style="color:var(--muted)">Limpar</button>
     </section>
   </div>`;
@@ -584,7 +616,27 @@ function telaPassos() {
     <button class="btn link block" data-a="concluir" style="color:var(--muted)">Concluir sem enviar o resto</button>
   </div>`;
 }
+function telaDisparo() {
+  const d = S.disparo, tot = d.grupos.length;
+  const ok = d.grupos.filter(g => g.status === 'ok').length, fal = d.grupos.filter(g => g.status === 'falhou').length;
+  const feitos = d.grupos.filter(g => g.status !== 'fila' && g.status !== 'enviando').length;
+  const titulo = d.ativo ? 'Enviando…' : ok === tot ? 'Enviado!' : ok ? 'Enviado em parte' : 'Não foi enviado';
+  const resumo = d.ativo ? `${ok} de ${tot} ${tot === 1 ? 'grupo' : 'grupos'} até agora.` : `${ok} de ${tot} ${tot === 1 ? 'grupo recebeu' : 'grupos receberam'} o post${d.qtdCodigos ? ' e o cupom' : ''}.`;
+  const ST = { fila: 'Na fila', enviando: d.qtdCodigos ? 'Enviando o post e o cupom…' : 'Enviando o post…', ok: 'Enviado', parado: 'Não enviado' };
+  return `<div class="stack estreito">
+    ${S.robo.demo ? '<div class="demo"><span>Demonstração: nada foi enviado de verdade.</span></div>' : ''}
+    <h1>${titulo}</h1>
+    <p class="muted">${esc(d.titulo)}. ${resumo}</p>
+    <div class="barra" role="progressbar" aria-label="Progresso do envio" aria-valuemin="0" aria-valuemax="${tot}" aria-valuenow="${feitos}"><span style="width:${Math.round(feitos / tot * 100)}%"></span></div>
+    <div class="stack tight" aria-live="polite">${d.grupos.map(g => `<div class="item"><div style="flex:1;min-width:0"><div class="t">${esc(g.nome)}</div><div class="st ${g.status}">${g.status === 'falhou' ? 'Falhou: ' + esc(g.erro || 'tente de novo') : ST[g.status]}</div></div>${g.status === 'ok' ? `<span class="st ok">${ico('ok', 20)}</span>` : g.status === 'falhou' ? `<span class="st falhou">${ico('alerta', 20)}</span>` : ''}</div>`).join('')}</div>
+    ${d.ativo ? '<button class="btn block" data-a="disparo-parar">Parar o envio</button>'
+      : `${fal ? `<button class="btn pri block" data-a="disparo-reenviar">${ico('trocar', 18)}Reenviar ${fal === 1 ? 'o que falhou' : `os ${fal} que falharam`}</button>` : ''}
+         <button class="btn ${fal ? '' : 'pri '}block" data-a="disparo-fim" data-n="novo">Novo post</button>
+         <button class="btn link block" data-a="disparo-fim" data-n="historico">Ver no histórico</button>`}
+  </div>`;
+}
 function telaNovo() {
+  if (S.disparo) return telaDisparo();
   if (S.envio) return telaPassos();
   return `<div class="top"><h1>Novo post</h1>
     <div class="seg" role="group" aria-label="Tipo de post"><button data-a="tipo" data-n="oferta" aria-pressed="${S.tipo === 'oferta'}">Oferta</button><button data-a="tipo" data-n="cupom" aria-pressed="${S.tipo === 'cupom'}">Cupom</button></div></div>
@@ -613,6 +665,7 @@ function telaHistorico() {
 function telaAjustes() {
   return `<h1>Ajustes</h1>
   <div class="stack estreito">
+    <section class="stack tight"><h2>Robô do WhatsApp</h2><div id="bloco-robo" class="stack tight">${blocoRobo()}</div></section>
     <section class="stack tight"><h2>Imagem do cupom</h2><div id="bloco-img">${blocoImagem()}</div></section>
     <section class="stack tight"><h2>Avisos</h2>
       <label class="sw card"><span>Avisar quando o produto já foi enviado hoje</span><input type="checkbox" data-i="avisar" ${S.avisarRepetido ? 'checked' : ''}></label>
@@ -681,7 +734,7 @@ function topo() { window.scrollTo(0, 0); }
 
 /* ---------- ações ---------- */
 const A = {
-  ir(n) { if (S.envio && n !== 'novo') return toast('Termine o envio ou toque em Concluir.'); S.view = n; render(); topo(); if (n === 'historico' && sb) carregaHistorico().then(() => { if (S.view === 'historico') render(); }); },
+  ir(n) { if (S.envio && n !== 'novo') return toast('Termine o envio ou toque em Concluir.'); if (S.disparo && S.disparo.ativo) return toast('Espere o envio terminar ou toque em Parar.'); if (S.disparo) fechaDisparo(); S.view = n; render(); topo(); if (n === 'historico' && sb) carregaHistorico().then(() => { if (S.view === 'historico') render(); }); },
   tipo(n) { S.tipo = n; render(); },
   sair() { if (sb) sb.auth.signOut().catch(() => {}); S.dentro = false; S.user = null; S.historico = []; S.view = 'novo'; render(); topo(); },
   quem(n) { S.user = n; guarda('na-quem', n); render(); topo(); },
@@ -706,6 +759,7 @@ const A = {
   'enviar-oferta'(n, ev) {
     if (!podeOferta()) { ev.preventDefault(); return; }
     const d = dados();
+    if (n !== 'manual' && roboAtivo()) return disparo({ tipo: 'oferta', titulo: d.produto.trim(), detalhe: d.preco || 'Sem preço', cupom: d.cupom, mensagens: [{ tipo: 'texto', texto: textoOferta() }].concat(d.cupom ? [{ tipo: 'texto', texto: d.cupom }] : []) });
     iniciaEnvio({ tipo: 'oferta', titulo: d.produto.trim(), detalhe: d.preco || 'Sem preço', cupom: d.cupom, texto: textoOferta(), passos: d.cupom ? [d.cupom] : [] });
   },
   'abrir-add'() { S.addAberto = true; poe('#add', formCupom()); $('#c-code').focus(); },
@@ -714,6 +768,7 @@ const A = {
   'enviar-cupom'(n, ev) {
     if (!podeCupom()) { ev.preventDefault(); return; }
     const q = S.cupons.length;
+    if (n !== 'manual' && roboAtivo()) return disparo({ tipo: 'cupom', titulo: `Post de cupom, ${q} ${q === 1 ? 'código' : 'códigos'}`, detalhe: 'Cupons', cupom: S.cupons[0].code, mensagens: [{ tipo: 'imagem', texto: textoCupom() }].concat(S.cupons.map(c => ({ tipo: 'texto', texto: c.code }))) });
     iniciaEnvio({ tipo: 'cupom', titulo: `Post de cupom, ${q} ${q === 1 ? 'código' : 'códigos'}`, detalhe: 'Cupons', cupom: S.cupons[0].code, texto: textoCupom(), passos: S.cupons.map(c => c.code) });
   },
   passo() { const e = S.envio; if (!e) return; setTimeout(() => { if (S.envio !== e) return; e.i++; if (e.i >= e.passos.length) concluiEnvio(); else { copia(e.passos[e.i]); render(); topo(); } }, 500); },
@@ -727,6 +782,32 @@ const A = {
   'limpar-cupom'() { S.cupons = []; S.linkCupom = ''; S.cAbre = null; S.cChama = null; S.addAberto = false; render(); topo(); toast('Campos limpos.'); },
   'subir-img'() { $('#arquivo').click(); },
   'img-padrao'() { S.img = null; guarda('na-img', null); refazImagem(); toast('Voltou para a imagem padrão.'); },
+  'disparo-parar'() { if (S.disparo) { S.disparo.parar = true; toast('Parando depois do grupo atual.'); } },
+  'disparo-reenviar'() { const d = S.disparo; if (!d || d.ativo) return; d.grupos.forEach(g => { if (g.status === 'falhou' || g.status === 'parado') { g.status = 'fila'; g.erro = ''; } }); rodaDisparo(); },
+  'disparo-fim'(n) { fechaDisparo(); S.view = n === 'historico' ? 'historico' : 'novo'; render(); topo(); },
+  'robo-demo'() { S.robo = { ...S.robo, demo: true, estado: 'desconectado', qr: false, numero: '', grupos: [], erro: '' }; guarda('na-robo-demo', '1'); guarda('na-robo-demo-grupos', null); refazRobo(); },
+  'robo-demo-sair'() { guarda('na-robo-demo', null); guarda('na-robo-demo-grupos', null); S.robo = novoRobo(); refazRobo(); if (ROBO_REAL && sb) roboAtualiza(); },
+  async 'robo-conectar'() {
+    if (S.robo.demo) { S.robo.qr = true; S.robo.qrImg = ''; return refazRobo(); }
+    S.robo.qr = true; S.robo.qrImg = ''; refazRobo();
+    try { const r = await chamaRobo('qr'); S.robo.qrImg = r.qr || ''; } catch (e) { S.robo.qr = false; S.robo.erro = 'Não consegui gerar o QR Code. Confira se o robô está ligado.'; }
+    refazRobo();
+  },
+  'robo-simula-qr'() { S.robo.estado = 'carregando'; refazRobo(); setTimeout(() => { if (!S.robo.demo) return; S.robo.estado = 'conectado'; S.robo.qr = false; S.robo.numero = '(62) 9 0000-0000'; S.robo.grupos = GRUPOS_EXEMPLO.map(g => ({ ...g })); salvaGruposDemo(); refazRobo(); toast('Número conectado (demonstração).'); }, 900); },
+  async 'robo-desconectar'() {
+    if (!S.robo.confirmaSair) { S.robo.confirmaSair = true; refazRobo(); return; }
+    S.robo.confirmaSair = false;
+    if (S.robo.demo) { S.robo.estado = 'desconectado'; S.robo.numero = ''; S.robo.grupos = []; guarda('na-robo-demo-grupos', null); return refazRobo(); }
+    try { await chamaRobo('desconectar'); } catch (e) { toast('Não consegui desconectar. Tente de novo.'); }
+    roboAtualiza();
+  },
+  'robo-nao-sair'() { S.robo.confirmaSair = false; refazRobo(); },
+  async 'robo-grupos'() {
+    if (S.robo.demo) { toast('Grupos atualizados.'); return; }
+    await roboAtualiza(); toast('Grupos atualizados.');
+  },
+  'robo-int'(n) { S.robo.intervalo = +n; guarda('na-robo-int', n); refazRobo(); },
+  'robo-tentar'() { roboAtualiza(); },
   async 'copiar-prompt'() {
     try { await navigator.clipboard.writeText(PROMPT); toast('Prompt copiado. Cole no gerador de imagem e edite.'); }
     catch (e) { toast('Não deu pra copiar aqui. Tente de novo pelo navegador.'); }
@@ -735,6 +816,140 @@ const A = {
 /* ---------- nuvem (Supabase): login de verdade e histórico compartilhado ---------- */
 const CFG = window.NA_CONFIG || {};
 const NUVEM = !!(CFG.supabaseUrl && CFG.supabaseKey);
+
+/* ---------- robô do WhatsApp: envio automático nos grupos ----------
+   Hoje só existe a demonstração. O robô de verdade entra quando config.js tiver robo: true
+   e a função achadinhos-robo existir no Supabase (roteiro no CLAUDE.md do repositório). */
+const ROBO_REAL = NUVEM && !!CFG.robo;
+const GRUPOS_EXEMPLO = [
+  { jid: 'exemplo-1@g.us', nome: 'Nossos Achadinhos #1', membros: 214, ativo: true },
+  { jid: 'exemplo-2@g.us', nome: 'Nossos Achadinhos #2', membros: 87, ativo: true },
+  { jid: 'exemplo-3@g.us', nome: 'Teste (só nós dois)', membros: 3, ativo: false, falhaUmaVez: true }
+];
+const novoRobo = () => ({ demo: false, estado: ROBO_REAL ? 'carregando' : 'sem-robo', numero: '', grupos: [], qr: false, qrImg: '', erro: '', confirmaSair: false, intervalo: +(le('na-robo-int') || 10) });
+const roboAtivo = () => S.robo.estado === 'conectado';
+const gruposAtivos = () => S.robo.grupos.filter(g => g.ativo);
+const espera = ms => new Promise(r => setTimeout(r, ms));
+function iniciaRobo() {
+  S.robo = novoRobo();
+  if (le('na-robo-demo') === '1') {
+    S.robo.demo = true;
+    let gs = null; try { gs = JSON.parse(le('na-robo-demo-grupos') || 'null'); } catch (e) {}
+    if (gs && gs.length) { S.robo.estado = 'conectado'; S.robo.numero = '(62) 9 0000-0000'; S.robo.grupos = gs; } else S.robo.estado = 'desconectado';
+  }
+}
+function salvaGruposDemo() { if (S.robo.demo) guarda('na-robo-demo-grupos', JSON.stringify(S.robo.grupos)); }
+function selecaoSalva() { try { return JSON.parse(le('na-robo-sel') || 'null'); } catch (e) { return null; } }
+async function chamaRobo(acao, dados) {
+  const { data, error } = await sb.functions.invoke('achadinhos-robo', { body: { acao, ...(dados || {}) } });
+  if (error || (data && data.erro)) throw new Error((data && data.erro) || 'O robô não respondeu.');
+  return data || {};
+}
+async function roboAtualiza() {
+  if (!ROBO_REAL || S.robo.demo || !sb) return;
+  S.robo.estado = 'carregando'; S.robo.erro = ''; refazRobo();
+  try {
+    const st = await chamaRobo('status');
+    S.robo.numero = st.numero || '';
+    S.robo.estado = st.estado === 'conectado' ? 'conectado' : 'desconectado';
+    if (S.robo.estado === 'conectado') {
+      const sel = selecaoSalva(), r = await chamaRobo('grupos');
+      S.robo.grupos = (r.grupos || []).map(g => ({ jid: g.jid, nome: g.nome, membros: g.membros || 0, ativo: sel ? sel.includes(g.jid) : false }));
+    }
+  } catch (e) { S.robo.estado = 'erro'; S.robo.erro = e.message || 'O robô não respondeu.'; }
+  refazRobo();
+  if (S.view === 'novo' && !S.disparo && !S.envio) render();
+}
+async function enviaParaGrupo(g, mensagens) {
+  if (S.robo.demo) {
+    await espera(700);
+    const orig = S.robo.grupos.find(x => x.jid === g.jid);
+    if (orig && orig.falhaUmaVez && !orig.jaFalhou) { orig.jaFalhou = true; salvaGruposDemo(); throw new Error('o número não é admin desse grupo'); }
+    return;
+  }
+  const img = mensagens.some(m => m.tipo === 'imagem') ? await imagemBase64() : '';
+  await chamaRobo('enviar', { jid: g.jid, mensagens: mensagens.map(m => m.tipo === 'imagem' ? { ...m, imagem: img } : m) });
+}
+async function imagemBase64() {
+  const f = await arquivoImagem();
+  return await new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1] || ''); r.onerror = falha; r.readAsDataURL(f); });
+}
+function disparo(job) {
+  const gs = gruposAtivos(); if (!gs.length) return toast('Escolha pelo menos um grupo em Ajustes.');
+  S.disparo = { ...job, qtdCodigos: job.mensagens.length - 1, grupos: gs.map(g => ({ jid: g.jid, nome: g.nome, status: 'fila', erro: '' })), ativo: false, parar: false, salvo: false };
+  render(); topo(); rodaDisparo();
+}
+async function rodaDisparo() {
+  const d = S.disparo; if (!d) return;
+  d.ativo = true; d.parar = false;
+  const lista = d.grupos.filter(g => g.status === 'fila');
+  for (let i = 0; i < lista.length; i++) {
+    const g = lista[i];
+    if (d.parar) { g.status = 'parado'; continue; }
+    g.status = 'enviando'; if (S.disparo === d) render();
+    try { await enviaParaGrupo(g, d.mensagens); g.status = 'ok'; }
+    catch (e) { g.status = 'falhou'; g.erro = (e && e.message) || 'erro desconhecido'; }
+    if (S.disparo === d) render();
+    if (i < lista.length - 1 && !d.parar) await espera(S.robo.demo ? 900 : S.robo.intervalo * 1000);
+  }
+  d.ativo = false;
+  const ok = d.grupos.filter(g => g.status === 'ok').length;
+  if (ok && !d.salvo) {
+    d.salvo = true;
+    const post = { tipo: d.tipo, titulo: d.titulo, detalhe: d.detalhe, cupom: d.cupom, ts: Date.now(), quem: S.user };
+    S.historico.push(post);
+    if (!S.robo.demo) salvaPost(post).then(okSalvo => { if (!okSalvo) toast('Enviado, mas não salvou no histórico compartilhado.'); });
+  }
+  if (S.disparo === d) { render(); toast(ok === d.grupos.length ? 'Enviado pros grupos.' : ok ? 'Alguns grupos falharam.' : 'Nenhum grupo recebeu.'); }
+}
+function fechaDisparo() { const d = S.disparo; S.disparo = null; if (d && d.salvo) limpaPost(d.tipo); }
+function limpaPost(tipo) {
+  if (tipo === 'oferta') { S.msg = ''; S.link = ''; S.draft = null; S.coladaEm = null; S.step = 'form'; S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); }
+  else { S.cupons = []; S.linkCupom = ''; S.cAbre = null; S.cChama = null; S.cAbreIdx = sorteia(ABERTURAS.length, S.cAbreIdx); }
+}
+function refazRobo() { poe('#bloco-robo', blocoRobo()); }
+/* QR de mentira para a demonstração: só o desenho, não conecta nada */
+function qrFalso() {
+  const n = 25, c = [];
+  let x = 7;
+  const marca = (a, b) => { for (let i = 0; i < 7; i++) for (let j = 0; j < 7; j++) { const borda = i === 0 || i === 6 || j === 0 || j === 6, meio = i > 1 && i < 5 && j > 1 && j < 5; if (borda || meio) c.push([a + i, b + j]); } };
+  marca(0, 0); marca(0, 18); marca(18, 0);
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+    if ((i < 8 && j < 8) || (i < 8 && j > 16) || (i > 16 && j < 8)) continue;
+    x = (x * 1103515245 + 12345) & 0x7fffffff; if (x % 100 < 47) c.push([i, j]);
+  }
+  return `<svg viewBox="0 0 ${n} ${n}" role="img" aria-label="QR Code de exemplo" shape-rendering="crispEdges">${c.map(([i, j]) => `<rect x="${j}" y="${i}" width="1" height="1" fill="#0E3A34"/>`).join('')}</svg>`;
+}
+function blocoRobo() {
+  const r = S.robo;
+  if (r.estado === 'sem-robo') return `<div class="card stack tight">
+      <div class="row" style="justify-content:flex-start;gap:10px"><span class="dot" aria-hidden="true"></span><span class="lbl">Robô ainda não instalado</span></div>
+      <p class="hint">Por enquanto o envio é pelo seu WhatsApp. Quando o chip e o robô estiverem prontos, o botão Enviar dispara sozinho nos grupos escolhidos aqui.</p>
+      <button class="btn sm" data-a="robo-demo">Ver como vai ficar</button>
+    </div>`;
+  let h = r.demo ? '<div class="demo"><span>Demonstração: nada é enviado de verdade.</span><button class="btn sm" data-a="robo-demo-sair">Encerrar</button></div>' : '';
+  if (r.estado === 'carregando') return h + `<div class="card"><p class="hint">Conferindo o robô…</p></div>`;
+  if (r.estado === 'erro') return h + `<div class="card stack tight"><div class="row" style="justify-content:flex-start;gap:10px"><span class="dot" aria-hidden="true"></span><span class="lbl">Robô fora do ar</span></div><p class="hint">${esc(r.erro)} Enquanto isso, os posts saem pelo seu WhatsApp.</p><button class="btn sm" data-a="robo-tentar">Tentar de novo</button></div>`;
+  if (r.estado === 'desconectado') {
+    h += `<div class="card stack tight"><div class="row" style="justify-content:flex-start;gap:10px"><span class="dot" aria-hidden="true"></span><span class="lbl">Nenhum número conectado</span></div>`;
+    if (!r.qr) h += `<p class="hint">Conecte o chip do grupo. Use só o número provisório, nunca o do Nosso Projeto 3D.</p>${r.erro ? `<p class="erro">${esc(r.erro)}</p>` : ''}<button class="btn pri block" data-a="robo-conectar">Conectar número</button>`;
+    else h += `<div class="qr">${r.demo ? qrFalso() : r.qrImg ? `<img src="${esc(r.qrImg)}" alt="QR Code para conectar o número">` : '<p class="hint" style="color:#0E3A34">Gerando…</p>'}</div>
+      <ol class="ol-qr"><li>Abra o WhatsApp do chip provisório.</li><li>Toque em Configurações e depois em Aparelhos conectados.</li><li>Toque em Conectar aparelho e aponte a câmera para este código.</li></ol>
+      ${r.demo ? '<button class="btn pri block" data-a="robo-simula-qr">Simular a leitura do QR</button>' : ''}
+      <button class="btn sm" data-a="robo-conectar">Gerar outro código</button>`;
+    return h + '</div>';
+  }
+  const gs = r.grupos;
+  h += `<div class="card row"><div class="row" style="justify-content:flex-start;gap:10px;min-width:0"><span class="dot on" aria-hidden="true"></span><div style="min-width:0"><div class="lbl">Conectado</div><div class="hint">${esc(r.numero)}</div></div></div>
+      ${r.confirmaSair ? '<div class="row"><button class="btn sm" data-a="robo-nao-sair">Cancelar</button><button class="btn sm" data-a="robo-desconectar" style="border-color:var(--warn);color:var(--warn)">Confirmar</button></div>' : '<button class="btn sm" data-a="robo-desconectar">Desconectar</button>'}</div>
+    <div class="row"><span class="lbl">Grupos que recebem</span><button class="btn link" data-a="robo-grupos">${ico('trocar', 16)}Atualizar</button></div>
+    ${gs.length ? gs.map(g => `<label class="sw card"><span style="min-width:0"><span class="lbl" style="display:block">${esc(g.nome)}</span><span class="hint">${g.membros ? g.membros + ' pessoas' : 'Grupo'}</span></span><input type="checkbox" data-i="grupo" data-n="${esc(g.jid)}" ${g.ativo ? 'checked' : ''} aria-label="Enviar para ${esc(g.nome)}"></label>`).join('')
+      : '<div class="card"><p class="hint">O número ainda não está em nenhum grupo. Coloque o chip como admin dos grupos e toque em Atualizar.</p></div>'}
+    <div class="stack tight"><span class="lbl">Espera entre um grupo e outro</span>
+      <div class="seg seg3" role="group" aria-label="Espera entre grupos">${[5, 10, 20].map(v => `<button data-a="robo-int" data-n="${v}" aria-pressed="${r.intervalo === v}">${v} s</button>`).join('')}</div>
+      <p class="hint">Esperar entre os grupos ajuda a não parecer robô pro WhatsApp. 10 segundos é um bom meio-termo.</p></div>`;
+  return h;
+}
 let sb = null;
 const guarda = (k, v) => { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
 const le = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -754,6 +969,7 @@ async function entra(u) {
   if (error || !data) { await sb.auth.signOut().catch(() => {}); S.dentro = false; render(); erro('#erro-login', 'Essa conta não tem acesso ao Nossos Achadinhos.'); return; }
   S.dentro = true; S.user = le('na-quem');
   await carregaHistorico(); render(); topo();
+  roboAtualiza();
 }
 async function carregaHistorico() {
   if (!sb) return;
@@ -778,8 +994,7 @@ function concluiEnvio() {
   const post = { tipo: e.tipo, titulo: e.titulo, detalhe: e.detalhe, cupom: e.cupom, ts: Date.now(), quem: S.user };
   S.historico.push(post);
   salvaPost(post).then(ok => { if (!ok) toast('Enviado, mas não salvou no histórico compartilhado.'); });
-  if (e.tipo === 'oferta') { S.msg = ''; S.link = ''; S.draft = null; S.coladaEm = null; S.step = 'form'; S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); }
-  else { S.cupons = []; S.linkCupom = ''; S.cAbre = null; S.cChama = null; S.cAbreIdx = sorteia(ABERTURAS.length, S.cAbreIdx); }
+  limpaPost(e.tipo);
   S.envio = null; S.view = 'historico'; render(); topo();
   toast('Salvo no histórico.');
 }
@@ -815,6 +1030,10 @@ document.addEventListener('input', e => {
   else if (k === 'link') { S.link = v; erro('#erro-oferta', ''); atualizaOferta(false); }
   else if (k.startsWith('d-')) { erro('#erro-oferta', ''); S.draft = { ...bruto(), [k.slice(2)]: k === 'd-cupom' ? v.toUpperCase().replace(/\s/g, '') : v }; if (k === 'd-cupom' && e.target.value !== S.draft.cupom) e.target.value = S.draft.cupom; atualizaOferta(false); }
   else if (k === 'linkc') { S.linkCupom = v; poe('#chk-linkc', chkLink(v)); poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), textoCupom); }
+  else if (k === 'grupo') {
+    const g = S.robo.grupos.find(x => x.jid === e.target.dataset.n); if (g) g.ativo = e.target.checked;
+    if (S.robo.demo) salvaGruposDemo(); else guarda('na-robo-sel', JSON.stringify(gruposAtivos().map(x => x.jid)));
+  }
   else if (k === 'avisar') { S.avisarRepetido = e.target.checked; guarda('na-avisar', S.avisarRepetido ? '1' : '0'); }
   else if (k === 'c-abre') { S.cAbre = v; poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), textoCupom); }
   else if (k === 'c-chama') { S.cChama = v; poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), textoCupom); }
@@ -882,6 +1101,7 @@ document.addEventListener('pointermove', e => {
   } catch (e) {}
 })();
 S.img = le('na-img'); if (le('na-avisar') === '0') S.avisarRepetido = false;
+iniciaRobo();
 render();
 ligaNuvem();
 </script>

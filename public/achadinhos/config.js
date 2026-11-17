@@ -5,5 +5,7 @@
    A chave é a publicável, feita para ficar no navegador; quem protege os dados são as regras das tabelas. */
 window.NA_CONFIG = {
   supabaseUrl: 'https://sruvkpqzpjqeqkesqffq.supabase.co',
-  supabaseKey: 'sb_publishable_oETMODMZSazY4tWIYmOWLw_aqT6zY9l'
+  supabaseKey: 'sb_publishable_oETMODMZSazY4tWIYmOWLw_aqT6zY9l',
+  // Robô do WhatsApp: deixe false até a função achadinhos-robo existir no Supabase (roteiro no CLAUDE.md).
+  robo: false
 };
