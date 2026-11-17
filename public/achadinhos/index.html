@@ -125,6 +125,19 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 .item .t{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .item .d{display:flex;gap:8px;font-size:13px;color:var(--muted);flex-wrap:wrap}
 .item .d .mono{color:var(--accent)}
+.nums{display:flex;flex-direction:column;gap:10px}
+.nums-top{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.nums-top b{display:block;font-family:var(--disp);font-size:28px;line-height:1.1;color:var(--accent)}
+.nums-top span{font-size:12px;color:var(--muted)}
+.barras{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;height:64px;align-items:end}
+.barras div{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.barras i{display:block;width:100%;max-width:26px;min-height:3px;border-radius:5px 5px 2px 2px;background:var(--accent)}
+.barras span{font-size:11px;color:var(--muted)}
+.nums .d{display:flex;flex-wrap:wrap;gap:6px;font-size:13px}
+.btn-reusar{min-width:44px;min-height:44px}
+@media (max-width:520px){.txt-reusar{display:none}}
+.chip-c{padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--bg2)}
+.chip-c small{color:var(--muted)}
 .quem{width:26px;height:26px;border-radius:50%;border:1px solid var(--muted);color:var(--accent);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center}
 .dia{font-size:14px;font-weight:600;color:var(--muted)}
 .linha{display:flex;align-items:center;gap:8px;padding:4px 4px 4px 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:15px}
@@ -242,7 +255,7 @@ const S = {
   cAbre: null, cAbreIdx: 0, cChama: null,
   frase: null, absurda: false, fraseAbs: null, absIdx: 0,
 
-  historico: []
+  historico: [], busca: ''
 };
 
 const FRASES = [
@@ -773,19 +786,41 @@ function nomeDia(ts) {
   if (mesmoDia(ts, Date.now() - 24 * HORA)) return 'Ontem';
   return new Date(ts).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
 }
-function telaHistorico() {
-  const itens = [...S.historico].sort((a, b) => b.ts - a.ts);
-  let h = `<div class="stack tight estreito"><h1>Histórico</h1><p class="muted">O que já foi pro grupo, para não repetir.</p></div>`;
-  if (!itens.length) return h + `<div class="card estreito"><p>Nada enviado ainda.</p><p class="hint">O primeiro post aparece aqui assim que você enviar.</p><button class="btn sm" data-a="ir" data-n="novo" style="margin-top:12px">Criar um post</button></div>`;
-  let dia = '';
-  h += '<div class="stack tight estreito">';
-  for (const p of itens) {
+function numeros() {
+  const hoje = S.historico.filter(p => mesmoDia(p.ts, Date.now())).length;
+  const semana = S.historico.filter(p => Date.now() - p.ts < 7 * 864e5);
+  const dias = [...Array(7)].map((_, i) => { const t = Date.now() - (6 - i) * 864e5; return { t, n: semana.filter(p => mesmoDia(p.ts, t)).length }; });
+  const max = Math.max(1, ...dias.map(d => d.n));
+  const cont = {};
+  S.historico.filter(p => Date.now() - p.ts < 30 * 864e5).forEach(p => (p.cupom || '').split(/\s+/).filter(Boolean).forEach(c => { cont[c] = (cont[c] || 0) + 1; }));
+  const top = Object.entries(cont).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  const sem = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+  return `<div class="card nums">
+    <div class="nums-top"><div><b>${hoje}</b><span>${hoje === 1 ? 'post hoje' : 'posts hoje'}</span></div><div><b>${semana.length}</b><span>nos últimos 7 dias</span></div><div><b>${(semana.length / 7).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}</b><span>por dia, em média</span></div></div>
+    <div class="barras" role="img" aria-label="Posts por dia nos últimos 7 dias: ${dias.map(d => d.n).join(', ')}">${dias.map(d => `<div><i style="height:${Math.round(d.n / max * 100)}%"></i><span>${sem[new Date(d.t).getDay()]}</span></div>`).join('')}</div>
+    <div class="lbl" style="margin-top:4px">Cupons mais usados (30 dias)</div>
+    <div class="d">${top.length ? top.map(([c, n]) => `<span class="mono chip-c">${esc(c)} <small>${n}×</small></span>`).join('') : '<span class="hint">Nenhum cupom ainda.</span>'}</div>
+  </div>`;
+}
+function listaHistorico() {
+  const q = S.busca.trim().toLowerCase();
+  const itens = S.historico.map((p, i) => ({ p, i })).filter(({ p }) => !q || p.titulo.toLowerCase().includes(q) || (p.cupom || '').toLowerCase().includes(q)).sort((a, b) => b.p.ts - a.p.ts);
+  if (!itens.length) return `<div class="card"><p>Nada com “${esc(S.busca.trim())}”.</p><p class="hint">Busque pelo nome do produto ou pelo código do cupom.</p></div>`;
+  let dia = '', h = '';
+  for (const { p, i } of itens) {
     const n = nomeDia(p.ts);
     if (n !== dia) { h += `<h2 class="dia" style="font-family:var(--body);margin-top:${dia ? 12 : 0}px">${n}</h2>`; dia = n; }
     h += `<div class="item"><div style="flex:1;min-width:0"><div class="t">${esc(p.titulo)}</div><div class="d"><span>${esc(p.detalhe)}</span>${p.cupom ? `<span class="mono">${esc(p.cupom)}</span>` : '<span>sem cupom</span>'}</div></div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="hint">${hora(p.ts)}</span><span class="quem" role="img" aria-label="Enviado por ${esc(p.quem)}">${esc(p.quem[0])}</span></div></div>`;
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="hint">${hora(p.ts)} · ${esc(p.quem)}</span><button class="btn sm btn-reusar" data-a="reusar" data-n="${i}" aria-label="Usar de novo: ${esc(p.titulo)}">${ico('trocar', 16)}<span class="txt-reusar">Usar de novo</span></button></div></div>`;
   }
-  return h + '</div>';
+  return h;
+}
+function telaHistorico() {
+  let h = `<div class="stack tight estreito"><h1>Histórico</h1><p class="muted">O que já foi pro grupo. Use o botão de cada post para montar ele de novo.</p></div>`;
+  if (!S.historico.length) return h + `<div class="card estreito"><p>Nada enviado ainda.</p><p class="hint">O primeiro post aparece aqui assim que você enviar.</p><button class="btn sm" data-a="ir" data-n="novo" style="margin-top:12px">Criar um post</button></div>`;
+  return h + `<div class="stack tight estreito">${numeros()}
+    <input class="in" type="search" data-i="busca" placeholder="Buscar produto ou cupom" value="${esc(S.busca)}" aria-label="Buscar no histórico" autocomplete="off">
+    <div id="hist-lista" class="stack tight">${listaHistorico()}</div></div>`;
 }
 function telaAjustes() {
   return `<h1>Ajustes</h1>
@@ -876,6 +911,21 @@ function topo() { window.scrollTo(0, 0); }
 const A = {
   ir(n) { if (S.envio && n !== 'novo') return toast('Termine o envio ou toque em Concluir.'); if (S.disparo && S.disparo.ativo) return toast('Espere o envio terminar ou toque em Parar.'); if (S.disparo) fechaDisparo(); S.view = n; render(); topo(); if (n === 'historico' && sb) carregaHistorico().then(() => { if (S.view === 'historico') render(); }); },
   tipo(n) { S.tipo = n; render(); },
+  reusar(n) {
+    const p = S.historico[+n]; if (!p) return;
+    const d = p.dados || {};
+    if (p.tipo === 'oferta') {
+      limpaPost('oferta'); S.manual = true;
+      S.draft = { produto: d.produto != null ? d.produto : p.titulo, preco: d.preco != null ? d.preco : (p.detalhe === 'Sem preço' ? '' : p.detalhe), cupom: d.cupom != null ? d.cupom : (p.cupom || ''), regras: d.regras || {}, linkOrig: '' };
+      S.link = d.link || ''; if (d.frase) S.frase = d.frase; S.absurda = !!d.absurda; if (d.fraseAbs) S.fraseAbs = d.fraseAbs;
+    } else {
+      limpaPost('cupom');
+      S.cupons = d.cupons ? d.cupons.map(c => ({ ...c })) : (p.cupom || '').split(/\s+/).filter(Boolean).map(code => ({ code, regra: '' }));
+      if (d.link) S.linkCupom = d.link; if (d.abre != null) S.cAbre = d.abre; if (d.chama != null) S.cChama = d.chama;
+    }
+    S.tipo = p.tipo; S.view = 'novo'; render(); topo();
+    toast(p.tipo === 'oferta' && !S.link ? 'Post montado. Cole o link de afiliado e confira.' : 'Post montado. Confira antes de enviar.');
+  },
   sair() { if (sb) sb.auth.signOut().catch(() => {}); S.dentro = false; S.user = null; S.historico = []; S.view = 'novo'; render(); topo(); },
   quem(n) { S.user = n; guarda('na-quem', n); render(); topo(); },
   'trocar-quem'() { S.user = null; render(); topo(); },
@@ -902,8 +952,8 @@ const A = {
   'enviar-oferta'(n, ev) {
     if (!podeOferta()) { ev.preventDefault(); return; }
     const d = dados();
-    if (n !== 'manual' && roboAtivo()) return disparo({ tipo: 'oferta', titulo: d.produto.trim(), detalhe: d.preco || 'Sem preço', cupom: d.cupom, mensagens: [{ tipo: 'texto', texto: txtO() }].concat(codigos(d).map(c => ({ tipo: 'texto', texto: c }))) });
-    iniciaEnvio({ tipo: 'oferta', titulo: d.produto.trim(), detalhe: d.preco || 'Sem preço', cupom: d.cupom, texto: txtO(), passos: codigos(d) });
+    if (n !== 'manual' && roboAtivo()) return disparo({ tipo: 'oferta', titulo: d.produto.trim(), detalhe: d.preco || 'Sem preço', cupom: d.cupom, dados: dadosPost('oferta'), mensagens: [{ tipo: 'texto', texto: txtO() }].concat(codigos(d).map(c => ({ tipo: 'texto', texto: c }))) });
+    iniciaEnvio({ tipo: 'oferta', titulo: d.produto.trim(), detalhe: d.preco || 'Sem preço', cupom: d.cupom, dados: dadosPost('oferta'), texto: txtO(), passos: codigos(d) });
   },
   'abrir-add'() { S.addAberto = true; poe('#add', formCupom()); $('#c-code').focus(); },
   'fechar-add'() { S.addAberto = false; poe('#add', formCupom()); },
@@ -911,8 +961,8 @@ const A = {
   'enviar-cupom'(n, ev) {
     if (!podeCupom()) { ev.preventDefault(); return; }
     const q = S.cupons.length;
-    if (n !== 'manual' && roboAtivo()) return disparo({ tipo: 'cupom', titulo: `Post de cupom, ${q} ${q === 1 ? 'código' : 'códigos'}`, detalhe: 'Cupons', cupom: S.cupons[0].code, mensagens: [{ tipo: 'imagem', texto: txtC() }].concat(S.cupons.map(c => ({ tipo: 'texto', texto: c.code }))) });
-    iniciaEnvio({ tipo: 'cupom', titulo: `Post de cupom, ${q} ${q === 1 ? 'código' : 'códigos'}`, detalhe: 'Cupons', cupom: S.cupons[0].code, texto: txtC(), passos: S.cupons.map(c => c.code) });
+    if (n !== 'manual' && roboAtivo()) return disparo({ tipo: 'cupom', titulo: `Post de cupom, ${q} ${q === 1 ? 'código' : 'códigos'}`, detalhe: 'Cupons', cupom: S.cupons.map(c => c.code).join(' '), dados: dadosPost('cupom'), mensagens: [{ tipo: 'imagem', texto: txtC() }].concat(S.cupons.map(c => ({ tipo: 'texto', texto: c.code }))) });
+    iniciaEnvio({ tipo: 'cupom', titulo: `Post de cupom, ${q} ${q === 1 ? 'código' : 'códigos'}`, detalhe: 'Cupons', cupom: S.cupons.map(c => c.code).join(' '), dados: dadosPost('cupom'), texto: txtC(), passos: S.cupons.map(c => c.code) });
   },
   passo() { const e = S.envio; if (!e) return; setTimeout(() => { if (S.envio !== e) return; e.i++; if (e.i >= e.passos.length) concluiEnvio(); else { copia(e.passos[e.i]); render(); topo(); } }, 500); },
   'copiar-code'() { const e = S.envio; if (e) copia(e.passos[e.i]).then(ok => toast(ok ? 'Código copiado.' : 'Não deu pra copiar. Segure o dedo no código.')); },
@@ -1041,7 +1091,7 @@ async function rodaDisparo() {
   const ok = d.grupos.filter(g => g.status === 'ok').length;
   if (ok && !d.salvo) {
     d.salvo = true;
-    const post = { tipo: d.tipo, titulo: d.titulo, detalhe: d.detalhe, cupom: d.cupom, ts: Date.now(), quem: S.user };
+    const post = { tipo: d.tipo, titulo: d.titulo, detalhe: d.detalhe, cupom: d.cupom, dados: d.dados, ts: Date.now(), quem: S.user };
     S.historico.push(post);
     if (!S.robo.demo) salvaPost(post).then(okSalvo => { if (!okSalvo) toast('Enviado, mas não salvou no histórico compartilhado.'); });
   }
@@ -1121,16 +1171,21 @@ async function entra(u) {
 }
 async function carregaHistorico() {
   if (!sb) return;
-  const { data, error } = await sb.from('achadinhos_posts').select('tipo,titulo,detalhe,cupom,quem,created_at').order('created_at', { ascending: false }).limit(300);
+  const { data, error } = await sb.from('achadinhos_posts').select('tipo,titulo,detalhe,cupom,quem,dados,created_at').order('created_at', { ascending: false }).limit(300);
   if (error) { toast('Não consegui carregar o histórico.'); return; }
-  S.historico = data.map(p => ({ tipo: p.tipo, titulo: p.titulo, detalhe: p.detalhe || '', cupom: p.cupom || '', quem: p.quem || '?', ts: Date.parse(p.created_at) }));
+  S.historico = data.map(p => ({ tipo: p.tipo, titulo: p.titulo, detalhe: p.detalhe || '', cupom: p.cupom || '', dados: p.dados || null, quem: p.quem || '?', ts: Date.parse(p.created_at) }));
 }
 async function salvaPost(p) {
   if (!sb) return true;
-  const { error } = await sb.from('achadinhos_posts').insert({ tipo: p.tipo, titulo: p.titulo, detalhe: p.detalhe, cupom: p.cupom, quem: p.quem });
+  const { error } = await sb.from('achadinhos_posts').insert({ tipo: p.tipo, titulo: p.titulo, detalhe: p.detalhe, cupom: p.cupom, dados: p.dados || null, quem: p.quem });
   return !error;
 }
 async function copia(t) { try { await navigator.clipboard.writeText(t); return true; } catch (e) { return false; } }
+/* O que dá pra remontar o post depois, pelo histórico */
+function dadosPost(tipo) {
+  if (tipo === 'oferta') { const d = dados(); return { produto: d.produto, preco: d.preco, cupom: d.cupom, regras: d.regras || {}, link: S.link.trim(), frase: fraseAtual(), absurda: S.absurda, fraseAbs: S.absurda ? absAtual() : null }; }
+  return { cupons: S.cupons.map(c => ({ code: c.code, regra: c.regra || '' })), link: S.linkCupom.trim(), abre: abreAtual(), chama: chamaAtual() };
+}
 function iniciaEnvio(e) {
   e.i = 0;
   if (e.passos.length) copia(e.passos[0]);
@@ -1139,7 +1194,7 @@ function iniciaEnvio(e) {
 }
 function concluiEnvio() {
   const e = S.envio; if (!e) return;
-  const post = { tipo: e.tipo, titulo: e.titulo, detalhe: e.detalhe, cupom: e.cupom, ts: Date.now(), quem: S.user };
+  const post = { tipo: e.tipo, titulo: e.titulo, detalhe: e.detalhe, cupom: e.cupom, dados: e.dados, ts: Date.now(), quem: S.user };
   S.historico.push(post);
   salvaPost(post).then(ok => { if (!ok) toast('Enviado, mas não salvou no histórico compartilhado.'); });
   limpaPost(e.tipo);
@@ -1183,6 +1238,7 @@ document.addEventListener('input', e => {
     const g = S.robo.grupos.find(x => x.jid === e.target.dataset.n); if (g) g.ativo = e.target.checked;
     if (S.robo.demo) salvaGruposDemo(); else guarda('na-robo-sel', JSON.stringify(gruposAtivos().map(x => x.jid)));
   }
+  else if (k === 'busca') { S.busca = v; poe('#hist-lista', listaHistorico()); }
   else if (k === 'avisar') { S.avisarRepetido = e.target.checked; guarda('na-avisar', S.avisarRepetido ? '1' : '0'); }
   else if (k === 'ed-oferta') { S.ed.oferta = v; poe('#bolhas', bolhasOferta()); poe('#avisos', avisosOferta()); ligaEnviar('enviar-oferta', podeOferta(), txtO); }
   else if (k === 'ed-cupom') { S.ed.cupom = v; poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), txtC); }

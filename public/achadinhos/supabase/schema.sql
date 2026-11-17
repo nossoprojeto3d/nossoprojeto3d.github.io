@@ -42,7 +42,8 @@ create table public.achadinhos_posts (
   tipo        text not null check (tipo in ('oferta', 'cupom')),
   titulo      text not null,
   detalhe     text,
-  cupom       text
+  cupom       text,
+  dados       jsonb  -- campos do post para "Usar de novo" no histórico (migração achadinhos_posts_dados)
 );
 create index achadinhos_posts_created_at_idx on public.achadinhos_posts (created_at desc);
 create index achadinhos_posts_user_id_idx on public.achadinhos_posts (user_id);
