@@ -506,7 +506,8 @@ function capa(mini) {
   if (src) return mini ? `<img class="thumb" src="${src}" alt="Imagem atual do post de cupom">` : `<img src="${src}" alt="Imagem do post de cupom" width="1080" height="1080">`;
   return `<div class="capa${mini ? ' mini' : ''}" role="img" aria-label="Imagem padrão do post de cupom"><div class="tk">%</div>${mini ? '' : '<div class="tt">Saiu cupom!</div>'}</div>`;
 }
-const wa = t => 'https://wa.me/?text=' + encodeURIComponent(t);
+// api.whatsapp.com e não wa.me: o redirecionamento do wa.me estraga os emojis no WhatsApp Web e no app do computador
+const wa = t => 'https://api.whatsapp.com/send?text=' + encodeURIComponent(t);
 function textoOferta() {
   const d = dados(), fr = fraseAtual().trim(), ab = S.absurda ? absAtual().trim() : '';
   const pc = partesCupom(d);
