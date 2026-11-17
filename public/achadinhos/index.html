@@ -136,6 +136,18 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 .nums .d{display:flex;flex-wrap:wrap;gap:6px;font-size:13px}
 .btn-reusar{min-width:44px;min-height:44px}
 @media (max-width:520px){.txt-reusar{display:none}}
+.item-box{display:flex;flex-direction:column}
+.item-box .item:has(+ .aviso-painel){border-bottom-left-radius:4px;border-bottom-right-radius:4px}
+.item .d .esgotado{text-decoration:line-through;opacity:.75}
+.item .d .esgotado small{text-decoration:none;display:inline-block;color:var(--muted)}
+.aviso-painel{margin-top:4px;padding:10px 14px;border-radius:4px 4px 14px 14px;background:var(--bg2);border:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.aviso-linha{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.aviso-linha .mono{color:var(--accent)}
+.aviso-linha .btn{min-height:44px;min-width:96px}
+.item.aviso{padding:10px 14px;background:transparent;border-style:dashed}
+.item.aviso .t{font-size:14px;font-weight:500}
+.item.aviso .mono{color:var(--accent)}
+.aviso-ico{font-size:18px}
 .chip-c{padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--bg2)}
 .chip-c small{color:var(--muted)}
 .quem{width:26px;height:26px;border-radius:50%;border:1px solid var(--muted);color:var(--accent);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center}
@@ -255,7 +267,7 @@ const S = {
   cAbre: null, cAbreIdx: 0, cChama: null,
   frase: null, absurda: false, fraseAbs: null, absIdx: 0,
 
-  historico: [], busca: ''
+  historico: [], busca: '', avisoAberto: null
 };
 
 const FRASES = [
@@ -402,6 +414,24 @@ const EXEMPLOS = [
     { tipo: 'oferta', titulo: 'Filamento PLA 1 kg', detalhe: 'R$ 79,90', cupom: 'BANCADA20', ts: AGORA - 26 * HORA, quem: 'Thai' },
     { tipo: 'oferta', titulo: 'Jogo de espátulas pra mesa', detalhe: 'R$ 24,90', cupom: '', ts: AGORA - 30 * HORA, quem: 'Junior' }
   ];
+
+/* Avisos de cupom esgotado / de volta. {c} vira o código */
+const FRASES_ESGOTOU = [
+  '⚠️ O {c} já era, gente! Esgotou rapidinho 😭 Se voltar, a gente avisa.',
+  '😭 Acabou o {c}! Quem pegou, pegou. Fica de olho que se voltar a gente grita aqui.',
+  '🚫 {c} esgotado. O ML fechou a torneira. Se reabrir, vocês sabem onde vai aparecer 👀',
+  '⚠️ Atenção: o {c} esgotou. Não adianta tentar que não vai, a gente já testou 🥲',
+  '💨 Sumiu! O {c} esgotou. Próximo cupom a gente manda assim que aparecer.',
+  '😩 Foi bom enquanto durou: o {c} esgotou. Se voltar, aviso na hora.'
+];
+const FRASES_VOLTOU = [
+  '🔥 VOLTOU! O {c} tá ativo de novo, corre que some rápido.',
+  '🚨 Ressuscitou! O {c} voltou. Ativa pelo link do último post e aproveita.',
+  '👀 Olha quem voltou: o {c}! Não deixa pra depois que esgota de novo.',
+  '🔥 O {c} reabriu, gente! Quem perdeu da primeira vez, a hora é agora.',
+  '⚡ Voltou o {c}! Rápido que da última vez durou pouco.'
+];
+const fraseAviso = (acao, c) => { const l = acao === 'voltou' ? FRASES_VOLTOU : FRASES_ESGOTOU; return l[Math.floor(Math.random() * l.length)].replace('{c}', c); };
 
 /* ---------- ícones ---------- */
 const P = {
@@ -786,13 +816,33 @@ function nomeDia(ts) {
   if (mesmoDia(ts, Date.now() - 24 * HORA)) return 'Ontem';
   return new Date(ts).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
 }
+/* Último aviso de um código (esgotou ou voltou) */
+function statusCupom(code) {
+  let ult = null;
+  for (const p of S.historico) if (p.tipo === 'aviso' && p.cupom === code && (!ult || p.ts > ult.ts)) ult = p;
+  return ult ? { acao: (ult.dados && ult.dados.acao) || 'esgotou', ts: ult.ts } : null;
+}
+const ehPost = p => p.tipo !== 'aviso';
+function painelAviso(i) {
+  const p = S.historico[i];
+  const codes = (p.cupom || '').split(/\s+/).filter(Boolean);
+  return `<div class="aviso-painel">${codes.map(c => {
+    const st = statusCupom(c), acao = st && st.acao === 'esgotou' && st.ts >= p.ts ? 'voltou' : 'esgotou';
+    const txt = fraseAviso(acao, c);
+    const job = esc(JSON.stringify({ code: c, acao, texto: txt }));
+    const rot = acao === 'esgotou' ? `Avisar que ${c} esgotou` : `Avisar que ${c} voltou`;
+    return `<div class="aviso-linha"><span class="mono">${esc(c)}</span>${roboAtivo()
+      ? `<button class="btn sm ${acao === 'voltou' ? 'pri' : ''}" data-a="enviar-aviso" data-n="${job}">${acao === 'esgotou' ? 'Esgotou' : 'Voltou'}</button>`
+      : `<a class="btn sm ${acao === 'voltou' ? 'pri' : ''}" data-a="enviar-aviso" data-n="${job}" href="${esc(wa(txt))}" target="_blank" rel="noopener" aria-label="${esc(rot)}">${acao === 'esgotou' ? 'Esgotou' : 'Voltou'}</a>`}</div>`;
+  }).join('')}<p class="hint">Abre o WhatsApp com o aviso pronto${codes.length ? '; no Voltou, o código vai numa mensagem separada' : ''}.</p></div>`;
+}
 function numeros() {
-  const hoje = S.historico.filter(p => mesmoDia(p.ts, Date.now())).length;
-  const semana = S.historico.filter(p => Date.now() - p.ts < 7 * 864e5);
+  const hoje = S.historico.filter(p => ehPost(p) && mesmoDia(p.ts, Date.now())).length;
+  const semana = S.historico.filter(p => ehPost(p) && Date.now() - p.ts < 7 * 864e5);
   const dias = [...Array(7)].map((_, i) => { const t = Date.now() - (6 - i) * 864e5; return { t, n: semana.filter(p => mesmoDia(p.ts, t)).length }; });
   const max = Math.max(1, ...dias.map(d => d.n));
   const cont = {};
-  S.historico.filter(p => Date.now() - p.ts < 30 * 864e5).forEach(p => (p.cupom || '').split(/\s+/).filter(Boolean).forEach(c => { cont[c] = (cont[c] || 0) + 1; }));
+  S.historico.filter(p => ehPost(p) && Date.now() - p.ts < 30 * 864e5).forEach(p => (p.cupom || '').split(/\s+/).filter(Boolean).forEach(c => { cont[c] = (cont[c] || 0) + 1; }));
   const top = Object.entries(cont).sort((a, b) => b[1] - a[1]).slice(0, 3);
   const sem = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
   return `<div class="card nums">
@@ -810,8 +860,16 @@ function listaHistorico() {
   for (const { p, i } of itens) {
     const n = nomeDia(p.ts);
     if (n !== dia) { h += `<h2 class="dia" style="font-family:var(--body);margin-top:${dia ? 12 : 0}px">${n}</h2>`; dia = n; }
-    h += `<div class="item"><div style="flex:1;min-width:0"><div class="t">${esc(p.titulo)}</div><div class="d"><span>${esc(p.detalhe)}</span>${p.cupom ? `<span class="mono">${esc(p.cupom)}</span>` : '<span>sem cupom</span>'}</div></div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><span class="hint">${hora(p.ts)} · ${esc(p.quem)}</span><button class="btn sm btn-reusar" data-a="reusar" data-n="${i}" aria-label="Usar de novo: ${esc(p.titulo)}">${ico('trocar', 16)}<span class="txt-reusar">Usar de novo</span></button></div></div>`;
+    if (p.tipo === 'aviso') {
+      const ac = (p.dados && p.dados.acao) || 'esgotou';
+      h += `<div class="item aviso ${ac}"><span class="aviso-ico">${ac === 'voltou' ? '🔥' : '⚠️'}</span><div style="flex:1;min-width:0"><div class="t">${ac === 'voltou' ? 'Cupom voltou' : 'Cupom esgotou'}: <span class="mono">${esc(p.cupom)}</span></div></div><span class="hint">${hora(p.ts)} · ${esc(p.quem)}</span></div>`;
+      continue;
+    }
+    const codes = (p.cupom || '').split(/\s+/).filter(Boolean);
+    const chips = codes.length ? codes.map(c => { const st = statusCupom(c); const esg = st && st.acao === 'esgotou' && st.ts >= p.ts; return `<span class="mono${esg ? ' esgotado' : ''}">${esc(c)}${esg ? ` <small>esgotou ${hora(st.ts)}</small>` : ''}</span>`; }).join('') : '<span>sem cupom</span>';
+    const aberto = S.avisoAberto === i;
+    h += `<div class="item-box"><div class="item"><div style="flex:1;min-width:0"><div class="t">${esc(p.titulo)}</div><div class="d"><span>${esc(p.detalhe)}</span>${chips}</div></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span class="hint">${hora(p.ts)} · ${esc(p.quem)}</span><div class="row" style="gap:6px">${codes.length ? `<button class="btn sm btn-reusar" data-a="abrir-aviso" data-n="${i}" aria-expanded="${aberto}" aria-label="Avisar que um cupom esgotou ou voltou">${ico('alerta', 16)}<span class="txt-reusar">Esgotou?</span></button>` : ''}<button class="btn sm btn-reusar" data-a="reusar" data-n="${i}" aria-label="Usar de novo: ${esc(p.titulo)}">${ico('trocar', 16)}<span class="txt-reusar">Usar de novo</span></button></div></div></div>${aberto ? painelAviso(i) : ''}</div>`;
   }
   return h;
 }
@@ -911,6 +969,15 @@ function topo() { window.scrollTo(0, 0); }
 const A = {
   ir(n) { if (S.envio && n !== 'novo') return toast('Termine o envio ou toque em Concluir.'); if (S.disparo && S.disparo.ativo) return toast('Espere o envio terminar ou toque em Parar.'); if (S.disparo) fechaDisparo(); S.view = n; render(); topo(); if (n === 'historico' && sb) carregaHistorico().then(() => { if (S.view === 'historico') render(); }); },
   tipo(n) { S.tipo = n; render(); },
+  'abrir-aviso'(n) { S.avisoAberto = S.avisoAberto === +n ? null : +n; poe('#hist-lista', listaHistorico()); },
+  'enviar-aviso'(n) {
+    const j = JSON.parse(n), voltou = j.acao === 'voltou';
+    const job = { tipo: 'aviso', titulo: (voltou ? 'Voltou: ' : 'Esgotou: ') + j.code, detalhe: voltou ? 'Cupom de volta' : 'Cupom esgotado', cupom: j.code, dados: { acao: j.acao, code: j.code } };
+    S.avisoAberto = null;
+    if (roboAtivo() || voltou) S.view = 'novo';
+    if (roboAtivo()) return disparo({ ...job, mensagens: [{ tipo: 'texto', texto: j.texto }].concat(voltou ? [{ tipo: 'texto', texto: j.code }] : []) });
+    iniciaEnvio({ ...job, texto: j.texto, passos: voltou ? [j.code] : [] });
+  },
   reusar(n) {
     const p = S.historico[+n]; if (!p) return;
     const d = p.dados || {};
@@ -1099,6 +1166,7 @@ async function rodaDisparo() {
 }
 function fechaDisparo() { const d = S.disparo; S.disparo = null; if (d && d.salvo) limpaPost(d.tipo); }
 function limpaPost(tipo) {
+  if (tipo !== 'oferta' && tipo !== 'cupom') return;
   S.ed[tipo] = null; S.edAberto[tipo] = false;
   if (tipo === 'oferta') { S.msg = ''; S.link = ''; S.draft = null; S.coladaEm = null; S.step = 'form'; S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); }
   else { S.cupons = []; S.linkCupom = linkFixo(); S.cAbre = null; S.cChama = null; S.cAbreIdx = sorteia(ABERTURAS.length, S.cAbreIdx); }

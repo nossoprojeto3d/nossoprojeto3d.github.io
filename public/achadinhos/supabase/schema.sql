@@ -39,7 +39,7 @@ create table public.achadinhos_posts (
   created_at  timestamptz not null default now(),
   user_id     uuid not null default auth.uid() references auth.users (id),
   quem        text not null,
-  tipo        text not null check (tipo in ('oferta', 'cupom')),
+  tipo        text not null check (tipo in ('oferta', 'cupom', 'aviso')),  -- aviso = cupom esgotou/voltou (migração achadinhos_posts_tipo_aviso)
   titulo      text not null,
   detalhe     text,
   cupom       text,
