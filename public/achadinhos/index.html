@@ -148,6 +148,34 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 .item.aviso .t{font-size:14px;font-weight:500}
 .item.aviso .mono{color:var(--accent)}
 .aviso-ico{font-size:18px}
+.hist{display:flex;flex-direction:column;gap:12px}
+.hist-graf,.hist-col{display:flex;flex-direction:column;gap:12px;min-width:0}
+.graf-extra{display:none;flex-direction:column;gap:12px}
+.graf-extra.on{display:flex}
+.graf-tog{align-self:center}
+.graf{display:flex;flex-direction:column;gap:8px}
+.graf-t{display:flex;justify-content:space-between;align-items:baseline;font-weight:600;font-size:15px}
+.graf-t small{font-weight:500;color:var(--muted);font-size:12px}
+.barras em{font-style:normal;font-size:11px;color:var(--muted);min-height:13px}
+.horas{display:grid;grid-template-columns:repeat(24,1fr);gap:3px;height:34px}
+.horas i{border-radius:4px;background:var(--accent)}
+.horas-l{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.dupla{display:flex;flex-direction:column;gap:6px}
+.dupla-b{display:flex;height:12px;border-radius:6px;overflow:hidden;gap:2px}
+.dupla-b i{display:block;background:var(--accent)}
+.dupla-b i.b{background:var(--tk2)}
+.dupla-l{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.dupla-l strong{color:var(--text);margin-left:4px}
+.dupla-l span{display:flex;align-items:center;gap:6px}
+.dupla-l .pa,.dupla-l .pb{width:9px;height:9px;border-radius:3px;background:var(--accent);display:inline-block}
+.dupla-l .pb{background:var(--tk2)}
+.rank{display:flex;flex-direction:column;gap:8px}
+.rank-l{display:grid;grid-template-columns:minmax(0,9.5em) 1fr auto;gap:10px;align-items:center;font-size:13px}
+.rank-l .mono{color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-l .esgotado{text-decoration:line-through;opacity:.7}
+.rank-b{height:8px;border-radius:4px;background:var(--bg2);overflow:hidden}
+.rank-b i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.rank-l b{font-weight:600;color:var(--muted);font-size:12px}
 .chip-c{padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--bg2)}
 .chip-c small{color:var(--muted)}
 .quem{width:26px;height:26px;border-radius:50%;border:1px solid var(--muted);color:var(--accent);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center}
@@ -233,6 +261,29 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
   .duo .card{padding:12px}
   .envio-pe{position:sticky;bottom:-18px;margin-top:auto;padding:10px 0 12px;gap:4px;background:var(--bg);box-shadow:0 -14px 14px -6px var(--bg)}
   .duo .bolha.img{width:min(180px,100%)}
+  /* histórico: números de um lado, lista e busca do outro */
+  .main.fixa .hist-cab{max-width:none}
+  .hist{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:24px;flex:1;min-height:0}
+  .hist-graf,.hist-col{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 6px 18px 2px}
+  .hist-col{max-width:760px}
+  .hist-col input[type=search]{position:sticky;top:0;z-index:2;flex-shrink:0;box-shadow:0 -6px 0 6px var(--bg)}
+  .graf-extra{display:flex!important}
+  .graf-tog{display:none!important}
+  .hist-graf{gap:10px}
+  .hist-graf .card{padding:12px 14px}
+  .hist-graf .barras{height:54px}
+  .hist-graf .horas{height:28px}
+  .main.fixa .hist-cab .muted{display:none}
+  .hist-col .item{padding:10px 14px}
+}
+@media (min-width:960px) and (max-height:720px){
+  .hist-graf .nums-top b{font-size:24px}
+  .hist-graf .barras{height:44px}
+  .hist-graf .rank-l:nth-child(n+4){display:none}
+  .hist-graf .graf{gap:6px}
+  .hist-graf .card{padding:10px 14px}
+  .hist-graf{gap:8px}
+  .hist-graf .dupla-l{font-size:12px}
   .duo #ed-oferta,.duo #ed-cupom{min-height:170px!important}
   .so-cel{display:none!important}
   .so-web{display:block}
@@ -836,21 +887,45 @@ function painelAviso(i) {
       : `<a class="btn sm ${acao === 'voltou' ? 'pri' : ''}" data-a="enviar-aviso" data-n="${job}" href="${esc(wa(txt))}" target="_blank" rel="noopener" aria-label="${esc(rot)}">${acao === 'esgotou' ? 'Esgotou' : 'Voltou'}</a>`}</div>`;
   }).join('')}<p class="hint">Abre o WhatsApp com o aviso pronto${codes.length ? '; no Voltou, o código vai numa mensagem separada' : ''}.</p></div>`;
 }
+function barraDupla(rotA, nA, rotB, nB) {
+  const t = nA + nB, pa = t ? Math.round(nA / t * 100) : 0;
+  return `<div class="dupla"><div class="dupla-b" role="img" aria-label="${rotA}: ${nA}, ${rotB}: ${nB}"><i style="width:${t ? pa : 50}%"></i><i class="b" style="width:${t ? 100 - pa : 50}%"></i></div>
+    <div class="dupla-l"><span><b class="pa"></b>${rotA} <strong>${nA}</strong></span><span>${rotB} <strong>${nB}</strong><b class="pb"></b></span></div></div>`;
+}
 function numeros() {
-  const hoje = S.historico.filter(p => ehPost(p) && mesmoDia(p.ts, Date.now())).length;
-  const semana = S.historico.filter(p => ehPost(p) && Date.now() - p.ts < 7 * 864e5);
-  const dias = [...Array(7)].map((_, i) => { const t = Date.now() - (6 - i) * 864e5; return { t, n: semana.filter(p => mesmoDia(p.ts, t)).length }; });
+  const agora = Date.now(), posts = S.historico.filter(ehPost);
+  const hoje = posts.filter(p => mesmoDia(p.ts, agora)).length;
+  const semana = posts.filter(p => agora - p.ts < 7 * 864e5);
+  const mes = posts.filter(p => agora - p.ts < 30 * 864e5);
+  const dias = [...Array(7)].map((_, i) => { const t = agora - (6 - i) * 864e5; return { t, n: semana.filter(p => mesmoDia(p.ts, t)).length }; });
   const max = Math.max(1, ...dias.map(d => d.n));
-  const cont = {};
-  S.historico.filter(p => ehPost(p) && Date.now() - p.ts < 30 * 864e5).forEach(p => (p.cupom || '').split(/\s+/).filter(Boolean).forEach(c => { cont[c] = (cont[c] || 0) + 1; }));
-  const top = Object.entries(cont).sort((a, b) => b[1] - a[1]).slice(0, 3);
   const sem = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
-  return `<div class="card nums">
+  const resumo = `<div class="card nums">
     <div class="nums-top"><div><b>${hoje}</b><span>${hoje === 1 ? 'post hoje' : 'posts hoje'}</span></div><div><b>${semana.length}</b><span>nos últimos 7 dias</span></div><div><b>${(semana.length / 7).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}</b><span>por dia, em média</span></div></div>
-    <div class="barras" role="img" aria-label="Posts por dia nos últimos 7 dias: ${dias.map(d => d.n).join(', ')}">${dias.map(d => `<div><i style="height:${Math.round(d.n / max * 100)}%"></i><span>${sem[new Date(d.t).getDay()]}</span></div>`).join('')}</div>
-    <div class="lbl" style="margin-top:4px">Cupons mais usados (30 dias)</div>
-    <div class="d">${top.length ? top.map(([c, n]) => `<span class="mono chip-c">${esc(c)} <small>${n}×</small></span>`).join('') : '<span class="hint">Nenhum cupom ainda.</span>'}</div>
+    <div class="barras" role="img" aria-label="Posts por dia nos últimos 7 dias: ${dias.map(d => d.n).join(', ')}">${dias.map(d => `<div><em>${d.n || ''}</em><i style="height:${Math.round(d.n / max * 100)}%"></i><span>${sem[new Date(d.t).getDay()]}</span></div>`).join('')}</div>
   </div>`;
+  /* horários: em que hora do dia vocês mais postam (30 dias) */
+  const hs = Array(24).fill(0); mes.forEach(p => hs[new Date(p.ts).getHours()]++);
+  const hmax = Math.max(1, ...hs), pico = hs.indexOf(Math.max(...hs));
+  const horas = `<div class="card graf"><div class="graf-t"><span>Horário dos posts</span><small>${mes.length ? `pico às ${pico}h · ` : ''}30 dias</small></div>
+    <div class="horas" role="img" aria-label="Posts por hora do dia">${hs.map((n, h) => `<i title="${h}h: ${n}" style="opacity:${n ? .25 + .75 * n / hmax : .08}"></i>`).join('')}</div>
+    <div class="horas-l"><span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>23h</span></div>
+    ${mes.length ? '' : '<p class="hint">Ainda sem posts nos últimos 30 dias.</p>'}</div>`;
+  /* tipo e quem postou */
+  const nO = mes.filter(p => p.tipo === 'oferta').length, nC = mes.filter(p => p.tipo === 'cupom').length;
+  const nJ = mes.filter(p => /^j/i.test(p.quem)).length, nT = mes.filter(p => /^t/i.test(p.quem)).length;
+  const divisao = `<div class="card graf"><div class="graf-t"><span>Ofertas e cupons</span><small>30 dias</small></div>${barraDupla('Ofertas', nO, 'Cupons', nC)}
+    <div class="graf-t" style="margin-top:6px"><span>Quem postou</span></div>${barraDupla('Junior', nJ, 'Thai', nT)}</div>`;
+  /* cupons mais usados e esgotados */
+  const cont = {};
+  mes.forEach(p => (p.cupom || '').split(/\s+/).filter(Boolean).forEach(c => { cont[c] = (cont[c] || 0) + 1; }));
+  const top = Object.entries(cont).sort((a, b) => b[1] - a[1]).slice(0, 5), cmax = top.length ? top[0][1] : 1;
+  const esg = S.historico.filter(p => p.tipo === 'aviso' && (p.dados || {}).acao !== 'voltou' && agora - p.ts < 30 * 864e5).length;
+  const cupons = `<div class="card graf"><div class="graf-t"><span>Cupons mais usados</span><small>30 dias</small></div>
+    ${top.length ? `<div class="rank">${top.map(([c, n]) => { const st = statusCupom(c); const fora = st && st.acao === 'esgotou'; return `<div class="rank-l"><span class="mono${fora ? ' esgotado' : ''}">${esc(c)}</span><div class="rank-b"><i style="width:${Math.round(n / cmax * 100)}%"></i></div><b>${n}×</b></div>`; }).join('')}</div>` : '<p class="hint">Nenhum cupom ainda.</p>'}
+    <p class="hint">${esg ? `${esg} ${esg === 1 ? 'aviso de esgotado' : 'avisos de esgotado'} no período.` : 'Nenhum cupom esgotado no período.'}</p></div>`;
+  return `${resumo}<button class="btn link so-cel graf-tog" data-a="graf-tog" aria-expanded="${!!S.grafAberto}">${S.grafAberto ? 'Esconder os outros gráficos' : 'Ver mais gráficos'}</button>
+    <div class="graf-extra${S.grafAberto ? ' on' : ''}">${horas}${divisao}${cupons}</div>`;
 }
 function listaHistorico() {
   const q = S.busca.trim().toLowerCase();
@@ -874,11 +949,14 @@ function listaHistorico() {
   return h;
 }
 function telaHistorico() {
-  let h = `<div class="stack tight estreito"><h1>Histórico</h1><p class="muted">O que já foi pro grupo. Use o botão de cada post para montar ele de novo.</p></div>`;
+  let h = `<div class="stack tight estreito hist-cab"><h1>Histórico</h1><p class="muted">O que já foi pro grupo. Use o botão de cada post para montar ele de novo.</p></div>`;
   if (!S.historico.length) return h + `<div class="card estreito"><p>Nada enviado ainda.</p><p class="hint">O primeiro post aparece aqui assim que você enviar.</p><button class="btn sm" data-a="ir" data-n="novo" style="margin-top:12px">Criar um post</button></div>`;
-  return h + `<div class="stack tight estreito">${numeros()}
-    <input class="in" type="search" data-i="busca" placeholder="Buscar produto ou cupom" value="${esc(S.busca)}" aria-label="Buscar no histórico" autocomplete="off">
-    <div id="hist-lista" class="stack tight">${listaHistorico()}</div></div>`;
+  return h + `<div class="hist">
+    <section class="hist-graf" aria-label="Números">${numeros()}</section>
+    <section class="hist-col" aria-label="Posts enviados">
+      <input class="in" type="search" data-i="busca" placeholder="Buscar produto ou cupom" value="${esc(S.busca)}" aria-label="Buscar no histórico" autocomplete="off">
+      <div id="hist-lista" class="stack tight">${listaHistorico()}</div>
+    </section></div>`;
 }
 function telaAjustes() {
   return `<h1>Ajustes</h1>
@@ -942,7 +1020,7 @@ function render() {
     <aside class="side"><div class="marca" style="color:var(--text)"><div class="np"><img src="logo-np-verde.png" alt="Nosso Projeto 3D" width="26" height="31"></div><span style="font-family:var(--disp);font-weight:700;font-size:19px;line-height:1.05">Nossos Achadinhos</span></div>
       <nav aria-label="Principal">${abas()}</nav>
       <div class="pe"><span class="quem" aria-hidden="true" style="width:36px;height:36px;font-size:14px">${esc(S.user[0])}</span><span class="lbl">${esc(S.user)}</span></div></aside>
-    <main class="main${S.view === 'novo' && !S.disparo && !S.envio ? ' fixa' : ''}" id="main">${tela}</main>
+    <main class="main${(S.view === 'novo' && !S.disparo && !S.envio) || (S.view === 'historico' && S.historico.length) ? ' fixa' : ''}" id="main">${tela}</main>
     <nav class="tabs" aria-label="Principal">${abas()}</nav>
   </div>`;
 }
@@ -969,6 +1047,7 @@ function topo() { window.scrollTo(0, 0); }
 const A = {
   ir(n) { if (S.envio && n !== 'novo') return toast('Termine o envio ou toque em Concluir.'); if (S.disparo && S.disparo.ativo) return toast('Espere o envio terminar ou toque em Parar.'); if (S.disparo) fechaDisparo(); S.view = n; render(); topo(); if (n === 'historico' && sb) carregaHistorico().then(() => { if (S.view === 'historico') render(); }); },
   tipo(n) { S.tipo = n; render(); },
+  'graf-tog'() { S.grafAberto = !S.grafAberto; render(); },
   'abrir-aviso'(n) { S.avisoAberto = S.avisoAberto === +n ? null : +n; poe('#hist-lista', listaHistorico()); },
   'enviar-aviso'(n) {
     const j = JSON.parse(n), voltou = j.acao === 'voltou';
