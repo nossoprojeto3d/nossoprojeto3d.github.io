@@ -188,7 +188,7 @@ const HORA = 3600e3, AGORA = Date.now();
 const PROMPT = 'Crie uma imagem quadrada 1080x1080 para um post de cupom de desconto em um grupo de WhatsApp de makers e impressão 3D. Fundo verde escuro de tapete de corte (#0E3A34) com uma grade fina e discreta. No centro, um cupom grande em perspectiva 3D, cor creme (#FFF4D6), com linhas horizontais de camada como uma peça impressa em 3D, um símbolo de % e os recortes redondos nas laterais. Abaixo, o título "Saiu cupom!" em letras grandes, grossas e amarelas (#FFD23F), e a linha menor "Ativa pelo link e usa o código aqui embaixo" em branco. No rodapé, pequeno: "Junior e Thai, do Nosso Projeto 3D". Estilo limpo, divertido, sem fotos e sem logos de outras marcas.';
 
 const S = {
-  envio: null, user: null, view: 'novo', tipo: 'oferta', step: 'form',
+  envio: null, dentro: false, criar: false, user: null, view: 'novo', tipo: 'oferta', step: 'form',
   msg: '', link: '', draft: null, coladaEm: null, fraseIdx: 0,
   cupons: [{ code: 'MAKER15', regra: '15% OFF acima de R$ 99' }, { code: 'BANCADA20', regra: 'R$ 20 OFF acima de R$ 150' }],
   linkCupom: '', addAberto: false, img: null, avisarRepetido: true,
@@ -586,8 +586,16 @@ function telaAjustes() {
       <label class="sw card"><span>Avisar quando o produto já foi enviado hoje</span><input type="checkbox" data-i="avisar" ${S.avisarRepetido ? 'checked' : ''}></label>
     </section>
     <section class="stack tight"><h2>Conta</h2>
-      <div class="card row"><div><div class="lbl">${esc(S.user)}</div><div class="hint">${NUVEM ? 'Histórico compartilhado entre vocês dois.' : 'Versão de teste: o histórico some ao recarregar.'}</div></div><button class="btn sm" data-a="sair">Sair</button></div>
+      <div class="card row"><div><div class="lbl">${esc(S.user)}</div><div class="hint">${NUVEM ? 'Histórico compartilhado entre vocês dois.' : 'Versão de teste: o histórico some ao recarregar.'}</div></div><div class="row">${NUVEM ? '<button class="btn sm" data-a="trocar-quem">Trocar</button>' : ''}<button class="btn sm" data-a="sair">Sair</button></div></div>
     </section>
+  </div>`;
+}
+function telaQuem() {
+  return `<div class="login" style="justify-content:center;gap:16px">
+    <h1 style="font-size:34px">Quem está neste aparelho?</h1>
+    <p class="muted">Só pra marcar no histórico quem enviou cada post.</p>
+    <button class="btn pri block" data-a="quem" data-n="Junior">Junior</button>
+    <button class="btn pri block" data-a="quem" data-n="Thai">Thai</button>
   </div>`;
 }
 function telaLogin() {
@@ -598,9 +606,10 @@ function telaLogin() {
     <p class="muted" style="margin-top:12px">Vocês escolhem o que vai pro grupo. O app monta o post.</p>
     <form id="form-login" class="stack" style="margin-top:28px" novalidate>
       <div class="field"><label for="email">E-mail</label><input class="in" id="email" type="email" inputmode="email" placeholder="voce@email.com" autocomplete="username" autocapitalize="none"></div>
-      <div class="field"><label for="senha">Senha</label><input class="in" id="senha" type="password" placeholder="Sua senha" autocomplete="current-password"></div>
+      <div class="field"><label for="senha">Senha</label><input class="in" id="senha" type="password" placeholder="${S.criar ? 'Pelo menos 8 caracteres' : 'Sua senha'}" autocomplete="${S.criar ? 'new-password' : 'current-password'}"></div>
       <p class="erro" id="erro-login" role="alert" hidden></p>
-      <button class="btn pri block" type="submit">Entrar</button>
+      <button class="btn pri block" type="submit">${S.criar ? 'Criar a conta' : 'Entrar'}</button>
+      ${NUVEM ? `<button class="btn link block" type="button" data-a="modo-criar">${S.criar ? 'Já tenho conta' : 'Criar a conta (só na primeira vez)'}</button>${S.criar ? '<p class="hint" style="text-align:center">Uma conta só, para os dois. Depois de criada, ninguém mais consegue criar outra com acesso.</p>' : ''}` : ''}
       ${NUVEM ? '' : '<p class="hint" style="text-align:center">Versão de teste: qualquer e-mail e senha entram.</p>'}
     </form>
   </div>`;
@@ -609,7 +618,8 @@ const ABAS = [['novo', 'Novo post', 'mais'], ['historico', 'Histórico', 'relogi
 const abas = () => ABAS.map(([id, nome, ic]) => `<button class="tab" data-a="ir" data-n="${id}" ${S.view === id ? 'aria-current="page"' : ''}>${ico(ic, 22)}${nome}</button>`).join('');
 function render() {
   const app = $('#app');
-  if (!S.user) { app.innerHTML = telaLogin(); return; }
+  if (!S.dentro) { app.innerHTML = telaLogin(); return; }
+  if (!S.user) { app.innerHTML = telaQuem(); return; }
   const tela = S.view === 'novo' ? telaNovo() : S.view === 'historico' ? telaHistorico() : telaAjustes();
   app.innerHTML = `<div class="shell">
     <aside class="side"><div class="marca" style="color:var(--text)"><div class="np" aria-hidden="true">NP</div><span style="font-family:var(--disp);font-weight:700;font-size:19px;line-height:1.05">Nossos Achadinhos</span></div>
@@ -641,7 +651,10 @@ function topo() { window.scrollTo(0, 0); }
 const A = {
   ir(n) { if (S.envio && n !== 'novo') return toast('Termine o envio ou toque em Concluir.'); S.view = n; render(); topo(); if (n === 'historico' && sb) carregaHistorico().then(() => { if (S.view === 'historico') render(); }); },
   tipo(n) { S.tipo = n; render(); },
-  sair() { if (sb) sb.auth.signOut().catch(() => {}); S.user = null; S.historico = []; S.view = 'novo'; render(); topo(); },
+  sair() { if (sb) sb.auth.signOut().catch(() => {}); S.dentro = false; S.user = null; S.historico = []; S.view = 'novo'; render(); topo(); },
+  quem(n) { S.user = n; guarda('na-quem', n); render(); topo(); },
+  'trocar-quem'() { S.user = null; render(); topo(); },
+  'modo-criar'() { S.criar = !S.criar; render(); },
   async colar() {
     try { const t = await navigator.clipboard.readText(); if (t) { S.msg = t; S.draft = null; S.coladaEm = Date.now(); $('#msg').value = t; atualizaOferta(true); return; } } catch (e) {}
     $('#msg').focus(); toast('Toque no campo e escolha Colar.');
@@ -694,7 +707,6 @@ const NUVEM = !!(CFG.supabaseUrl && CFG.supabaseKey);
 let sb = null;
 const guarda = (k, v) => { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
 const le = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
-const nomeDe = u => (u.user_metadata && u.user_metadata.nome) || (/tha/i.test(u.email || '') ? 'Thai' : 'Junior');
 function carregaScript(src) { return new Promise((ok, erro) => { const t = document.createElement('script'); t.src = src; t.onload = ok; t.onerror = erro; document.head.appendChild(t); }); }
 async function ligaNuvem() {
   if (!NUVEM) return;
@@ -706,19 +718,21 @@ async function ligaNuvem() {
   } catch (e) { sb = null; toast('Sem conexão com o servidor. Tente de novo em instantes.'); }
 }
 async function entra(u) {
-  S.user = nomeDe(u);
-  try { const { data } = await sb.from('perfis').select('nome').eq('id', u.id).maybeSingle(); if (data && data.nome) S.user = data.nome; } catch (e) {}
+  /* a conta é uma só para os dois; quem está no aparelho fica guardado nele */
+  const { data, error } = await sb.from('membros').select('user_id').eq('user_id', u.id).maybeSingle();
+  if (error || !data) { await sb.auth.signOut().catch(() => {}); S.dentro = false; render(); erro('#erro-login', 'Essa conta não tem acesso ao Nossos Achadinhos.'); return; }
+  S.dentro = true; S.user = le('na-quem');
   await carregaHistorico(); render(); topo();
 }
 async function carregaHistorico() {
   if (!sb) return;
-  const { data, error } = await sb.from('achadinhos_posts').select('tipo,titulo,detalhe,cupom,quem,created_at').order('created_at', { ascending: false }).limit(300);
+  const { data, error } = await sb.from('posts').select('tipo,titulo,detalhe,cupom,quem,created_at').order('created_at', { ascending: false }).limit(300);
   if (error) { toast('Não consegui carregar o histórico.'); return; }
   S.historico = data.map(p => ({ tipo: p.tipo, titulo: p.titulo, detalhe: p.detalhe || '', cupom: p.cupom || '', quem: p.quem || '?', ts: Date.parse(p.created_at) }));
 }
 async function salvaPost(p) {
   if (!sb) return true;
-  const { error } = await sb.from('achadinhos_posts').insert({ tipo: p.tipo, titulo: p.titulo, detalhe: p.detalhe, cupom: p.cupom, quem: p.quem });
+  const { error } = await sb.from('posts').insert({ tipo: p.tipo, titulo: p.titulo, detalhe: p.detalhe, cupom: p.cupom, quem: p.quem });
   return !error;
 }
 async function copia(t) { try { await navigator.clipboard.writeText(t); return true; } catch (e) { return false; } }
@@ -787,13 +801,24 @@ document.addEventListener('submit', e => {
     if (NUVEM) {
       if (!sb) return erro('#erro-login', 'Sem conexão com o servidor. Tente de novo em instantes.');
       const bt = e.target.querySelector('button[type=submit]'); bt.disabled = true; erro('#erro-login', '');
+      if (S.criar) {
+        if (se.length < 8) { bt.disabled = false; return erro('#erro-login', 'A senha precisa ter pelo menos 8 caracteres.'); }
+        sb.auth.signUp({ email: em, password: se, options: { emailRedirectTo: location.origin + location.pathname } }).then(({ data, error }) => {
+          bt.disabled = false;
+          if (error) return erro('#erro-login', 'Não deu pra criar a conta. ' + (error.message || ''));
+          if (data.user && data.user.identities && !data.user.identities.length) return erro('#erro-login', 'Esse e-mail já tem conta. Volte e entre com a senha.');
+          if (data.session) return entra(data.user);
+          S.criar = false; render(); erro('#erro-login', 'Conta criada. Abra o e-mail de confirmação que chegou e depois entre aqui.');
+        }).catch(() => { bt.disabled = false; erro('#erro-login', 'Sem conexão com o servidor. Tente de novo em instantes.'); });
+        return;
+      }
       sb.auth.signInWithPassword({ email: em, password: se }).then(({ data, error }) => {
-        if (error || !data.user) { bt.disabled = false; return erro('#erro-login', 'E-mail ou senha incorretos.'); }
+        if (error || !data.user) { bt.disabled = false; return erro('#erro-login', /confirm/i.test(error && error.message || '') ? 'Confirme a conta pelo e-mail que chegou antes de entrar.' : 'E-mail ou senha incorretos.'); }
         return entra(data.user);
       }).catch(() => { bt.disabled = false; erro('#erro-login', 'Sem conexão com o servidor. Tente de novo em instantes.'); });
       return;
     }
-    S.user = /tha/i.test(em) ? 'Thai' : 'Junior'; S.historico = EXEMPLOS.slice(); render(); topo();
+    S.dentro = true; S.user = /tha/i.test(em) ? 'Thai' : 'Junior'; S.historico = EXEMPLOS.slice(); render(); topo();
   } else if (id === 'form-cupom') {
     const code = $('#c-code').value.toUpperCase().replace(/\s/g, ''), regra = $('#c-regra').value.trim();
     if (!code) return erro('#erro-cupom', 'Digite o código do cupom.');
