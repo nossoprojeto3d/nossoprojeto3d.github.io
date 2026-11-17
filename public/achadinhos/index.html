@@ -719,20 +719,20 @@ async function ligaNuvem() {
 }
 async function entra(u) {
   /* a conta é uma só para os dois; quem está no aparelho fica guardado nele */
-  const { data, error } = await sb.from('membros').select('user_id').eq('user_id', u.id).maybeSingle();
+  const { data, error } = await sb.from('achadinhos_membros').select('user_id').eq('user_id', u.id).maybeSingle();
   if (error || !data) { await sb.auth.signOut().catch(() => {}); S.dentro = false; render(); erro('#erro-login', 'Essa conta não tem acesso ao Nossos Achadinhos.'); return; }
   S.dentro = true; S.user = le('na-quem');
   await carregaHistorico(); render(); topo();
 }
 async function carregaHistorico() {
   if (!sb) return;
-  const { data, error } = await sb.from('posts').select('tipo,titulo,detalhe,cupom,quem,created_at').order('created_at', { ascending: false }).limit(300);
+  const { data, error } = await sb.from('achadinhos_posts').select('tipo,titulo,detalhe,cupom,quem,created_at').order('created_at', { ascending: false }).limit(300);
   if (error) { toast('Não consegui carregar o histórico.'); return; }
   S.historico = data.map(p => ({ tipo: p.tipo, titulo: p.titulo, detalhe: p.detalhe || '', cupom: p.cupom || '', quem: p.quem || '?', ts: Date.parse(p.created_at) }));
 }
 async function salvaPost(p) {
   if (!sb) return true;
-  const { error } = await sb.from('posts').insert({ tipo: p.tipo, titulo: p.titulo, detalhe: p.detalhe, cupom: p.cupom, quem: p.quem });
+  const { error } = await sb.from('achadinhos_posts').insert({ tipo: p.tipo, titulo: p.titulo, detalhe: p.detalhe, cupom: p.cupom, quem: p.quem });
   return !error;
 }
 async function copia(t) { try { await navigator.clipboard.writeText(t); return true; } catch (e) { return false; } }

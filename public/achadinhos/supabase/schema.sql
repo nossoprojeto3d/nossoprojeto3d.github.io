@@ -1,37 +1,39 @@
--- Nossos Achadinhos: banco próprio do app (projeto separado do Caixa).
--- Uma conta só, usada pelo Junior e pela Thai. A primeira conta criada vira membro;
+-- Nossos Achadinhos: tabelas do app dentro do projeto do Supabase do Caixa (plano gratuito só permite 2 projetos).
+-- Tudo tem o prefixo achadinhos_ e não toca em nada do Caixa. Aplicado em 17/11/2026, migração "achadinhos_conta_unica".
+-- Para remover tudo: drop trigger achadinhos_primeiro_membro on auth.users; drop table public.achadinhos_posts, public.achadinhos_membros; drop schema achadinhos_privado cascade;
+-- Uma conta só, usada pelo Junior e pela Thai. A primeira conta criada depois desta migração vira membro;
 -- contas criadas depois não leem nem gravam nada.
 
-create schema if not exists private;
+create schema if not exists achadinhos_privado;
 
-create table public.membros (
+create table public.achadinhos_membros (
   user_id    uuid primary key references auth.users (id) on delete cascade,
   criado_em  timestamptz not null default now()
 );
-alter table public.membros enable row level security;
-create policy membros_ler_o_seu on public.membros
+alter table public.achadinhos_membros enable row level security;
+create policy achadinhos_membros_ler_o_seu on public.achadinhos_membros
   for select to authenticated using (user_id = (select auth.uid()));
 
-create function private.is_membro() returns boolean
+create function achadinhos_privado.is_membro() returns boolean
   language sql stable security definer set search_path = ''
-  as $$ select exists (select 1 from public.membros where user_id = (select auth.uid())); $$;
-revoke all on function private.is_membro() from public, anon;
-grant usage on schema private to authenticated;
-grant execute on function private.is_membro() to authenticated;
+  as $$ select exists (select 1 from public.achadinhos_membros where user_id = (select auth.uid())); $$;
+revoke all on function achadinhos_privado.is_membro() from public, anon;
+grant usage on schema achadinhos_privado to authenticated;
+grant execute on function achadinhos_privado.is_membro() to authenticated;
 
-create function private.primeiro_membro() returns trigger
+create function achadinhos_privado.primeiro_membro() returns trigger
   language plpgsql security definer set search_path = ''
   as $$
 begin
-  insert into public.membros (user_id)
-  select new.id where not exists (select 1 from public.membros);
+  insert into public.achadinhos_membros (user_id)
+  select new.id where not exists (select 1 from public.achadinhos_membros);
   return new;
 end $$;
-revoke all on function private.primeiro_membro() from public, anon, authenticated;
-create trigger primeiro_membro after insert on auth.users
-  for each row execute function private.primeiro_membro();
+revoke all on function achadinhos_privado.primeiro_membro() from public, anon, authenticated;
+create trigger achadinhos_primeiro_membro after insert on auth.users
+  for each row execute function achadinhos_privado.primeiro_membro();
 
-create table public.posts (
+create table public.achadinhos_posts (
   id          bigint generated always as identity primary key,
   created_at  timestamptz not null default now(),
   user_id     uuid not null default auth.uid() references auth.users (id),
@@ -41,10 +43,10 @@ create table public.posts (
   detalhe     text,
   cupom       text
 );
-create index posts_created_at_idx on public.posts (created_at desc);
-create index posts_user_id_idx on public.posts (user_id);
-alter table public.posts enable row level security;
-create policy posts_ler on public.posts
-  for select to authenticated using ((select private.is_membro()));
-create policy posts_gravar on public.posts
-  for insert to authenticated with check ((select private.is_membro()) and user_id = (select auth.uid()));
+create index achadinhos_posts_created_at_idx on public.achadinhos_posts (created_at desc);
+create index achadinhos_posts_user_id_idx on public.achadinhos_posts (user_id);
+alter table public.achadinhos_posts enable row level security;
+create policy achadinhos_posts_ler on public.achadinhos_posts
+  for select to authenticated using ((select achadinhos_privado.is_membro()));
+create policy achadinhos_posts_gravar on public.achadinhos_posts
+  for insert to authenticated with check ((select achadinhos_privado.is_membro()) and user_id = (select auth.uid()));
