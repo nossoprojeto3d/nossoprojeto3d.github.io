@@ -687,6 +687,7 @@ function textoCupom() {
 const btnEnviar = (id, pode, txt) => `<a class="btn pri block${pode ? '' : ' off'}" id="${id}" data-a="${id}" ${pode ? `href="${esc(wa(txt()))}"` : 'aria-disabled="true"'} target="_blank" rel="noopener">${ico('enviar')}Enviar pro grupo</a>`;
 function sincEditor(tipo) { const t = $('#ed-' + tipo); if (t && S.ed[tipo] === null && document.activeElement !== t) t.value = textoFinal(tipo); }
 function ligaEnviar(id, pode, txt) {
+  const cp = $('#' + id + '-copiar'); if (cp) cp.disabled = !pode;
   for (const b of [$('#' + id), $('#' + id + '-manual')]) {
     if (!b) continue;
     if (b.tagName === 'BUTTON') { b.disabled = !(pode && gruposAtivos().length); continue; }
@@ -695,15 +696,16 @@ function ligaEnviar(id, pode, txt) {
   }
 }
 /* com o robô conectado, o botão dispara nos grupos; sem ele, abre o WhatsApp como antes */
+function btnCopiarMsg(id, pode) { return `<button class="btn block" id="${id}-copiar" data-a="copiar-msg" data-n="${id === 'enviar-oferta' ? 'oferta' : 'cupom'}" ${pode ? '' : 'disabled'}>${ico('copiar', 18)}Copiar mensagem</button>`; }
 function areaEnvio(id, pode, txt) {
-  if (!roboAtivo()) return btnEnviar(id, pode, txt);
+  if (!roboAtivo()) return btnEnviar(id, pode, txt) + btnCopiarMsg(id, pode);
   const gs = gruposAtivos(), n = gs.length;
   return `<div class="card stack tight">
       <div class="row"><span class="hint">Vai para</span><button class="btn link" data-a="ir" data-n="ajustes">Mudar</button></div>
       <div class="chips">${gs.map(g => `<span class="chip">${esc(g.nome)}</span>`).join('') || '<span class="hint">Nenhum grupo escolhido. Escolha em Ajustes.</span>'}</div>
     </div>
     <button class="btn pri block" id="${id}" data-a="${id}" ${pode && n ? '' : 'disabled'}>${ico('enviar')}${n > 1 ? `Enviar pros ${n} grupos` : 'Enviar pro grupo'}</button>
-    <a class="btn link block${pode ? '' : ' off'}" id="${id}-manual" data-a="${id}" data-n="manual" ${pode ? `href="${esc(wa(txt()))}"` : 'aria-disabled="true"'} target="_blank" rel="noopener">Enviar pelo meu WhatsApp</a>`;
+    <a class="btn link block${pode ? '' : ' off'}" id="${id}-manual" data-a="${id}" data-n="manual" ${pode ? `href="${esc(wa(txt()))}"` : 'aria-disabled="true"'} target="_blank" rel="noopener">Enviar pelo meu WhatsApp</a>${btnCopiarMsg(id, pode)}`;
 }
 function bolhasOferta() {
   const d = dados();
@@ -894,17 +896,19 @@ function telaCupom() {
     </section>
   </div>`;
 }
+function passoHint() { const e = S.envio; return e && e.copiado ? 'O código já está copiado. Dá pra colar direto na conversa.' : 'Toque em Copiar código para colar na conversa, ou mande pelo botão acima.'; }
 function telaPassos() {
   const e = S.envio, c = e.passos[e.i], n = e.passos.length;
   return `<div class="stack estreito">
     <h1>${n > 1 ? `Código ${e.i + 1} de ${n}` : 'Agora o cupom'}</h1>
     <p class="muted">${e.i === 0 ? 'O post abriu no WhatsApp. Depois de enviar lá, volte aqui e mande o código.' : 'Mande o próximo código.'}</p>
     <div class="ticket" style="min-height:72px"><span class="code" id="passo-code" style="font-size:22px">${esc(c)}</span><span class="regra"></span></div>
-    <p class="hint">O código já está copiado. Dá pra colar direto na conversa.</p>
+    <p class="hint" id="passo-hint">${passoHint()}</p>
     <a class="btn pri block" id="passo" data-a="passo" href="${esc(wa(c))}" target="_blank" rel="noopener">${ico('enviar')}Enviar o código no WhatsApp</a>
-    <button class="btn block" data-a="copiar-code">${ico('copiar', 18)}Copiar de novo</button>
+    <button class="btn block" data-a="copiar-code">${ico('copiar', 18)}Copiar código</button>
     <a class="btn block" href="${esc(wa(e.texto))}" target="_blank" rel="noopener">Abrir o post de novo no WhatsApp</a>
-    <button class="btn link block" data-a="concluir" style="color:var(--muted)">Concluir sem enviar o resto</button>
+    <button class="btn block" data-a="novo-de-novo">${ico('mais', 18)}Pronto, fazer outro post</button>
+    <button class="btn link block" data-a="concluir" style="color:var(--muted)">Concluir e ver o histórico</button>
   </div>`;
 }
 function telaDisparo() {
@@ -1209,7 +1213,7 @@ function topo() { window.scrollTo(0, 0); }
 
 /* ---------- ações ---------- */
 const A = {
-  ir(n) { if (S.envio && n !== 'novo') return toast('Termine o envio ou toque em Concluir.'); if (S.disparo && S.disparo.ativo) return toast('Espere o envio terminar ou toque em Parar.'); if (S.disparo) fechaDisparo(); S.view = n; render(); topo(); if (n === 'historico' && sb) carregaHistorico().then(() => { if (S.view === 'historico') render(); }); },
+  ir(n) { if (S.envio) { concluiEnvio(n, true); toast('Post salvo no histórico.'); if (n === 'historico' && sb) carregaHistorico().then(() => { if (S.view === 'historico') render(); }); return; } if (S.disparo && S.disparo.ativo) return toast('Espere o envio terminar ou toque em Parar.'); if (S.disparo) fechaDisparo(); S.view = n; render(); topo(); if (n === 'historico' && sb) carregaHistorico().then(() => { if (S.view === 'historico') render(); }); },
   tipo(n) { S.tipo = n; render(); },
   'graf-tog'() { S.grafAberto = !S.grafAberto; refazHist(); },
   hf(n) { const [k, v] = n.split(':'); S.hf[k] = k === 'dias' ? +v : v; refazHist(); },
@@ -1279,9 +1283,17 @@ const A = {
     if (n !== 'manual' && roboAtivo()) return disparo({ tipo: 'cupom', titulo: `Post de cupom, ${q} ${q === 1 ? 'código' : 'códigos'}`, detalhe: 'Cupons', cupom: S.cupons.map(c => c.code).join(' '), dados: dadosPost('cupom'), mensagens: [{ tipo: 'imagem', texto: txtC() }].concat(S.cupons.map(c => ({ tipo: 'texto', texto: c.code }))) });
     iniciaEnvio({ tipo: 'cupom', titulo: `Post de cupom, ${q} ${q === 1 ? 'código' : 'códigos'}`, detalhe: 'Cupons', cupom: S.cupons.map(c => c.code).join(' '), dados: dadosPost('cupom'), texto: txtC(), passos: S.cupons.map(c => c.code) });
   },
-  passo() { const e = S.envio; if (!e) return; setTimeout(() => { if (S.envio !== e) return; e.i++; if (e.i >= e.passos.length) concluiEnvio(); else { copia(e.passos[e.i]); render(); topo(); } }, 500); },
-  'copiar-code'() { const e = S.envio; if (e) copia(e.passos[e.i]).then(ok => toast(ok ? 'Código copiado.' : 'Não deu pra copiar. Segure o dedo no código.')); },
+  passo() { const e = S.envio; if (!e) return; const prox = e.passos[e.i + 1]; e.copiado = prox ? copiaJa(prox) : false; setTimeout(() => { if (S.envio !== e) return; e.i++; if (e.i >= e.passos.length) concluiEnvio(); else { render(); topo(); } }, 500); },
+  'copiar-code'() { const e = S.envio; if (!e) return; copia(e.passos[e.i]).then(ok => { e.copiado = ok; poe('#passo-hint', passoHint()); toast(ok ? 'Código copiado.' : 'Não deu pra copiar. Segure o dedo no código.'); }); },
+  'novo-de-novo'() { concluiEnvio('novo'); toast('Salvo no histórico. Bora pro próximo.'); },
   concluir() { concluiEnvio(); },
+  'copiar-msg'(tipo) {
+    const pode = tipo === 'oferta' ? podeOferta() : podeCupom(); if (!pode) return;
+    const ok = copiaJa(tipo === 'oferta' ? txtO() : txtC());
+    if (!ok) { copia(tipo === 'oferta' ? txtO() : txtC()).then(o => toast(o ? 'Mensagem copiada. Cole no grupo.' : 'Não deu pra copiar.')); }
+    else toast('Mensagem copiada. Cole no grupo.');
+    S.copiandoMsg = true; A['enviar-' + tipo]('manual', { preventDefault() {} }); S.copiandoMsg = false;
+  },
   async 'share-img'() {
     try { const f = await arquivoImagem(); await navigator.share({ files: [f] }); }
     catch (e) { if (e && e.name !== 'AbortError') toast('Não deu pra compartilhar a imagem aqui.'); }
@@ -1496,26 +1508,39 @@ async function salvaPost(p) {
   const { error } = await sb.from('achadinhos_posts').insert({ tipo: p.tipo, titulo: p.titulo, detalhe: p.detalhe, cupom: p.cupom, dados: p.dados || null, quem: p.quem });
   return !error;
 }
-async function copia(t) { try { await navigator.clipboard.writeText(t); return true; } catch (e) { return false; } }
+/* chame direto no toque: no iPhone a cópia fora do toque (depois de um setTimeout ou ao voltar do WhatsApp) é recusada */
+function copiaJa(t) {
+  let ok = false;
+  try {
+    const a = document.createElement('textarea');
+    a.value = t; a.setAttribute('readonly', ''); a.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;font-size:16px';
+    document.body.appendChild(a); a.select(); a.setSelectionRange(0, t.length);
+    ok = document.execCommand('copy'); a.remove();
+  } catch (e) {}
+  return ok;
+}
+async function copia(t) { if (copiaJa(t)) return true; try { await navigator.clipboard.writeText(t); return true; } catch (e) { return false; } }
 /* O que dá pra remontar o post depois, pelo histórico */
 function dadosPost(tipo) {
   if (tipo === 'oferta') { const d = dados(); return { produto: d.produto, preco: d.preco, cupom: d.cupom, regras: d.regras || {}, link: S.link.trim(), frase: fraseAtual(), absurda: S.absurda, fraseAbs: S.absurda ? absAtual() : null }; }
   return { cupons: S.cupons.map(c => ({ code: c.code, regra: c.regra || '' })), link: S.linkCupom.trim(), abre: abreAtual(), chama: chamaAtual(), nota: S.cNota.trim() };
 }
 function iniciaEnvio(e) {
+  if (S.copiandoMsg) e.copiouMsg = true;
   e.i = 0;
-  if (e.passos.length) copia(e.passos[0]);
+  e.copiado = !e.copiouMsg && e.passos.length ? copiaJa(e.passos[0]) : false;
+  if (!e.copiouMsg && e.passos.length && !e.copiado) copia(e.passos[0]).then(ok => { e.copiado = ok; });
   /* espera o link abrir o WhatsApp antes de trocar a tela */
   setTimeout(() => { S.envio = e; if (!e.passos.length) concluiEnvio(); else { render(); topo(); } }, 500);
 }
-function concluiEnvio() {
+function concluiEnvio(destino = 'historico', quieto = false) {
   const e = S.envio; if (!e) return;
   const post = { tipo: e.tipo, titulo: e.titulo, detalhe: e.detalhe, cupom: e.cupom, dados: e.dados, ts: Date.now(), quem: S.user };
   S.historico.push(post);
   salvaPost(post).then(ok => { if (!ok) toast('Enviado, mas não salvou no histórico compartilhado.'); });
   limpaPost(e.tipo);
-  S.envio = null; S.view = 'historico'; render(); topo();
-  toast('Salvo no histórico.');
+  S.envio = null; S.view = destino; render(); topo();
+  if (!quieto) toast('Salvo no histórico.');
 }
 function podeArquivo() { try { return !!navigator.canShare && navigator.canShare({ files: [new File([''], 'a.png', { type: 'image/png' })] }); } catch (e) { return false; } }
 async function arquivoImagem() {
