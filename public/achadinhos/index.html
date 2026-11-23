@@ -97,6 +97,11 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 .wa .cap{align-self:flex-start;font-size:12px;color:#8696A0}
 .bolha{max-width:min(310px,100%);border-radius:12px 12px 2px 12px;background:var(--wa-out);padding:10px 12px;font-family:system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.38;color:#E9EDEF;white-space:pre-wrap;overflow-wrap:anywhere}
 .bolha b{font-weight:600}
+.msg{display:flex;flex-direction:column;align-items:flex-end;gap:6px;width:100%}
+.macoes{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.macoes .btn.sm{min-height:40px;padding:0 12px;font-size:13.5px;gap:6px;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.14);color:#E9EDEF}
+.macoes .btn.sm.feito,.macoes.feito .btn.sm{opacity:.7}
+.tiques{float:right;margin:6px 0 -4px 10px;font-size:12px;letter-spacing:-3px;color:#53BDEB;font-family:system-ui}
 .bolha .lk{color:#53BDEB}
 .bolha.img{padding:4px 4px 10px;width:min(290px,100%)}
 .bolha.img .txt{padding:8px 8px 0}
@@ -281,6 +286,7 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
   .duo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;flex:1;min-height:0}
   .duo .pane,.duo .pv{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 6px 18px 2px;gap:12px}
   .duo .pane-previa{display:contents!important}
+  .duo .pane-previa.pane-cupom{display:flex!important}
   .duo[data-step] .pane-form{display:flex}
   .duo .in{min-height:44px;padding:10px 14px}
   .duo textarea.in{min-height:150px}
@@ -352,7 +358,7 @@ const S = {
   cupons: [{ code: 'MAKER15', regra: '15% OFF acima de R$ 99' }, { code: 'BANCADA20', regra: 'R$ 20 OFF acima de R$ 150' }],
   linkCupom: '', addAberto: false, img: null, avisarRepetido: true,
   manual: false,
-  cAbre: null, cAbreIdx: 0, cChama: null, msgC: '', cNota: '',
+  cAbre: null, cAbreIdx: 0, cChama: null, msgC: '', cNota: '', feitos: {}, stepC: 'form', cZero: false,
   frase: null, absurda: false, fraseAbs: null, absIdx: 0,
 
   historico: [], busca: '', avisoAberto: null, hf: { dias: 30, quem: 'todos' }, grafAberto: false
@@ -695,6 +701,7 @@ function textoCupom() {
 const btnEnviar = (id, pode, txt, sec) => `<a class="btn ${sec ? '' : 'pri '}block${pode ? '' : ' off'}" id="${id}" data-a="${id}" ${pode ? `href="${esc(wa(txt()))}"` : 'aria-disabled="true"'} target="_blank" rel="noopener">${ico('enviar')}${sec ? 'Abrir no WhatsApp' : 'Enviar pro grupo'}</a>`;
 function sincEditor(tipo) { const t = $('#ed-' + tipo); if (t && S.ed[tipo] === null && document.activeElement !== t) t.value = textoFinal(tipo); }
 function ligaEnviar(id, pode, txt) {
+  const tp = id === 'enviar-oferta' ? 'oferta' : 'cupom', cc = $('#concluir-' + tp); if (cc) cc.outerHTML = btnConcluir(tp, pode).split('\n')[0];
   const cp = $('#' + id + '-copiar'); if (cp) cp.disabled = !pode;
   for (const b of [$('#' + id), $('#' + id + '-manual')]) {
     if (!b) continue;
@@ -704,6 +711,12 @@ function ligaEnviar(id, pode, txt) {
   }
 }
 /* com o robô conectado, o botão dispara nos grupos; sem ele, abre o WhatsApp como antes */
+function btnConcluir(tipo, pode) {
+  const k = ['post'].concat(tipo === 'oferta' ? codigos(dados()).map(c => 'c:' + c) : S.cupons.map(c => 'c:' + c.code));
+  const tudo = pode && k.every(feito);
+  return `<button class="btn ${tudo ? 'pri ' : ''}block" id="concluir-${tipo}" data-a="concluir-post" data-n="${tipo}" ${pode ? '' : 'disabled'}>${ico('ok', 18)}${tudo ? 'Tudo enviado! Salvar e fazer outro' : 'Salvar no histórico e fazer outro'}</button>
+    <p class="hint" style="text-align:center">${tipo === 'cupom' && podeArquivo() ? 'Mande a imagem, o post e cada código pelos botões de cada mensagem.' : 'Copie ou mande cada mensagem pelos botões dela.'}</p>`;
+}
 function btnCopiarMsg(id, pode, pri) { return `<button class="btn ${pri ? 'pri ' : ''}block" id="${id}-copiar" data-a="copiar-msg" data-n="${id === 'enviar-oferta' ? 'oferta' : 'cupom'}" ${pode ? '' : 'disabled'}>${ico('copiar', 18)}${pri ? 'Copiar post' : 'Copiar mensagem'}</button>`; }
 function areaEnvio(id, pode, txt) {
   if (!roboAtivo()) return S.modo === 'copiar' ? btnCopiarMsg(id, pode, true) + btnEnviar(id, pode, txt, true) : btnEnviar(id, pode, txt) + btnCopiarMsg(id, pode);
@@ -715,13 +728,22 @@ function areaEnvio(id, pode, txt) {
     <button class="btn pri block" id="${id}" data-a="${id}" ${pode && n ? '' : 'disabled'}>${ico('enviar')}${n > 1 ? `Enviar pros ${n} grupos` : 'Enviar pro grupo'}</button>
     <a class="btn link block${pode ? '' : ' off'}" id="${id}-manual" data-a="${id}" data-n="manual" ${pode ? `href="${esc(wa(txt()))}"` : 'aria-disabled="true"'} target="_blank" rel="noopener">Enviar pelo meu WhatsApp</a>${btnCopiarMsg(id, pode)}`;
 }
+/* cada mensagem da prévia tem seus botões: copiar e mandar no WhatsApp; ✓✓ quando já foi */
+const feito = k => !!(S.feitos && S.feitos[k]);
+const tique = k => feito(k) ? '<span class="tiques" aria-label="já foi">✓✓</span>' : '';
+function acoesMsg(k, texto, pode, extra = '') {
+  return `<div class="macoes${feito(k) ? ' feito' : ''}">${extra}<button class="btn sm" data-a="m-copiar" data-n="${esc(k)}" ${pode ? '' : 'disabled'}>${ico('copiar', 16)}Copiar</button><a class="btn sm${pode ? '' : ' off'}" data-a="m-wa" data-n="${esc(k)}" ${pode ? `href="${esc(wa(texto))}"` : 'aria-disabled="true"'} target="_blank" rel="noopener">${ico('enviar', 16)}WhatsApp</a></div>`;
+}
+/* texto de cada mensagem pela chave: post, c:CODIGO */
+function textoMsg(tipo, k) { return k === 'post' ? textoFinal(tipo) : k.slice(2); }
 function bolhasOferta() {
   const d = dados();
   if (!S.manual && !S.msg.trim()) return '<div class="vazio">Cole uma mensagem para ver como o post chega no grupo.</div>';
   const pc = partesCupom(d), fr = fraseAtual(), lk = S.link.trim() || 'seu link aqui';
   const ab = S.absurda && absAtual().trim() ? esc(absAtual().trim()) + '\n\n' : '';
-  let h = S.ed.oferta !== null ? `<div class="bolha">${comLinks(S.ed.oferta)}</div>` : `<div class="bolha">${ab}${d.produto.trim() ? `<b>${esc(d.produto.trim())}</b>` : '<b class="ph">Nome do produto</b>'}\n${esc(pc.linha)}\n\n${pc.lista ? esc(pc.lista) + '\n\n' : ''}${fr.trim() ? esc(fr.trim()) + '\n' : ''}Entra aqui: <span class="lk">${esc(lk)}</span></div>`;
-  codigos(d).forEach(c => { h += `<div class="bolha">${esc(c)}</div>`; });
+  const pode = podeOferta();
+  let h = `<div class="msg">` + (S.ed.oferta !== null ? `<div class="bolha">${comLinks(S.ed.oferta)}${tique('post')}</div>` : `<div class="bolha">${ab}${d.produto.trim() ? `<b>${esc(d.produto.trim())}</b>` : '<b class="ph">Nome do produto</b>'}\n${esc(pc.linha)}\n\n${pc.lista ? esc(pc.lista) + '\n\n' : ''}${fr.trim() ? esc(fr.trim()) + '\n' : ''}Entra aqui: <span class="lk">${esc(lk)}</span>${tique('post')}</div>`) + acoesMsg('post', txtO(), pode) + '</div>';
+  codigos(d).forEach(c => { h += `<div class="msg"><div class="bolha">${esc(c)}${tique('c:' + c)}</div>${acoesMsg('c:' + c, c, pode)}</div>`; });
   return h;
 }
 function avisosOferta() {
@@ -763,8 +785,7 @@ function previaOferta() {
   <div id="ed-oferta-box">${editor('oferta')}</div>
   <div id="avisos" class="stack tight">${avisosOferta()}</div>
   <div class="envio-pe">
-  <p class="hint so-cel" style="text-align:center">O cupom vai sozinho logo abaixo da oferta. Sem cupom, vai só a oferta.</p>
-  ${areaEnvio('enviar-oferta', podeOferta(), txtO)}
+  ${roboAtivo() ? areaEnvio('enviar-oferta', podeOferta(), txtO) : btnConcluir('oferta', podeOferta())}
   <button class="btn link block" data-a="descartar" style="color:var(--muted)">Limpar</button>
   </div>
   </div>`;
@@ -807,7 +828,7 @@ function telaOferta() {
       <div class="seg mini origem" role="group" aria-label="Começar com"><button data-a="origem" data-n="pronta" aria-pressed="${!S.manual}">Mensagem pronta</button><button data-a="origem" data-n="zero" aria-pressed="${S.manual}">Do zero</button></div>
       ${campos}
       <p class="erro" id="erro-oferta" role="alert" hidden></p>
-      <button class="btn pri block so-cel" data-a="montar">Montar post</button>
+      <button class="btn pri block so-cel" data-a="montar">Post pronto</button>
       <button class="btn link block so-cel" data-a="descartar" style="color:var(--muted)">Limpar</button>
       ${S.manual ? '' : '<p class="hint">No WhatsApp, compartilhe a mensagem com o atalho Nossos Achadinhos e ela já chega colada aqui.</p>'}
     </section>
@@ -838,9 +859,11 @@ function bolhasCupom() {
   if (!S.cupons.length) return '<div class="vazio">Adicione um cupom para ver o post.</div>';
   const lk = S.linkCupom.trim() || 'seu link aqui';
   const linhas = S.cupons.map(c => `${esc(c.code)}${c.regra ? ': ' + esc(c.regra) : ''}`).join('\n');
-  if (S.ed.cupom !== null) return `<div class="bolha img">${capa(false)}<div class="txt">${comLinks(S.ed.cupom)}</div></div>` + S.cupons.map(c => `<div class="bolha">${esc(c.code)}</div>`).join('');
-  return `<div class="bolha img">${capa(false)}<div class="txt">${abreAtual().trim() ? '<b>' + esc(abreAtual().trim()) + '</b>\n' : ''}${S.cNota.trim() ? '⚠️ ' + esc(S.cNota.trim()) + '\n' : ''}${linhas}\n\n${chamaAtual().trim() ? esc(chamaAtual().trim()) + '\n' : ''}<span class="lk">${esc(lk)}</span></div></div>`
-    + S.cupons.map(c => `<div class="bolha">${esc(c.code)}</div>`).join('');
+  const pode = podeCupom();
+  const img = roboAtivo() ? '' : podeArquivo() ? `<button class="btn sm${feito('img') ? ' feito' : ''}" data-a="m-img">${ico('subir', 16)}Imagem</button>` : '';
+  const txt = S.ed.cupom !== null ? comLinks(S.ed.cupom) : `${abreAtual().trim() ? '<b>' + esc(abreAtual().trim()) + '</b>\n' : ''}${S.cNota.trim() ? '⚠️ ' + esc(S.cNota.trim()) + '\n' : ''}${linhas}\n\n${chamaAtual().trim() ? esc(chamaAtual().trim()) + '\n' : ''}<span class="lk">${esc(lk)}</span>`;
+  return `<div class="msg"><div class="bolha img">${capa(false)}<div class="txt">${txt}${tique('post')}</div></div>${acoesMsg('post', txtC(), pode, img)}</div>`
+    + S.cupons.map(c => `<div class="msg"><div class="bolha">${esc(c.code)}${tique('c:' + c.code)}</div>${acoesMsg('c:' + c.code, c.code, pode)}</div>`).join('');
 }
 function chkMsgC() {
   if (!S.msgC.trim()) return '';
@@ -857,14 +880,15 @@ function aplicaMsgC() {
 }
 function telaCupom() {
   return `
-  <div class="duo" data-step="todos">
-    <section class="pane" aria-label="Cupons e link">
+  <div class="duo" data-step="${S.stepC}">
+    <section class="pane pane-form" aria-label="Cupons e link">
       <div class="passo-tit so-web"><b>1</b>Cupons e link</div>
-      <div class="field">
+      <div class="seg mini origem" role="group" aria-label="Começar com"><button data-a="origem-c" data-n="pronta" aria-pressed="${!S.cZero}">Mensagem pronta</button><button data-a="origem-c" data-n="zero" aria-pressed="${S.cZero}">Do zero</button></div>
+      ${S.cZero ? '' : `<div class="field">
         <div class="row"><label for="msgc">Mensagem que você viu</label><button class="btn link" data-a="colar-cupom">${ico('colar', 18)}Colar</button></div>
         <textarea class="in" id="msgc" data-i="msgc" rows="4" placeholder="Cole aqui o post de cupom de outro grupo.">${esc(S.msgC)}</textarea>
         <div id="chk-msgc">${chkMsgC()}</div>
-      </div>
+      </div>`}
       <div class="stack tight" id="cupons">${listaCupons()}</div>
       <div id="add">${formCupom()}</div>
       <div class="field">
@@ -874,7 +898,7 @@ function telaCupom() {
         <div id="fixo-linkc">${fixoLink()}</div>
       </div>
     </section>
-    <section class="pane" aria-label="Texto e imagem">
+    <section class="pane pane-form" aria-label="Texto e imagem">
       <div class="passo-tit so-web"><b>2</b>Texto e imagem</div>
       <div class="field">
         <div class="row"><label for="c-abre">Texto de abertura</label><button class="btn link" data-a="trocar-abre">${ico('trocar', 16)}Trocar</button></div>
@@ -889,15 +913,19 @@ function telaCupom() {
         <input class="in" id="c-chama" data-i="c-chama" value="${esc(chamaAtual())}" placeholder="Sem chamada" autocomplete="off">
       </div>
       <div id="bloco-img">${blocoImagem()}</div>
+      <button class="btn pri block so-cel" data-a="post-pronto-c">Post pronto</button>
+      <button class="btn link block so-cel" data-a="limpar-cupom" style="color:var(--muted)">Limpar</button>
     </section>
-    <section class="pane" aria-label="Prévia do post de cupom">
+    <section class="pane pane-previa pane-cupom" aria-label="Prévia do post de cupom">
+      <div class="row so-cel" style="justify-content:flex-start">
+        <button class="btn link" data-a="voltar-c" aria-label="Voltar para os campos" style="margin-left:-10px">${ico('voltar', 24)}</button>
+        <h2>Prévia do post</h2>
+      </div>
       <div class="passo-tit so-web"><b>3</b>Confira e envie</div>
       <div class="wa"><div class="cap">Como chega no grupo</div><div id="bolhas-c" style="display:contents">${bolhasCupom()}</div></div>
       <div id="ed-cupom-box">${editor('cupom')}</div>
       <div class="envio-pe">
-      <p class="hint so-cel" style="text-align:center">Depois do post vai uma mensagem só com cada código, pra copiar fácil.</p>
-      ${areaEnvio('enviar-cupom', podeCupom(), txtC)}
-      ${roboAtivo() ? '<p class="hint" style="text-align:center">O robô manda a imagem junto com o post.</p>' : podeArquivo() ? `<button class="btn block" data-a="share-img">${ico('subir', 18)}Compartilhar a imagem</button><p class="hint" style="text-align:center">A imagem vai separada, antes do texto.</p>` : '<p class="hint" style="text-align:center">Aqui a imagem não vai junto. No app publicado aparece o botão de compartilhar a imagem.</p>'}
+      ${roboAtivo() ? areaEnvio('enviar-cupom', podeCupom(), txtC) + '<p class="hint" style="text-align:center">O robô manda a imagem junto com o post.</p>' : btnConcluir('cupom', podeCupom())}
       <button class="btn link block" data-a="limpar-cupom" style="color:var(--muted)">Limpar</button>
       </div>
     </section>
@@ -1136,10 +1164,6 @@ function telaHistorico() {
 function telaAjustes() {
   return `<h1>Ajustes</h1>
   <div class="stack estreito">
-    <section class="stack tight"><h2>Jeito de enviar</h2>
-      <div class="seg" role="group" aria-label="Jeito de enviar"><button data-a="modo" data-n="copiar" aria-pressed="${S.modo === 'copiar'}">Copiar e colar</button><button data-a="modo" data-n="abrir" aria-pressed="${S.modo === 'abrir'}">Abrir o WhatsApp</button></div>
-      <p class="hint">${S.modo === 'copiar' ? 'Deixe o grupo aberto no WhatsApp: o app copia o post e os códigos, você só cola. Ninguém precisa escolher a conversa.' : 'O botão abre o WhatsApp com o post pronto e você escolhe o grupo a cada mensagem.'}</p>
-    </section>
     <section class="stack tight"><h2>Robô do WhatsApp</h2><div id="bloco-robo" class="stack tight">${blocoRobo()}</div></section>
     <section class="stack tight"><h2>Imagem do cupom</h2><div id="bloco-img">${blocoImagem()}</div></section>
     <section class="stack tight"><h2>Avisos</h2>
@@ -1263,6 +1287,33 @@ const A = {
     $('#msgc').focus(); toast('Toque no campo e escolha Colar.');
   },
   modo(n) { S.modo = n; guarda('na-modo', n); render(); },
+  'm-copiar'(k) {
+    const tipo = S.tipo, t = textoMsg(tipo, k);
+    const marca = () => { S.feitos[k] = true; refazMsgs(tipo); };
+    if (copiaJa(t)) { marca(); toast(k === 'post' ? 'Post copiado. Cole no grupo.' : `${k.slice(2)} copiado.`); }
+    else copia(t).then(ok => { if (ok) marca(); toast(ok ? 'Copiado.' : 'Não deu pra copiar. Segure o dedo no texto.'); });
+  },
+  'm-wa'(k) { setTimeout(() => { S.feitos[k] = true; refazMsgs(S.tipo); }, 400); },
+  async 'm-img'() { try { const f = await arquivoImagem(); await navigator.share({ files: [f] }); S.feitos.img = true; refazMsgs('cupom'); } catch (e) {} },
+  'concluir-post'(tipo) {
+    const d = dados(), q = S.cupons.length;
+    const job = tipo === 'oferta'
+      ? { tipo: 'oferta', titulo: d.produto.trim(), detalhe: d.preco || 'Sem preço', cupom: d.cupom, dados: dadosPost('oferta'), passos: [] }
+      : { tipo: 'cupom', titulo: `Post de cupom, ${q} ${q === 1 ? 'código' : 'códigos'}`, detalhe: 'Cupons', cupom: S.cupons.map(c => c.code).join(' '), dados: dadosPost('cupom'), passos: [] };
+    if (!(tipo === 'oferta' ? podeOferta() : podeCupom())) return;
+    S.envio = job; concluiEnvio('novo', true); toast('Salvo no histórico. Bora pro próximo.');
+  },
+  'origem-c'(n) {
+    const zero = n === 'zero'; if (zero === !!S.cZero) return;
+    const atual = { msgC: S.msgC, cupons: S.cupons, cNota: S.cNota };
+    const g = zero ? S.guardaCZero : S.guardaCPronta;
+    if (zero) S.guardaCPronta = atual; else S.guardaCZero = atual;
+    S.cZero = zero; S.msgC = g ? g.msgC : ''; S.cupons = g ? g.cupons : []; S.cNota = g ? g.cNota : '';
+    S.ed.cupom = null; S.edAberto.cupom = false; S.addAberto = zero && !S.cupons.length; render();
+    if (S.addAberto) { const c = $('#c-code'); if (c) c.focus(); }
+  },
+  'post-pronto-c'() { if (!podeCupom()) return toast(S.cupons.length ? 'Confira o link de ativar.' : 'Adicione pelo menos um cupom.'); S.stepC = 'previa'; render(); topo(); },
+  'voltar-c'() { S.stepC = 'form'; render(); topo(); },
   'abrir-ml'() { S.foiML = true; setTimeout(() => poe('#link-acoes', acoesLink()), 400); },
   async 'colar-link'() {
     let t = '';
@@ -1299,7 +1350,7 @@ const A = {
   'gerar-titulo'() { S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); const t = TITULOS[S.tituloIdx]; S.draft = { ...bruto(), produto: t }; document.querySelectorAll('[data-i=d-produto]').forEach(el => { el.value = t; }); erro('#erro-oferta', ''); atualizaOferta(false); },
   trocar() { S.frase = null; S.fraseIdx = sorteia(frasesValidas().length, S.fraseIdx); atualizaOferta(false); },
   'trocar-abs'() { S.fraseAbs = null; S.absIdx = sorteia(FRASES_ABS.length, S.absIdx); $('#frase-abs').value = absAtual(); atualizaOferta(false); },
-  descartar() { S.ed.oferta = null; S.edAberto.oferta = false; S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); S.msg = ''; S.link = ''; S.foiML = false; S.draft = null; S.coladaEm = null; S.guardaPronta = null; S.guardaZero = null; S.step = 'form'; render(); topo(); toast('Campos limpos.'); },
+  descartar() { S.feitos = {}; S.ed.oferta = null; S.edAberto.oferta = false; S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); S.msg = ''; S.link = ''; S.foiML = false; S.draft = null; S.coladaEm = null; S.guardaPronta = null; S.guardaZero = null; S.step = 'form'; render(); topo(); toast('Campos limpos.'); },
   'enviar-oferta'(n, ev) {
     if (!podeOferta()) { ev.preventDefault(); return; }
     const d = dados();
@@ -1339,7 +1390,7 @@ const A = {
     catch (e) { if (e && e.name !== 'AbortError') toast('Não deu pra compartilhar a imagem aqui.'); }
   },
   'trocar-abre'() { S.cAbre = null; S.cAbreIdx = sorteia(ABERTURAS.length, S.cAbreIdx); $('#c-abre').value = abreAtual(); poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), txtC); },
-  'limpar-cupom'() { S.ed.cupom = null; S.edAberto.cupom = false; S.cupons = []; S.linkCupom = linkFixo(); S.cAbre = null; S.cChama = null; S.msgC = ''; S.cNota = ''; S.addAberto = false; render(); topo(); toast('Campos limpos.'); },
+  'limpar-cupom'() { S.feitos = {}; S.stepC = 'form'; S.guardaCPronta = null; S.guardaCZero = null; S.ed.cupom = null; S.edAberto.cupom = false; S.cupons = []; S.linkCupom = linkFixo(); S.cAbre = null; S.cChama = null; S.msgC = ''; S.cNota = ''; S.addAberto = false; render(); topo(); toast('Campos limpos.'); },
   'subir-img'() { $('#arquivo').click(); },
   'link-fixo-volta'() { S.linkCupom = linkFixo(); render(); toast('Voltou para o link fixo.'); },
   'link-fixo-salva'() { guarda('na-link-cupom', S.linkCupom.trim()); poe('#fixo-linkc', fixoLink()); toast('Pronto, esse virou o link fixo.'); },
@@ -1467,6 +1518,7 @@ async function rodaDisparo() {
 function fechaDisparo() { const d = S.disparo; S.disparo = null; if (d && d.salvo) limpaPost(d.tipo); }
 function limpaPost(tipo) {
   if (tipo !== 'oferta' && tipo !== 'cupom') return;
+  S.feitos = {}; if (tipo === 'cupom') { S.stepC = 'form'; S.guardaCPronta = null; S.guardaCZero = null; }
   S.ed[tipo] = null; S.edAberto[tipo] = false;
   if (tipo === 'oferta') { S.msg = ''; S.link = ''; S.foiML = false; S.draft = null; S.coladaEm = null; S.step = 'form'; S.manual = false; S.guardaPronta = null; S.guardaZero = null; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); }
   else { S.cupons = []; S.linkCupom = linkFixo(); S.cAbre = null; S.cChama = null; S.msgC = ''; S.cNota = ''; S.cAbreIdx = sorteia(ABERTURAS.length, S.cAbreIdx); }
@@ -1602,6 +1654,7 @@ async function arquivoImagem() {
   x.fillStyle = '#A9C7BC'; x.font = "500 30px 'Instrument Sans', system-ui, sans-serif"; x.fillText('Junior e Thai, do Nosso Projeto 3D', 540, 990);
   const b = await new Promise(r => c.toBlob(r, 'image/png')); return new File([b], 'cupom.png', { type: 'image/png' });
 }
+function refazMsgs(tipo) { if (tipo === 'oferta') { poe('#bolhas', bolhasOferta()); ligaEnviar('enviar-oferta', podeOferta(), txtO); } else { poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), txtC); } }
 function refazImagem() { poe('#bloco-img', blocoImagem()); poe('#bolhas-c', bolhasCupom()); }
 
 document.addEventListener('click', e => {
