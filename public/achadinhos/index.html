@@ -565,6 +565,7 @@ function capitaliza(t) {
   return t.toLowerCase().replace(/\S+/g, w => { const W = w.toUpperCase(); return /\d/.test(w) || SIGLAS.test(W.replace(/[^A-Z]/g, '')) ? W : w.charAt(0).toUpperCase() + w.slice(1); });
 }
 function ler(msg) {
+  msg = msg.replace(/[\u200B-\u200D\u2060\uFEFF]/g, ''); /* caracteres invisíveis que o WhatsApp põe (ex.: antes do código) */
   const linkOrig = (msg.match(/https?:\/\/\S+/) || [''])[0];
   const semLink = msg.replace(/https?:\/\/\S+/g, ' ');
   const linhas = semLink.split('\n').map(l => l.trim());
@@ -584,13 +585,19 @@ function ler(msg) {
     const toks = (l.replace(EMOJI, ' ').replace(/\*/g, ' ').match(/\b[A-Z][A-Z0-9]{3,19}\b/g) || []).filter(t => !NAO_CUPOM.test(t) && !cupons.includes(t));
     /* código com número ganha; palavras em caixa alta sem número só valem se for uma só (senão é grito: "PARA QUEM RESGATOU") */
     const comNum = toks.filter(t => /\d/.test(t));
-    const c = comNum[0] || (toks.length === 1 ? toks[0] : null);
+    let c = comNum[0] || (toks.length === 1 ? toks[0] : null), ini = i;
+    /* "com cupom:" e o código sozinho na linha de baixo */
+    if (!c) {
+      let k = i + 1; while (k < linhas.length && !linhas[k]) k++;
+      const so = (linhas[k] || '').replace(EMOJI, '').replace(/\*/g, '').trim().replace(/[.!:]+$/, '');
+      if (/^[A-Z][A-Z0-9]{3,19}$/.test(so) && !NAO_CUPOM.test(so) && !cupons.includes(so)) { c = so; ini = k; }
+    }
     if (!c) return;
     cupons.push(c);
     const r = [];
-    const mesma = l.replace(EMOJI, ' ').replace(/\*/g, ' ').replace(c, ' ').replace(/\b(use o cupom|use o c[oó]digo|use|cupom|cupons|c[oó]digo)\b\s*:?/gi, ' ').replace(/\s+/g, ' ').replace(/^[\s:.\-–—]+|[\s:.\-–—!]+$/g, '');
+    const mesma = ini !== i ? '' : l.replace(EMOJI, ' ').replace(/\*/g, ' ').replace(c, ' ').replace(/\b(use o cupom|use o c[oó]digo|use|cupom|cupons|c[oó]digo)\b\s*:?/gi, ' ').replace(/\s+/g, ' ').replace(/^[\s:.\-–—]+|[\s:.\-–—!]+$/g, '');
     if (/%|R\$/.test(mesma)) r.push(mesma.replace(/\ba partir de\b/i, 'acima de').replace(/,\s*limitad[oa] a\s*(.*)$/i, ' (até $1)'));
-    for (let k = i + 1; k < linhas.length && linhas[k] && !TEM_CUPOM.test(linhas[k]); k++) {
+    for (let k = ini + 1; k < linhas.length && linhas[k] && !TEM_CUPOM.test(linhas[k]); k++) {
       const t = linhas[k].replace(EMOJI, '').trim();
       const mn = t.match(/MIN\s*:?\s*(\d+)/i);
       if (mn) { if (+mn[1] > 1) r.push(`a partir de ${mn[1]} un.`); continue; }
@@ -608,7 +615,7 @@ function ler(msg) {
   produto = produto.replace(EMOJI, ' ');
   const corte = Math.max(produto.lastIndexOf('!'), produto.lastIndexOf('?'));
   if (corte >= 0 && produto.slice(corte + 1).trim().split(/\s+/).length >= 2) produto = produto.slice(corte + 1);
-  produto = produto.replace(/\s{2,}/g, ' ').replace(/[\s\-–—:|!?]+$/, '').trim();
+  produto = produto.replace(/\s{2,}/g, ' ').replace(/[\s\-–—:|!?.]+$/, '').trim();
   for (let x = 0; x < 3; x++) produto = produto.replace(/\s+(por|de|sai|saindo|apenas|s[oó]|a partir de)$/i, '').trim();
   return { produto: capitaliza(produto), preco, cupom: cupons.join(' '), regras, linkOrig };
 }
