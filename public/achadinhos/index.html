@@ -156,6 +156,12 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 .aviso-ico{font-size:18px}
 .hist{display:flex;flex-direction:column;gap:12px}
 .hf{display:flex;gap:8px;flex-wrap:wrap}
+.com-acao{position:relative}
+.com-acao .in{padding-right:52px}
+.acao-in{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:10px;background:transparent;color:var(--accent);cursor:pointer}
+.com-acao textarea + .acao-in{top:6px;transform:none}
+.acao-in:active{background:rgba(255,255,255,.08)}
+.acao-in:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .origem{grid-template-columns:repeat(2,minmax(0,1fr))!important;margin-bottom:4px;flex:none!important}
 .seg.mini{flex:1;min-width:0;grid-template-columns:repeat(3,minmax(0,1fr));border-radius:12px}
 .seg.mini button{height:34px;font-size:13px;padding:0 6px;border-radius:8px}
@@ -798,8 +804,8 @@ function telaOferta() {
         <input class="in mono" id="m-cupom" data-i="d-cupom" value="${esc(d.cupom)}" placeholder="Opcional. Vários: separe por espaço" autocomplete="off" autocapitalize="characters">
       </div>
       <div class="field">
-        <div class="row"><label for="link">Seu link de afiliado</label><button class="btn link" data-a="colar-link">${ico('colar', 18)}Colar</button></div>
-        <input class="in mono" id="link" data-i="link" type="url" inputmode="url" placeholder="https://meli.la/..." value="${esc(S.link)}" autocomplete="off" autocapitalize="none">
+        <label for="link">Seu link de afiliado</label>
+        <div class="com-acao"><input class="in mono" id="link" data-i="link" type="url" inputmode="url" placeholder="https://meli.la/..." value="${esc(S.link)}" autocomplete="off" autocapitalize="none"><button class="acao-in" data-a="colar-link" aria-label="Colar em seu link de afiliado" title="Colar">${ico('colar', 20)}</button></div>
         <div id="chk-link">${chkLink(S.link)}</div>
       </div>
       <div class="field">
@@ -811,14 +817,14 @@ function telaOferta() {
         <input class="in" id="m-preco" data-i="d-preco" value="${esc(d.preco)}" placeholder="R$ 0,00" inputmode="decimal" autocomplete="off">
       </div>` : `
       <div class="field">
-        <div class="row"><label for="msg">Mensagem que você viu</label><button class="btn link" data-a="colar">${ico('colar', 18)}Colar</button></div>
-        <textarea class="in" id="msg" data-i="msg" placeholder="Cole aqui a mensagem do grupo, com preço, cupom e link.">${esc(S.msg)}</textarea>
+        <label for="msg">Mensagem que você viu</label>
+        <div class="com-acao"><textarea class="in" id="msg" data-i="msg" placeholder="Cole aqui a mensagem do grupo, com preço, cupom e link.">${esc(S.msg)}</textarea><button class="acao-in" data-a="colar" aria-label="Colar em mensagem que você viu" title="Colar">${ico('colar', 20)}</button></div>
         <div id="chk-msg">${chkMsg()}</div>
       </div>
       <div class="field">
-        <div class="row"><label for="link">Seu link de afiliado</label><button class="btn link" data-a="colar-link">${ico('colar', 18)}Colar</button></div>
+        <label for="link">Seu link de afiliado</label>
         <div id="link-acoes">${acoesLink()}</div>
-        <input class="in mono" id="link" data-i="link" type="url" inputmode="url" placeholder="https://meli.la/..." value="${esc(S.link)}" autocomplete="off" autocapitalize="none">
+        <div class="com-acao"><input class="in mono" id="link" data-i="link" type="url" inputmode="url" placeholder="https://meli.la/..." value="${esc(S.link)}" autocomplete="off" autocapitalize="none"><button class="acao-in" data-a="colar-link" aria-label="Colar em seu link de afiliado" title="Colar">${ico('colar', 20)}</button></div>
         <div id="chk-link">${chkLink(S.link, ler(S.msg).linkOrig)}</div>
       </div>`;
   return `
@@ -885,8 +891,8 @@ function telaCupom() {
       <div class="passo-tit so-web"><b>1</b>Cupons e link</div>
       <div class="seg mini origem" role="group" aria-label="Começar com"><button data-a="origem-c" data-n="pronta" aria-pressed="${!S.cZero}">Mensagem pronta</button><button data-a="origem-c" data-n="zero" aria-pressed="${S.cZero}">Do zero</button></div>
       ${S.cZero ? '' : `<div class="field">
-        <div class="row"><label for="msgc">Mensagem que você viu</label><button class="btn link" data-a="colar-cupom">${ico('colar', 18)}Colar</button></div>
-        <textarea class="in" id="msgc" data-i="msgc" rows="4" placeholder="Cole aqui o post de cupom de outro grupo.">${esc(S.msgC)}</textarea>
+        <label for="msgc">Mensagem que você viu</label>
+        <div class="com-acao"><textarea class="in" id="msgc" data-i="msgc" rows="4" placeholder="Cole aqui o post de cupom de outro grupo.">${esc(S.msgC)}</textarea><button class="acao-in" data-a="colar-cupom" aria-label="Colar em mensagem que você viu" title="Colar">${ico('colar', 20)}</button></div>
         <div id="chk-msgc">${chkMsgC()}</div>
       </div>`}
       <div class="stack tight" id="cupons">${listaCupons()}</div>
