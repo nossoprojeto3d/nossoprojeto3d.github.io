@@ -151,6 +151,7 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 .aviso-ico{font-size:18px}
 .hist{display:flex;flex-direction:column;gap:12px}
 .hf{display:flex;gap:8px;flex-wrap:wrap}
+.origem{grid-template-columns:repeat(2,minmax(0,1fr))!important;margin-bottom:4px;flex:none!important}
 .seg.mini{flex:1;min-width:0;grid-template-columns:repeat(3,minmax(0,1fr));border-radius:12px}
 .seg.mini button{height:34px;font-size:13px;padding:0 6px;border-radius:8px}
 .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
@@ -802,14 +803,12 @@ function telaOferta() {
   return `
   <div class="duo" data-step="${S.step}">
     <section class="pane pane-form" aria-label="${S.manual ? 'Oferta nova' : 'Mensagem e link'}">
-      <div class="passo-tit so-web"><b>1</b>${S.manual ? 'Oferta nova' : 'Cole a oferta'}</div>
-      ${S.manual ? '<h2 class="so-cel">Oferta nova</h2>' : ''}${campos}
+      <div class="passo-tit so-web"><b>1</b>${S.manual ? 'Oferta do zero' : 'Cole a oferta'}</div>
+      <div class="seg mini origem" role="group" aria-label="Começar com"><button data-a="origem" data-n="pronta" aria-pressed="${!S.manual}">Mensagem pronta</button><button data-a="origem" data-n="zero" aria-pressed="${S.manual}">Do zero</button></div>
+      ${campos}
       <p class="erro" id="erro-oferta" role="alert" hidden></p>
       <button class="btn pri block so-cel" data-a="montar">Montar post</button>
-      <div class="row" style="flex-wrap:wrap">
-        ${S.manual ? `<button class="btn" style="flex:2 1 200px" data-a="modo-colar">Colar mensagem</button>` : `<button class="btn" style="flex:2 1 200px" data-a="nova">${ico('mais', 18)}Criar uma nova</button>`}
-        <button class="btn so-cel" style="flex:1 1 100px" data-a="descartar">Limpar</button>
-      </div>
+      <button class="btn link block so-cel" data-a="descartar" style="color:var(--muted)">Limpar</button>
       ${S.manual ? '' : '<p class="hint">No WhatsApp, compartilhe a mensagem com o atalho Nossos Achadinhos e ela já chega colada aqui.</p>'}
     </section>
     <section class="pane pane-previa" id="previa" aria-label="Prévia do post">${previaOferta()}</section>
@@ -1278,6 +1277,14 @@ const A = {
     try { const t = await navigator.clipboard.readText(); if (t) { S.msg = t; S.draft = null; S.coladaEm = Date.now(); $('#msg').value = t; atualizaOferta(true); poe('#link-acoes', acoesLink()); return; } } catch (e) {}
     $('#msg').focus(); toast('Toque no campo e escolha Colar.');
   },
+  /* mensagem pronta x do zero: trocar guarda o que estava no outro, nada se perde num toque errado */
+  origem(n) {
+    const zero = n === 'zero'; if (zero === S.manual) return;
+    if (zero) { S.guardaPronta = { msg: S.msg, link: S.link, coladaEm: S.coladaEm, foiML: S.foiML }; const g = S.guardaZero; S.manual = true; S.msg = ''; S.draft = g ? g.draft : { produto: '', preco: '', cupom: '', linkOrig: '' }; S.link = g ? g.link : ''; S.coladaEm = null; }
+    else { S.guardaZero = { draft: S.draft, link: S.link }; const g = S.guardaPronta || {}; S.manual = false; S.draft = null; S.msg = g.msg || ''; S.link = g.link || ''; S.coladaEm = g.coladaEm || null; S.foiML = !!g.foiML; }
+    S.ed.oferta = null; S.edAberto.oferta = false; S.step = 'form'; render();
+    if (zero && !S.draft.produto) { const c = $('#m-cupom'); if (c) c.focus(); }
+  },
   nova() { S.manual = true; S.msg = ''; S.link = ''; S.coladaEm = null; S.draft = { produto: '', preco: '', cupom: '', linkOrig: '' }; S.frase = null; S.step = 'form'; render(); const c = $('#m-cupom'); if (c) c.focus(); },
   'modo-colar'() { S.manual = false; S.draft = null; S.link = ''; S.step = 'form'; render(); },
   montar() {
@@ -1292,7 +1299,7 @@ const A = {
   'gerar-titulo'() { S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); const t = TITULOS[S.tituloIdx]; S.draft = { ...bruto(), produto: t }; document.querySelectorAll('[data-i=d-produto]').forEach(el => { el.value = t; }); erro('#erro-oferta', ''); atualizaOferta(false); },
   trocar() { S.frase = null; S.fraseIdx = sorteia(frasesValidas().length, S.fraseIdx); atualizaOferta(false); },
   'trocar-abs'() { S.fraseAbs = null; S.absIdx = sorteia(FRASES_ABS.length, S.absIdx); $('#frase-abs').value = absAtual(); atualizaOferta(false); },
-  descartar() { S.ed.oferta = null; S.edAberto.oferta = false; S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); S.msg = ''; S.link = ''; S.draft = null; S.coladaEm = null; S.step = 'form'; render(); topo(); toast('Campos limpos.'); },
+  descartar() { S.ed.oferta = null; S.edAberto.oferta = false; S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); S.msg = ''; S.link = ''; S.foiML = false; S.draft = null; S.coladaEm = null; S.guardaPronta = null; S.guardaZero = null; S.step = 'form'; render(); topo(); toast('Campos limpos.'); },
   'enviar-oferta'(n, ev) {
     if (!podeOferta()) { ev.preventDefault(); return; }
     const d = dados();
@@ -1461,7 +1468,7 @@ function fechaDisparo() { const d = S.disparo; S.disparo = null; if (d && d.salv
 function limpaPost(tipo) {
   if (tipo !== 'oferta' && tipo !== 'cupom') return;
   S.ed[tipo] = null; S.edAberto[tipo] = false;
-  if (tipo === 'oferta') { S.msg = ''; S.link = ''; S.foiML = false; S.draft = null; S.coladaEm = null; S.step = 'form'; S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); }
+  if (tipo === 'oferta') { S.msg = ''; S.link = ''; S.foiML = false; S.draft = null; S.coladaEm = null; S.step = 'form'; S.manual = false; S.guardaPronta = null; S.guardaZero = null; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); }
   else { S.cupons = []; S.linkCupom = linkFixo(); S.cAbre = null; S.cChama = null; S.msgC = ''; S.cNota = ''; S.cAbreIdx = sorteia(ABERTURAS.length, S.cAbreIdx); }
 }
 function refazRobo() { poe('#bloco-robo', blocoRobo()); }
