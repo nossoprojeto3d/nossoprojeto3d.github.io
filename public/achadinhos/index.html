@@ -631,6 +631,13 @@ const repetido = () => { const d = dados(); return S.avisarRepetido && d.produto
 
 /* ---------- pedaços de tela ---------- */
 function chk(tipo, txt) { return txt ? `<div class="chk ${tipo}">${ico(tipo === 'ok' ? 'ok' : tipo === 'warn' ? 'alerta' : 'relogio', 18)}<span>${txt}</span></div>` : ''; }
+/* atalho pra pegar o próprio link: abre o produto no ML e, na volta, cola com um toque */
+function acoesLink() {
+  const orig = ler(S.msg).linkOrig, temMeu = ML.test(S.link.trim()) && S.link.trim() !== orig;
+  if (temMeu) return '';
+  if (S.foiML) return `<button class="btn pri block" data-a="colar-link">${ico('colar', 18)}Colar meu link</button><p class="hint">Gerou o link no ML? Toque aqui pra colar.</p>`;
+  return orig ? `<a class="btn block" data-a="abrir-ml" href="${esc(orig)}" target="_blank" rel="noopener">Abrir no ML pra pegar meu link</a>` : '';
+}
 function chkMsg() {
   if (!S.msg.trim()) return '';
   const d = ler(S.msg);
@@ -684,7 +691,7 @@ function textoCupom() {
   const a = abreAtual().trim(), c = chamaAtual().trim(), n = S.cNota.trim();
   return (a ? a + '\n' : '') + (n ? '⚠️ ' + n + '\n' : '') + S.cupons.map(x => x.code + (x.regra ? ': ' + x.regra : '')).join('\n') + '\n\n' + (c ? c + '\n' : '') + S.linkCupom.trim();
 }
-const btnEnviar = (id, pode, txt) => `<a class="btn pri block${pode ? '' : ' off'}" id="${id}" data-a="${id}" ${pode ? `href="${esc(wa(txt()))}"` : 'aria-disabled="true"'} target="_blank" rel="noopener">${ico('enviar')}Enviar pro grupo</a>`;
+const btnEnviar = (id, pode, txt, sec) => `<a class="btn ${sec ? '' : 'pri '}block${pode ? '' : ' off'}" id="${id}" data-a="${id}" ${pode ? `href="${esc(wa(txt()))}"` : 'aria-disabled="true"'} target="_blank" rel="noopener">${ico('enviar')}${sec ? 'Abrir no WhatsApp' : 'Enviar pro grupo'}</a>`;
 function sincEditor(tipo) { const t = $('#ed-' + tipo); if (t && S.ed[tipo] === null && document.activeElement !== t) t.value = textoFinal(tipo); }
 function ligaEnviar(id, pode, txt) {
   const cp = $('#' + id + '-copiar'); if (cp) cp.disabled = !pode;
@@ -696,9 +703,9 @@ function ligaEnviar(id, pode, txt) {
   }
 }
 /* com o robô conectado, o botão dispara nos grupos; sem ele, abre o WhatsApp como antes */
-function btnCopiarMsg(id, pode) { return `<button class="btn block" id="${id}-copiar" data-a="copiar-msg" data-n="${id === 'enviar-oferta' ? 'oferta' : 'cupom'}" ${pode ? '' : 'disabled'}>${ico('copiar', 18)}Copiar mensagem</button>`; }
+function btnCopiarMsg(id, pode, pri) { return `<button class="btn ${pri ? 'pri ' : ''}block" id="${id}-copiar" data-a="copiar-msg" data-n="${id === 'enviar-oferta' ? 'oferta' : 'cupom'}" ${pode ? '' : 'disabled'}>${ico('copiar', 18)}${pri ? 'Copiar post' : 'Copiar mensagem'}</button>`; }
 function areaEnvio(id, pode, txt) {
-  if (!roboAtivo()) return btnEnviar(id, pode, txt) + btnCopiarMsg(id, pode);
+  if (!roboAtivo()) return S.modo === 'copiar' ? btnCopiarMsg(id, pode, true) + btnEnviar(id, pode, txt, true) : btnEnviar(id, pode, txt) + btnCopiarMsg(id, pode);
   const gs = gruposAtivos(), n = gs.length;
   return `<div class="card stack tight">
       <div class="row"><span class="hint">Vai para</span><button class="btn link" data-a="ir" data-n="ajustes">Mudar</button></div>
@@ -769,7 +776,7 @@ function telaOferta() {
         <input class="in mono" id="m-cupom" data-i="d-cupom" value="${esc(d.cupom)}" placeholder="Opcional. Vários: separe por espaço" autocomplete="off" autocapitalize="characters">
       </div>
       <div class="field">
-        <label for="link">Seu link de afiliado</label>
+        <div class="row"><label for="link">Seu link de afiliado</label><button class="btn link" data-a="colar-link">${ico('colar', 18)}Colar</button></div>
         <input class="in mono" id="link" data-i="link" type="url" inputmode="url" placeholder="https://meli.la/..." value="${esc(S.link)}" autocomplete="off" autocapitalize="none">
         <div id="chk-link">${chkLink(S.link)}</div>
       </div>
@@ -787,7 +794,8 @@ function telaOferta() {
         <div id="chk-msg">${chkMsg()}</div>
       </div>
       <div class="field">
-        <label for="link">Seu link de afiliado</label>
+        <div class="row"><label for="link">Seu link de afiliado</label><button class="btn link" data-a="colar-link">${ico('colar', 18)}Colar</button></div>
+        <div id="link-acoes">${acoesLink()}</div>
         <input class="in mono" id="link" data-i="link" type="url" inputmode="url" placeholder="https://meli.la/..." value="${esc(S.link)}" autocomplete="off" autocapitalize="none">
         <div id="chk-link">${chkLink(S.link, ler(S.msg).linkOrig)}</div>
       </div>`;
@@ -896,17 +904,18 @@ function telaCupom() {
     </section>
   </div>`;
 }
-function passoHint() { const e = S.envio; return e && e.copiado ? 'O código já está copiado. Dá pra colar direto na conversa.' : 'Copie para colar na conversa, ou mande pelo botão acima.'; }
+function passoHint() { const e = S.envio; if (e && e.copiouMsg && !e.copiado) return 'Toque em copiar, cole no grupo e volte aqui.'; return e && e.copiado ? 'O código já está copiado. Dá pra colar direto na conversa.' : 'Copie para colar na conversa, ou mande pelo botão acima.'; }
 function telaPassos() {
-  const e = S.envio, c = e.passos[e.i], n = e.passos.length;
+  const e = S.envio, c = e.passos[e.i], n = e.passos.length, copiar = !!e.copiouMsg;
   return `<div class="stack estreito">
     <h1>${n > 1 ? `Código ${e.i + 1} de ${n}` : 'Agora o cupom'}</h1>
-    <p class="muted">${e.i === 0 ? 'O post abriu no WhatsApp. Depois de enviar lá, volte aqui e mande o código.' : 'Mande o próximo código.'}</p>
+    <p class="muted">${e.i === 0 ? (copiar ? 'Post copiado. Cole no grupo, envie e volte aqui pro código.' : 'O post abriu no WhatsApp. Depois de enviar lá, volte aqui e mande o código.') : (copiar ? 'Cole o código anterior no grupo e copie o próximo.' : 'Mande o próximo código.')}</p>
     <div class="ticket" style="min-height:72px"><span class="code" id="passo-code" style="font-size:22px">${esc(c)}</span><span class="regra"></span></div>
     <p class="hint" id="passo-hint">${passoHint()}</p>
-    <a class="btn pri block" id="passo" data-a="passo" href="${esc(wa(c))}" target="_blank" rel="noopener">${ico('enviar')}Enviar o código no WhatsApp</a>
-    <button class="btn block" data-a="copiar-code">${ico('copiar', 18)}${e.i + 1 < n ? 'Copiar e ir pro próximo' : 'Copiar e terminar'}</button>
+    ${copiar ? '' : `<a class="btn pri block" id="passo" data-a="passo" href="${esc(wa(c))}" target="_blank" rel="noopener">${ico('enviar')}Enviar o código no WhatsApp</a>`}
+    <button class="btn ${copiar ? 'pri ' : ''}block" data-a="copiar-code">${ico('copiar', 18)}${e.i + 1 < n ? 'Copiar e ir pro próximo' : 'Copiar e terminar'}</button>
     ${e.i ? `<button class="btn link block" data-a="passo-voltar">Voltar pro código ${e.i}</button>` : ''}
+    ${copiar ? `<a class="btn block" id="passo" data-a="passo" href="${esc(wa(c))}" target="_blank" rel="noopener">${ico('enviar')}Enviar o código pelo WhatsApp</a>` : ''}
     <a class="btn block" href="${esc(wa(e.texto))}" target="_blank" rel="noopener">Abrir o post de novo no WhatsApp</a>
     <button class="btn block" data-a="novo-de-novo">${ico('mais', 18)}Pronto, fazer outro post</button>
     <button class="btn link block" data-a="concluir" style="color:var(--muted)">Concluir e ver o histórico</button>
@@ -1128,6 +1137,10 @@ function telaHistorico() {
 function telaAjustes() {
   return `<h1>Ajustes</h1>
   <div class="stack estreito">
+    <section class="stack tight"><h2>Jeito de enviar</h2>
+      <div class="seg" role="group" aria-label="Jeito de enviar"><button data-a="modo" data-n="copiar" aria-pressed="${S.modo === 'copiar'}">Copiar e colar</button><button data-a="modo" data-n="abrir" aria-pressed="${S.modo === 'abrir'}">Abrir o WhatsApp</button></div>
+      <p class="hint">${S.modo === 'copiar' ? 'Deixe o grupo aberto no WhatsApp: o app copia o post e os códigos, você só cola. Ninguém precisa escolher a conversa.' : 'O botão abre o WhatsApp com o post pronto e você escolhe o grupo a cada mensagem.'}</p>
+    </section>
     <section class="stack tight"><h2>Robô do WhatsApp</h2><div id="bloco-robo" class="stack tight">${blocoRobo()}</div></section>
     <section class="stack tight"><h2>Imagem do cupom</h2><div id="bloco-img">${blocoImagem()}</div></section>
     <section class="stack tight"><h2>Avisos</h2>
@@ -1250,8 +1263,19 @@ const A = {
     try { const t = await navigator.clipboard.readText(); if (t) { S.msgC = t; aplicaMsgC(); render(); return; } } catch (e) {}
     $('#msgc').focus(); toast('Toque no campo e escolha Colar.');
   },
+  modo(n) { S.modo = n; guarda('na-modo', n); render(); },
+  'abrir-ml'() { S.foiML = true; setTimeout(() => poe('#link-acoes', acoesLink()), 400); },
+  async 'colar-link'() {
+    let t = '';
+    try { t = (await navigator.clipboard.readText() || '').trim(); } catch (e) {}
+    if (!t) { $('#link').focus(); return toast('Toque no campo e escolha Colar.'); }
+    const m = t.match(/https?:\/\/\S+/); t = m ? m[0] : t;
+    if (!ML.test(t)) return toast('O que está copiado não é link do Mercado Livre.');
+    S.link = t; S.foiML = false; const i = $('#link'); if (i) i.value = t;
+    erro('#erro-oferta', ''); atualizaOferta(false); poe('#link-acoes', acoesLink()); toast('Link colado.');
+  },
   async colar() {
-    try { const t = await navigator.clipboard.readText(); if (t) { S.msg = t; S.draft = null; S.coladaEm = Date.now(); $('#msg').value = t; atualizaOferta(true); return; } } catch (e) {}
+    try { const t = await navigator.clipboard.readText(); if (t) { S.msg = t; S.draft = null; S.coladaEm = Date.now(); $('#msg').value = t; atualizaOferta(true); poe('#link-acoes', acoesLink()); return; } } catch (e) {}
     $('#msg').focus(); toast('Toque no campo e escolha Colar.');
   },
   nova() { S.manual = true; S.msg = ''; S.link = ''; S.coladaEm = null; S.draft = { produto: '', preco: '', cupom: '', linkOrig: '' }; S.frase = null; S.step = 'form'; render(); const c = $('#m-cupom'); if (c) c.focus(); },
@@ -1437,7 +1461,7 @@ function fechaDisparo() { const d = S.disparo; S.disparo = null; if (d && d.salv
 function limpaPost(tipo) {
   if (tipo !== 'oferta' && tipo !== 'cupom') return;
   S.ed[tipo] = null; S.edAberto[tipo] = false;
-  if (tipo === 'oferta') { S.msg = ''; S.link = ''; S.draft = null; S.coladaEm = null; S.step = 'form'; S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); }
+  if (tipo === 'oferta') { S.msg = ''; S.link = ''; S.foiML = false; S.draft = null; S.coladaEm = null; S.step = 'form'; S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseIdx = sorteia(FRASES.length, S.fraseIdx); S.tituloIdx = sorteia(TITULOS.length, S.tituloIdx); }
   else { S.cupons = []; S.linkCupom = linkFixo(); S.cAbre = null; S.cChama = null; S.msgC = ''; S.cNota = ''; S.cAbreIdx = sorteia(ABERTURAS.length, S.cAbreIdx); }
 }
 function refazRobo() { poe('#bloco-robo', blocoRobo()); }
@@ -1580,8 +1604,9 @@ document.addEventListener('click', e => {
 document.addEventListener('input', e => {
   const k = e.target.dataset && e.target.dataset.i; if (!k) return;
   const v = e.target.value;
+  if (k === 'msg') { setTimeout(() => poe('#link-acoes', acoesLink())); }
   if (k === 'msg') { S.ed.oferta = null; S.edAberto.oferta = false; if (!S.msg.trim() && v.trim()) S.coladaEm = Date.now(); if (!v.trim()) S.coladaEm = null; S.msg = v; S.draft = null; erro('#erro-oferta', ''); atualizaOferta(true); }
-  else if (k === 'link') { S.link = v; erro('#erro-oferta', ''); atualizaOferta(false); }
+  else if (k === 'link') { S.link = v; erro('#erro-oferta', ''); atualizaOferta(false); if (ML.test(v.trim())) { S.foiML = false; poe('#link-acoes', acoesLink()); } }
   else if (k.startsWith('d-')) { erro('#erro-oferta', ''); S.draft = { ...bruto(), [k.slice(2)]: k === 'd-cupom' ? v.toUpperCase().replace(/[,;\/]+/g, ' ').replace(/\s{2,}/g, ' ').replace(/^\s+/, '') : v }; if (k === 'd-cupom' && e.target.value !== S.draft.cupom) e.target.value = S.draft.cupom; atualizaOferta(false); }
   else if (k === 'linkc') { S.linkCupom = v; poe('#chk-linkc', chkLink(v)); poe('#fixo-linkc', fixoLink()); poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), txtC); }
   else if (k === 'grupo') {
@@ -1661,7 +1686,7 @@ document.addEventListener('pointermove', e => {
     history.replaceState(null, '', location.pathname);
   } catch (e) {}
 })();
-S.linkCupom = linkFixo(); S.img = le('na-img'); if (le('na-avisar') === '0') S.avisarRepetido = false;
+S.modo = le('na-modo') || 'copiar'; S.linkCupom = linkFixo(); S.img = le('na-img'); if (le('na-avisar') === '0') S.avisarRepetido = false;
 iniciaRobo();
 S.abrindo = NUVEM && temSessaoSalva();
 if (S.abrindo) setTimeout(fimAbrindo, 10000);
