@@ -157,10 +157,11 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 .hist{display:flex;flex-direction:column;gap:12px}
 .hf{display:flex;gap:8px;flex-wrap:wrap}
 .com-acao{position:relative}
-.com-acao .in{padding-right:96px}
-.acao-in{position:absolute;right:6px;top:50%;transform:translateY(-50%);height:36px;min-width:44px;padding:0 10px;display:flex;align-items:center;gap:5px;border:1px solid rgba(255,210,63,.35);border-radius:999px;background:rgba(255,210,63,.1);color:var(--accent);font-size:13px;font-weight:600;cursor:pointer}
+.com-acao > input.in.in{padding-right:100px}
+.com-acao > textarea.in.in{padding-bottom:54px}
+.acao-in{position:absolute;right:6px;top:50%;transform:translateY(-50%);height:36px;min-width:44px;padding:0 10px;display:flex;align-items:center;gap:5px;border:1px solid rgba(255,210,63,.4);border-radius:999px;background:var(--bg2);color:var(--accent);font-size:13px;font-weight:600;cursor:pointer}
 .acao-in::before{content:'';position:absolute;inset:-4px}
-.com-acao textarea + .acao-in{top:8px;transform:none}
+.com-acao textarea + .acao-in{top:auto;bottom:10px;right:12px;transform:none}
 .acao-in:active{background:rgba(255,255,255,.08)}
 .acao-in:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .origem{grid-template-columns:repeat(2,minmax(0,1fr))!important;margin-bottom:4px;flex:none!important}
@@ -325,7 +326,7 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
   .main.fixa .hist-cab .muted{display:none}
   .hist-col .item{padding:10px 14px}
   .duo #ed-oferta,.duo #ed-cupom{min-height:170px!important}
-  .duo #msgc{min-height:64px;height:64px}
+  .duo #msgc{min-height:104px;height:104px}
   .so-cel{display:none!important}
   .so-web{display:block}
   .passo-tit.so-web{display:flex}
