@@ -27,7 +27,7 @@ export const LINKS = {
   },
   parceiros: {
     // link de afiliado (o mesmo da calculadora); o cupom fica em CUPOM_VOOLT
-    voolt: "https://afiliado.c2cseller.com/voolt3d-nosso-projeto-b0e5828bb12818a1"
+    voolt: "https://afiliado.c2cseller.com/voolt3d-nosso-projeto-6cd02a0e9be16375"
   },
   ajuste3mf: {
     site: "https://nossoprojeto3d.com.br/fatio/"
