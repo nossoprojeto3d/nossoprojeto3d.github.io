@@ -896,7 +896,7 @@ function telaCupom() {
     </section>
   </div>`;
 }
-function passoHint() { const e = S.envio; return e && e.copiado ? 'O código já está copiado. Dá pra colar direto na conversa.' : 'Toque em Copiar código para colar na conversa, ou mande pelo botão acima.'; }
+function passoHint() { const e = S.envio; return e && e.copiado ? 'O código já está copiado. Dá pra colar direto na conversa.' : 'Copie para colar na conversa, ou mande pelo botão acima.'; }
 function telaPassos() {
   const e = S.envio, c = e.passos[e.i], n = e.passos.length;
   return `<div class="stack estreito">
@@ -905,7 +905,8 @@ function telaPassos() {
     <div class="ticket" style="min-height:72px"><span class="code" id="passo-code" style="font-size:22px">${esc(c)}</span><span class="regra"></span></div>
     <p class="hint" id="passo-hint">${passoHint()}</p>
     <a class="btn pri block" id="passo" data-a="passo" href="${esc(wa(c))}" target="_blank" rel="noopener">${ico('enviar')}Enviar o código no WhatsApp</a>
-    <button class="btn block" data-a="copiar-code">${ico('copiar', 18)}Copiar código</button>
+    <button class="btn block" data-a="copiar-code">${ico('copiar', 18)}${e.i + 1 < n ? 'Copiar e ir pro próximo' : 'Copiar e terminar'}</button>
+    ${e.i ? `<button class="btn link block" data-a="passo-voltar">Voltar pro código ${e.i}</button>` : ''}
     <a class="btn block" href="${esc(wa(e.texto))}" target="_blank" rel="noopener">Abrir o post de novo no WhatsApp</a>
     <button class="btn block" data-a="novo-de-novo">${ico('mais', 18)}Pronto, fazer outro post</button>
     <button class="btn link block" data-a="concluir" style="color:var(--muted)">Concluir e ver o histórico</button>
@@ -1284,7 +1285,15 @@ const A = {
     iniciaEnvio({ tipo: 'cupom', titulo: `Post de cupom, ${q} ${q === 1 ? 'código' : 'códigos'}`, detalhe: 'Cupons', cupom: S.cupons.map(c => c.code).join(' '), dados: dadosPost('cupom'), texto: txtC(), passos: S.cupons.map(c => c.code) });
   },
   passo() { const e = S.envio; if (!e) return; const prox = e.passos[e.i + 1]; e.copiado = prox ? copiaJa(prox) : false; setTimeout(() => { if (S.envio !== e) return; e.i++; if (e.i >= e.passos.length) concluiEnvio(); else { render(); topo(); } }, 500); },
-  'copiar-code'() { const e = S.envio; if (!e) return; copia(e.passos[e.i]).then(ok => { e.copiado = ok; poe('#passo-hint', passoHint()); toast(ok ? 'Código copiado.' : 'Não deu pra copiar. Segure o dedo no código.'); }); },
+  /* copia o código da tela e já passa pro próximo; no último, salva e volta pra um post novo */
+  'copiar-code'() {
+    const e = S.envio; if (!e) return;
+    const c = e.passos[e.i];
+    if (!copiaJa(c)) { copia(c).then(ok => toast(ok ? `${c} copiado.` : 'Não deu pra copiar. Segure o dedo no código.')); return; }
+    if (e.i + 1 >= e.passos.length) { concluiEnvio('novo', true); toast(`${c} copiado. Post salvo no histórico.`); return; }
+    e.i++; e.copiado = false; render(); topo(); toast(`${c} copiado. Agora o próximo.`);
+  },
+  'passo-voltar'() { const e = S.envio; if (!e || !e.i) return; e.i--; e.copiado = false; render(); topo(); },
   'novo-de-novo'() { concluiEnvio('novo'); toast('Salvo no histórico. Bora pro próximo.'); },
   concluir() { concluiEnvio(); },
   'copiar-msg'(tipo) {
