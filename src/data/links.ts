@@ -34,6 +34,11 @@ export const LINKS = {
   },
   dicas: {
     site: "https://nossoprojeto3d.com.br/dicas/"
+  },
+  grupos: {
+    // grupos no WhatsApp (botão flutuante + gaveta, GruposZap.astro); grupo com link vazio não aparece
+    achadinhos: "https://chat.whatsapp.com/JR9AaEzSapHIg5DwC2Vizz",
+    familia: "https://chat.whatsapp.com/CUl8CCiLHAB3Mh5DxYyAMk"
   }
 };
 
