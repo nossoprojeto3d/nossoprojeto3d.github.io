@@ -919,7 +919,9 @@ function bolhasCupom() {
   const lk = S.linkCupom.trim() || 'seu link aqui';
   const linhas = S.cupons.map(c => `${esc(c.code)}${c.regra ? ': ' + esc(c.regra) : ''}`).join('\n');
   const pode = podeCupom();
-  const img = roboAtivo() ? '' : podeArquivo() ? `<button class="btn sm${feito('img') ? ' feito' : ''}" data-a="m-img">${ico('subir', 16)}Imagem</button>` : '';
+  preparaImg();
+  const img = roboAtivo() ? '' : (window.ClipboardItem ? `<button class="btn sm${feito('img') ? ' feito' : ''}" data-a="m-copiar-img">${ico('copiar', 16)}Copiar imagem</button>` : '')
+    + (podeArquivo() ? `<button class="btn sm" data-a="m-img">${ico('subir', 16)}Imagem + texto</button>` : '');
   const txt = S.ed.cupom !== null ? comLinks(S.ed.cupom) : `${abreAtual().trim() ? '<b>' + esc(abreAtual().trim()) + '</b>\n' : ''}${S.cNota.trim() ? '⚠️ ' + esc(S.cNota.trim()) + '\n' : ''}${linhas}\n\n${chamaAtual().trim() ? esc(chamaAtual().trim()) + '\n' : ''}<span class="lk">${esc(lk)}</span>`;
   return `<div class="msg"><div class="bolha img">${capa(false)}<div class="txt">${txt}${tique('post')}</div></div>${acoesMsg('post', txtC(), pode, img)}</div>`
     + S.cupons.map(c => `<div class="msg"><div class="bolha">${esc(c.code)}${tique('c:' + c.code)}</div>${acoesMsg('c:' + c.code, c.code, pode)}</div>`).join('');
@@ -1353,7 +1355,18 @@ const A = {
     else copia(t).then(ok => { if (ok) marca(); toast(ok ? 'Copiado.' : 'Não deu pra copiar. Segure o dedo no texto.'); });
   },
   'm-wa'(k) { setTimeout(() => { S.feitos[k] = true; refazMsgs(S.tipo); }, 400); },
-  async 'm-img'() { try { const f = await arquivoImagem(); await navigator.share({ files: [f] }); S.feitos.img = true; refazMsgs('cupom'); } catch (e) {} },
+  /* imagem + texto juntos pelo menu de compartilhar (no WhatsApp o texto vira legenda) */
+  async 'm-img'() {
+    try { const f = S.imgArq || await arquivoImagem(); await navigator.share({ files: [f], text: txtC() }); S.feitos.img = true; S.feitos.post = true; refazMsgs('cupom'); } catch (e) {}
+  },
+  /* só a imagem na área de transferência: cola no grupo e depois copia o texto */
+  'm-copiar-img'() {
+    try {
+      navigator.clipboard.write([new ClipboardItem({ 'image/png': pngDaImagem() })])
+        .then(() => { S.feitos.img = true; refazMsgs('cupom'); toast('Imagem copiada. Cole no grupo e depois copie o texto.'); })
+        .catch(() => toast('Não deu pra copiar a imagem. Use Imagem + texto.'));
+    } catch (e) { toast('Não deu pra copiar a imagem. Use Imagem + texto.'); }
+  },
   'concluir-post'(tipo) {
     const d = dados(), q = S.cupons.length;
     const job = tipo === 'oferta'
@@ -1694,6 +1707,22 @@ function concluiEnvio(destino = 'historico', quieto = false) {
   if (!quieto) toast('Salvo no histórico.');
 }
 function podeArquivo() { try { return !!navigator.canShare && navigator.canShare({ files: [new File([''], 'a.png', { type: 'image/png' })] }); } catch (e) { return false; } }
+/* deixa a imagem pronta antes do toque: no iPhone o compartilhar precisa sair na hora */
+function preparaImg() {
+  const chave = S.img || IMG_PADRAO;
+  if (S.imgChave === chave) return;
+  S.imgChave = chave; S.imgArq = null;
+  arquivoImagem().then(f => { if (S.imgChave === chave) S.imgArq = f; }).catch(() => {});
+}
+/* a área de transferência só aceita PNG: converte a imagem do cupom */
+async function pngDaImagem() {
+  const f = S.imgArq || await arquivoImagem();
+  if (f.type === 'image/png') return f;
+  const bmp = await createImageBitmap(f);
+  const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+  c.getContext('2d').drawImage(bmp, 0, 0);
+  return await new Promise(ok => c.toBlob(ok, 'image/png'));
+}
 async function arquivoImagem() {
   const src = S.img || IMG_PADRAO;
   if (src) { try { const b = await (await fetch(src)).blob(); if (b.size) return new File([b], 'cupom.' + ((b.type.split('/')[1] || 'jpeg').replace('jpeg', 'jpg')), { type: b.type || 'image/jpeg' }); } catch (e) {} }
