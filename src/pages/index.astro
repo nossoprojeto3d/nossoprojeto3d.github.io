@@ -128,9 +128,12 @@ const fotosQuemSomos = ["01-casal"];
           )}
           {LINKS.grupos.familia && (
             <a class="app-familia" href={LINKS.grupos.familia} data-link="grupos.familia" data-evento="clique_grupo" data-grupo="familia" target="_blank" rel="noopener noreferrer">
-              <span class="app-familia-logo"><img src={url("assets/logo.png")} alt="" width="254" height="300" loading="lazy" decoding="async"></span>
-              <span class="app-familia-texto"><strong>Família Nosso Projeto 3D</strong><span>Bastidores, novidades e papo de maker</span></span>
-              <svg width="18" height="18" aria-hidden="true"><use href="#i-right"/></svg>
+              <span class="app-familia-topo">
+                <span class="app-familia-logo"><img src={url("assets/logo.png")} alt="" width="254" height="300" loading="lazy" decoding="async"></span>
+                <span class="app-familia-texto"><span class="app-familia-eti">Grupo no WhatsApp</span><strong>Família Nosso Projeto 3D</strong></span>
+              </span>
+              <span class="app-familia-desc">Troca de ideias, dicas e dúvidas pra comunidade maker crescer junto.</span>
+              <span class="app-familia-botao"><svg width="18" height="18" aria-hidden="true"><use href="#i-whatsapp"/></svg> Entrar na Família</span>
             </a>
           )}
         </div>
@@ -524,12 +527,15 @@ const fotosQuemSomos = ["01-casal"];
     .app-achadinhos-texto{color:#cfdccf;font-size:14.5px;line-height:1.4;max-width:24ch;}
     .app-achadinhos-botao{margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;border-radius:14px;background:#f4c430;color:#183d2c;font-weight:700;font-size:15px;}
     .app-ticket{position:absolute;right:14px;top:12px;transform:rotate(6deg);background:#fbf3d8;color:#183d2c;font:800 14px/1 var(--display);font-stretch:112%;padding:7px 9px;border-radius:8px;border-left:3px dashed #183d2c;}
-    .app-familia{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);color:var(--text);text-decoration:none;}
-    .app-familia-logo{flex:none;width:44px;height:44px;border-radius:12px;background:var(--bg-2);display:grid;place-items:center;}
-    .app-familia-logo img{width:24px;height:auto;}
-    .app-familia-texto{flex:1;min-width:0;display:flex;flex-direction:column;font-size:13px;color:var(--body);line-height:1.3;}
-    .app-familia-texto strong{color:var(--text);font-size:15px;}
-    .app-familia svg{flex:none;color:var(--ouro-texto);}
+    .app-familia{display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:20px;background:var(--surface);border:1px solid var(--line);color:var(--text);text-decoration:none;}
+    .app-familia-topo{display:flex;align-items:center;gap:12px;}
+    .app-familia-logo{flex:none;width:46px;height:46px;border-radius:50%;background:var(--bg-2);border:2px solid var(--verde-zap);display:grid;place-items:center;}
+    .app-familia-logo img{width:22px;height:auto;}
+    .app-familia-texto{display:flex;flex-direction:column;min-width:0;}
+    .app-familia-eti{font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--verde-zap);}
+    .app-familia-texto strong{font-family:var(--display);font-stretch:112%;font-weight:800;font-size:18px;letter-spacing:-.01em;line-height:1.15;}
+    .app-familia-desc{color:var(--body);font-size:14.5px;line-height:1.4;}
+    .app-familia-botao{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;border-radius:14px;background:var(--verde-zap);color:#fff;font-weight:700;font-size:15px;}
     /* ferramentas: fileira que arrasta pro lado, cada card com o desenho animado no alto */
     #criadores .apoio{display:none;}
     .ferramentas{margin:16px calc(-1 * max(20px,env(safe-area-inset-right,0px))) 0 calc(-1 * max(20px,env(safe-area-inset-left,0px)));
