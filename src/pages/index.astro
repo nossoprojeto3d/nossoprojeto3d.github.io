@@ -69,9 +69,11 @@ const fotosQuemSomos = ["01-casal"];
           <ul>
             {ferramentas.map((f) => (
               <li><a class:list={["maker-bloco", f.cor]} href={f.href} data-link={f.link} target="_blank" rel="noopener noreferrer">
-                <span class="maker-icone"><svg width="16" height="16" aria-hidden="true"><use href={`#${f.icone}`}/></svg></span>
-                <svg class="maker-seta" width="14" height="14" aria-hidden="true"><use href="#i-arrow"/></svg>
-                <span><strong>{f.nome === "STLs otimizados" ? "STLs" : f.nome}</strong><span>{f.curto}</span></span>
+                <span class="maker-anim">{f.desenho ? <FerramentaAnimada tipo={f.desenho} /> : <StlAnimado />}</span>
+                <span class="maker-rodape">
+                  <span><strong>{f.nome === "STLs otimizados" ? "STLs" : f.nome}</strong><span>{f.curto}</span></span>
+                  <svg width="14" height="14" aria-hidden="true"><use href="#i-arrow"/></svg>
+                </span>
               </a></li>
             ))}
           </ul>
@@ -446,6 +448,8 @@ const fotosQuemSomos = ["01-casal"];
     .quem-foto{max-width:440px;}
     /* celular: a porta "Nosso catálogo" abre o catálogo direto, então a seção de compra sai */
     #comprar{display:none;}
+    /* celular: o título aparece pronto, sem o efeito de "imprimir" (fica só no computador) */
+    .impresso,.bico{animation:none;}
     /* celular: abertura só com o catálogo em destaque e a grade de ferramentas; "Quem somos" fica no fim da página */
     .porta[data-porta="criadores"],.porta[data-porta="quem-somos"]{display:none;}
     .porta[data-porta="comprar"]{min-height:300px;}
@@ -460,16 +464,18 @@ const fotosQuemSomos = ["01-casal"];
     .maker-celular-topo strong{font-family:var(--display);font-stretch:112%;font-weight:800;font-size:17px;text-transform:uppercase;letter-spacing:.01em;}
     .maker-celular-topo span{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ouro-texto);}
     .maker-celular ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
-    .maker-bloco{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:14px;min-height:112px;padding:12px;border-radius:16px;
+    .maker-bloco{position:relative;display:flex;flex-direction:column;gap:8px;height:100%;padding:6px 6px 10px;border-radius:16px;
       color:#fff;text-decoration:none;transition:transform .3s var(--mola);}
     .maker-bloco:active{transform:scale(.97);}
     .maker-bloco.calc{background:linear-gradient(140deg,#8d72fb,#6a4be8);}
     .maker-bloco.fatio{background:linear-gradient(140deg,#ff7d45,#e0521a);}
     .maker-bloco.dicas{background:linear-gradient(140deg,#d33a70,#a91d4e);}
     .maker-bloco.stl{background:linear-gradient(140deg,#C9A227,#9a770c);}
-    .maker-icone{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.22);display:grid;place-items:center;}
-    .maker-seta{position:absolute;right:12px;top:12px;opacity:.9;}
-    .maker-bloco strong{display:block;font-family:var(--display);font-stretch:112%;font-weight:800;font-size:16px;line-height:1.1;}
+    /* o mesmo desenho animado dos cards do computador, numa janela clara no alto do bloco */
+    .maker-anim{display:flex;aspect-ratio:4/3;border-radius:11px;overflow:hidden;background:var(--bg-2);}
+    .maker-rodape{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;padding:0 6px;}
+    .maker-rodape svg{flex:none;margin-top:3px;opacity:.9;}
+    .maker-bloco strong{display:block;font-family:var(--display);font-stretch:112%;font-weight:800;font-size:15px;line-height:1.1;}
     .maker-bloco strong + span{display:block;font-size:12.5px;line-height:1.3;opacity:.95;}
   }
   /* computador: a grade e o botão "Abrir" são só do celular */
