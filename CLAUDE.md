@@ -32,6 +32,16 @@ npm run fotos      # prepara as fotos da pasta ~/Desktop/Fotos do site
 
 - **Natal** (`src/data/natal.ts` + `components/v4/Natal.astro`): faixa verde no topo com link para a categoria Natal do catálogo e neve caindo nela e atrás da abertura (`data-neve`). Some sozinho a partir de `NATAL_ATE` (o navegador confere a data, não precisa publicar). No próximo Natal, troque as datas e o texto em `natal.ts`. Para tirar antes da data: `git revert natal-2026` (etiqueta do commit que trouxe o tema; `antes-do-natal-2026` marca o site logo antes dele).
 
+## Celular e computador são layouts diferentes
+
+Desde 25/11/2026 a página tem duas caras, separadas em **900px** (`max-width:900px` = celular e tablet; `min-width:901px` = computador). Mudança pedida "só no celular" ou "só na web" fica do lado dela: não deixe vazar pro outro.
+
+- **Computador**: a V4 original. Título que "imprime", três portas (Nosso catálogo, Sou maker, Quem somos) que descem até as seções, "Sua ideia merece sair do papel", Para criadores em cards, Parcerias, Quem somos e o botão flutuante dos grupos no canto.
+- **Celular ("jeito de app")**: boas-vindas do casal no lugar do título (o h1 fica só pro Google), "Nosso catálogo" grande abrindo o catálogo direto, queridinhos em fileira, os grupos em destaque (Nossos Achadinhos grande, porque é onde vem a comissão; Família com cara de grupo do WhatsApp), ferramentas em fileira, Parcerias, Quem somos e a barra fixa `.abas-app` (Catálogo, Ferramentas, Cupom, Achadinhos na ponta direita). Some: "Sua ideia merece sair do papel", as portas Sou maker e Quem somos, o efeito do título e o botão flutuante dos grupos.
+- Elementos só do celular: `.app-ola`, `.app-bloco` (queridinhos e grupos), `.porta-abrir`, `.abas-app`; escondidos no computador por um bloco `@media (min-width:901px)` no fim dos estilos de `index.astro`. A porta "Nosso catálogo" troca o destino por script (`data-celular`).
+- A barra de abas tem fundo sólido `var(--bg)`: o Safari pinta a área da barra de endereço com a cor do que está fixo embaixo, e fundo translúcido deixava cores diferentes.
+- Ao testar, confira as duas larguras (375px e 1440px).
+
 ## Onde mexer
 
 - `src/data/links.ts`: **toda URL externa fica aqui**, no objeto `LINKS`. Use `href={LINKS.grupo.chave}` com `data-link="grupo.chave"` (o `medicao.js` usa pra saber de onde veio o clique). Links internos passam por `url("caminho/")`. Escreva `target="_blank" rel="noopener noreferrer"` em todo link externo.
