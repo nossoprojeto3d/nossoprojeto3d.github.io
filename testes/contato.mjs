@@ -28,7 +28,9 @@ for (const l of externos) {
   certo(l.target === "_blank", `abre na mesma aba: ${l.href}`);
   certo(/noopener/.test(l.rel || ""), `sem rel=noopener: ${l.href}`);
 }
-const zap = inicio.filter((l) => /wa\.me|whatsapp\.com/.test(l.href));
+// convites dos grupos (chat.whatsapp.com) não são conversa com a gente: ficam fora da conferência de número e mensagem
+const zap = inicio.filter((l) => /wa\.me|whatsapp\.com/.test(l.href) && !/chat\.whatsapp\.com/.test(l.href));
+for (const [chave, href] of Object.entries(LINKS.grupos)) if (href) certo(inicio.some((l) => l.href === href), `sem link para o grupo ${chave}`);
 const insta = inicio.filter((l) => l.href === LINKS.contato.instagram);
 const catalogo = inicio.filter((l) => l.href === LINKS.catalogo.site);
 const shopee = inicio.filter((l) => l.href === LINKS.hub.shopee);
