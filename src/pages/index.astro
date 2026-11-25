@@ -194,7 +194,41 @@ const fotosQuemSomos = ["01-casal"];
     </div>
   </section>
 
-  <!-- ===== Para criadores ===== -->
+  <!-- ===== Grupos no WhatsApp (só computador): faixa verde do Nossos Achadinhos, onde vem a comissão, e a Família numa linha embaixo.
+       No celular os grupos ficam em .app-grupos, logo depois do catálogo. ===== -->
+  {(LINKS.grupos.achadinhos || LINKS.grupos.familia) && (
+    <section class="grupos-web" id="grupos" aria-label="Grupos no WhatsApp">
+      {LINKS.grupos.achadinhos && (
+        <div class="gw-achadinhos">
+          <div class="container gw-achadinhos-dentro">
+            <span class="gw-pct" aria-hidden="true">%</span>
+            <div class="gw-texto surge">
+              <span class="gw-selo">Grupo no WhatsApp · Nossos Achadinhos</span>
+              <h2>Cupom bom chega <em>primeiro</em> no grupo.</h2>
+              <p>Filamento, bicos, peças e ferramentas com desconto. A gente só manda quando vale a pena.</p>
+              <a class="gw-botao" href={LINKS.grupos.achadinhos} data-link="grupos.achadinhos" data-evento="clique_grupo" data-grupo="achadinhos" target="_blank" rel="noopener noreferrer"><svg width="20" height="20" aria-hidden="true"><use href="#i-whatsapp"/></svg> Quero os cupons</a>
+            </div>
+            <div class="gw-pilha" aria-hidden="true">
+              <span class="gw-ticket"><small>Filamento</small><b>8% off</b><span>cupom {CUPOM_VOOLT}</span></span>
+              <span class="gw-ticket"><small>Bicos e peças</small><b>Cupom do dia</b><span>direto no grupo</span></span>
+              <span class="gw-ticket"><small>Ferramentas</small><b>Achado da semana</b><span>o que a gente usa</span></span>
+            </div>
+          </div>
+        </div>
+      )}
+      {LINKS.grupos.familia && (
+        <div class="gw-familia">
+          <div class="container gw-familia-dentro">
+            <span class="gw-logo"><img src={url("assets/logo.png")} alt="" width="254" height="300" loading="lazy" decoding="async"></span>
+            <div><span class="gw-selo-verde">Grupo no WhatsApp</span><strong>Família Nosso Projeto 3D</strong><p>Troca de ideias, dicas e dúvidas pra comunidade maker crescer junto.</p></div>
+            <a class="gw-botao-zap" href={LINKS.grupos.familia} data-link="grupos.familia" data-evento="clique_grupo" data-grupo="familia" target="_blank" rel="noopener noreferrer"><svg width="20" height="20" aria-hidden="true"><use href="#i-whatsapp"/></svg> Entrar na Família</a>
+          </div>
+        </div>
+      )}
+    </section>
+  )}
+
+<!-- ===== Para criadores ===== -->
   <section class="secao faixa pontos" id="criadores" aria-labelledby="criadores-titulo">
     <div class="container">
       <div class="surge secao-topo">
@@ -465,6 +499,40 @@ const fotosQuemSomos = ["01-casal"];
     .quem-foto img{aspect-ratio:1/1.05;object-fit:cover;object-position:50% 45%;border-radius:0 32px 32px 0;}
   }
 
+  /* ---------- grupos no WhatsApp (só computador) ---------- */
+  .gw-achadinhos{position:relative;overflow:hidden;background:#183d2c;color:#fff;}
+  .gw-achadinhos-dentro{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center;padding-block:clamp(56px,6vw,84px);}
+  .gw-pct{position:absolute;right:-10px;top:-70px;font:800 340px/1 var(--display);font-stretch:112%;color:rgba(244,196,48,.07);pointer-events:none;}
+  .gw-selo,.gw-selo-verde{font-size:12.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;}
+  .gw-selo{color:#f4c430;}
+  .gw-texto h2{margin:12px 0 14px;font-size:clamp(34px,2.6vw + 12px,50px);font-weight:800;line-height:1.04;color:#fff;}
+  .gw-texto h2 em{font-style:normal;color:#f4c430;}
+  .gw-texto p{color:#cfdccf;font-size:var(--fs-lead);max-width:42ch;margin-bottom:26px;}
+  .gw-botao,.gw-botao-zap{display:inline-flex;align-items:center;gap:10px;min-height:52px;padding:0 24px;border-radius:14px;font-weight:700;font-size:16px;text-decoration:none;
+    transition:transform .3s var(--mola),box-shadow .3s ease;}
+  .gw-botao{background:#f4c430;color:#183d2c;box-shadow:0 14px 30px -14px rgba(244,196,48,.6);}
+  .gw-botao:hover,.gw-botao-zap:hover{transform:translateY(-2px);}
+  .gw-pilha{position:relative;height:320px;}
+  .gw-ticket{position:absolute;width:300px;display:flex;flex-direction:column;gap:3px;padding:18px 20px;border-radius:14px;background:#fbf3d8;color:#183d2c;
+    border-left:4px dashed #183d2c;box-shadow:0 24px 40px -22px rgba(0,0,0,.7);transition:transform .5s var(--mola);}
+  .gw-ticket small{font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.75;}
+  .gw-ticket b{font:800 26px/1.1 var(--display);font-stretch:112%;}
+  .gw-ticket span{font-size:13.5px;}
+  .gw-ticket:nth-child(1){left:6%;top:0;transform:rotate(-7deg);}
+  .gw-ticket:nth-child(2){left:36%;top:88px;transform:rotate(4deg);}
+  .gw-ticket:nth-child(3){left:12%;top:186px;transform:rotate(-2deg);}
+  .gw-achadinhos:hover .gw-ticket:nth-child(1){transform:rotate(-9deg) translateY(-6px);}
+  .gw-achadinhos:hover .gw-ticket:nth-child(2){transform:rotate(6deg) translateY(-4px);}
+  .gw-familia{background:var(--surface);border-bottom:1px solid var(--line);}
+  .gw-familia-dentro{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:22px;align-items:center;padding-block:26px;}
+  .gw-logo{width:64px;height:64px;border-radius:50%;border:2px solid var(--verde-zap);background:var(--bg-2);display:grid;place-items:center;}
+  .gw-logo img{width:30px;height:auto;}
+  .gw-selo-verde{color:var(--verde-zap);}
+  .gw-familia strong{display:block;font:800 22px/1.15 var(--display);font-stretch:112%;margin-top:2px;}
+  .gw-familia p{color:var(--body);}
+  .gw-botao-zap{background:var(--verde-zap);color:#fff;}
+  @media (max-width:1100px){.gw-pilha{height:290px;} .gw-ticket{width:250px;}}
+
   /* ---------- responsivo ---------- */
   @media (max-width:1100px){
     .publicos{grid-template-columns:1fr;}
@@ -546,6 +614,8 @@ const fotosQuemSomos = ["01-casal"];
     .ferramenta-corpo{padding:12px 14px 16px;font-size:13.5px;line-height:1.35;}
     .ferramenta-icone{display:none;}
     .ferramenta strong{font-size:17px;}
+    /* no celular os grupos ficam logo depois do catálogo (.app-grupos), então a faixa do computador sai */
+    .grupos-web{display:none;}
     /* abas fixas embaixo; o botão flutuante dos grupos sai (as abas levam ao Achadinhos) */
     :global(.grupos-botao){display:none !important;}
     :global(body){padding-bottom:calc(66px + env(safe-area-inset-bottom,0px));}
