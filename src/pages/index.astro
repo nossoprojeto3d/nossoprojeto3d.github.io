@@ -7,7 +7,6 @@ import Pagina from "../layouts/Pagina.astro";
 import Historia from "../components/v4/Historia.astro";
 import StlAnimado from "../components/v4/StlAnimado.astro";
 import FerramentaAnimada from "../components/v4/FerramentaAnimada.astro";
-import GruposZap from "../components/v4/GruposZap.astro";
 import { BRINDES_JSON, CUPOM_VOOLT, LINKS, QUERIDINHOS_JSON, url, whatsapp } from "../data/links";
 
 interface Peca { codigo: string; nome: string; preco: string; foto: string; link: string }
@@ -321,9 +320,8 @@ const fotosQuemSomos = ["01-casal"];
   </section>
 
   <Historia />
-  <GruposZap />
 
-  <!-- celular (jeito de app): abas fixas embaixo, no lugar do botão flutuante dos grupos; no computador fica escondida -->
+  <!-- celular (jeito de app): abas fixas embaixo; no computador fica escondida -->
   <nav class="abas-app" aria-label="Atalhos">
     <a href={BASE_CATALOGO} data-link="catalogo.site" target="_blank" rel="noopener noreferrer"><svg width="22" height="22" aria-hidden="true"><use href="#i-bag"/></svg>Catálogo</a>
     <a href="#criadores"><svg width="22" height="22" aria-hidden="true"><use href="#i-calc"/></svg>Ferramentas</a>
@@ -616,8 +614,7 @@ const fotosQuemSomos = ["01-casal"];
     .ferramenta strong{font-size:17px;}
     /* no celular os grupos ficam logo depois do catálogo (.app-grupos), então a faixa do computador sai */
     .grupos-web{display:none;}
-    /* abas fixas embaixo; o botão flutuante dos grupos sai (as abas levam ao Achadinhos) */
-    :global(.grupos-botao){display:none !important;}
+    /* abas fixas embaixo (a ponta direita leva ao Achadinhos) */
     :global(body){padding-bottom:calc(66px + env(safe-area-inset-bottom,0px));}
     .abas-app{position:fixed;z-index:40;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
       padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));
