@@ -1,5 +1,5 @@
 ---
-// Página única da V4, de cima pra baixo: três portas (Quero comprar, Sou maker, Quem somos);
+// Página única da V4, de cima pra baixo: três portas (Nosso catálogo, Sou maker, Quem somos);
 // "Sua ideia merece sair do papel" (Para você, com 4 queridinhos sorteados, e Para empresas, com os brindes do catálogo);
 // ferramentas para criadores; nossas parcerias; quem somos.
 import { readFile } from "node:fs/promises";
@@ -47,7 +47,7 @@ const fotosQuemSomos = ["01-casal"];
       <h1><span class="impresso">Ideias que ganham forma, <span class="destaque">camada por camada.</span></span><span class="bico" aria-hidden="true"></span></h1>
       <p class="abertura-apoio">Impressão 3D em Goiânia. Escolha por onde começar:</p>
       <div class="portas">
-        <a class="porta" href="#comprar" data-porta="comprar">
+        <a class="porta" href="#comprar" data-porta="comprar" data-celular={LINKS.catalogo.site}>
           <div class="porta-arte" aria-hidden="true">
             <div class="janela" data-giro="pecas">
               {queridinhos.slice(0, 4).map((q, i) => (
@@ -57,7 +57,7 @@ const fotosQuemSomos = ["01-casal"];
           </div>
           <div class="porta-texto">
             <span class="etiqueta">Para você</span>
-            <strong>Quero comprar</strong>
+            <strong>Nosso catálogo</strong>
             <span class="porta-sub">Peças personalizadas e brindes para empresas</span>
           </div>
         </a>
@@ -429,6 +429,8 @@ const fotosQuemSomos = ["01-casal"];
     .porta-sub{font-size:13.5px;line-height:1.35;}
     .quem{grid-template-columns:1fr;}
     .quem-foto{max-width:440px;}
+    /* celular: a porta "Nosso catálogo" abre o catálogo direto, então a seção de compra sai */
+    #comprar{display:none;}
   }
   @media (max-width:640px){
     /* topo compacto: título e as três portas cabem na primeira tela */
@@ -509,7 +511,7 @@ const fotosQuemSomos = ["01-casal"];
   }
 
   lista("queridinhos", (sorteio, fotoDe) => {
-    // a vitrine da porta "Quero comprar" mostra as peças que não couberam na seção
+    // a vitrine da porta "Nosso catálogo" mostra as peças que não couberam na seção
     const janela = document.querySelector<HTMLElement>("[data-giro='pecas']");
     if (!janela) return;
     const fotos = (sorteio.length > 4 ? sorteio.slice(4) : sorteio).slice(0, 6);
@@ -540,6 +542,28 @@ const fotosQuemSomos = ["01-casal"];
       par = (par + 1) % Math.ceil(ul.children.length / 2);
       marcar();
     }, 2200);
+  })();
+
+  // Celular: a porta "Nosso catálogo" abre o catálogo direto; no computador continua descendo até a seção de compra.
+  (() => {
+    const porta = document.querySelector<HTMLAnchorElement>("[data-celular]");
+    if (!porta) return;
+    const celular = matchMedia("(max-width: 900px)");
+    const ajustar = () => {
+      if (celular.matches) {
+        porta.href = porta.dataset.celular!;
+        porta.target = "_blank";
+        porta.rel = "noopener noreferrer";
+        porta.dataset.link = "catalogo.site";
+      } else {
+        porta.href = "#comprar";
+        porta.removeAttribute("target");
+        porta.removeAttribute("rel");
+        delete porta.dataset.link;
+      }
+    };
+    ajustar();
+    celular.addEventListener("change", ajustar);
   })();
 
   // Vitrines das portas: trocam sozinhas a cada 3,2 s, só com a porta na tela e sem "reduzir movimento".
