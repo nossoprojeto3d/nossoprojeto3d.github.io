@@ -1,5 +1,5 @@
 /* Ponte do robô do WhatsApp: o app chama POST /api/robo { acao, ... } e o Worker fala com a Evolution API v2
-   (servidor na Oracle, atrás do túnel da Cloudflare). A chave da Evolution fica só aqui (segredo EVO_KEY).
+   (servidor no Google Cloud, atrás do túnel da Cloudflare). A chave da Evolution fica só aqui (segredo EVO_KEY).
    Rotas conferidas no código da Evolution API 2.3.8 (src/api/routes/*.router.ts e dto/sendMessage.dto.ts), 26/11/2026:
    GET /instance/connectionState/:i, GET /instance/connect/:i, POST /instance/create, GET /instance/fetchInstances,
    DELETE /instance/logout/:i, GET /group/fetchAllGroups/:i?getParticipants=false,

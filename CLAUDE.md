@@ -103,11 +103,11 @@ Objetivo: o botão "Enviar pro grupo" do app (`public/achadinhos/`) disparar soz
 
 **Decidido em 26/11/2026**
 - Chip comprado e já dentro dos grupos.
-- Servidor: **Oracle Cloud grátis** (Always Free, máquina ARM Ampere A1, Ubuntu). Arquivos em `achadinhos-robo/`: `docker-compose.yml` (Evolution API `evoapicloud/evolution-api:v2.3.8`, Postgres 15, Redis 7 e `cloudflared`) e `instalar.sh` (instala o Docker, gera `.env` com a chave e a senha, sobe tudo). Nenhuma porta aberta: o HTTPS vem de um túnel da Cloudflare em `robo.nossoprojeto3d.com.br` apontando para `http://api:8080`. A Evolution não guarda mensagens, contatos nem conversas (`DATABASE_SAVE_DATA_*=false`), só a sessão do chip.
+- Servidor: **Google Cloud grátis** (a Oracle exigiu CNPJ). Projeto `achadinhos-robo-515921`, máquina `achadinhos-robo` e2-micro (1 GB) em `us-central1-f`, Ubuntu 24.04 Minimal, disco padrão de 30 GB, sem backups, IP `34.41.85.127`, usuário `robo` com a chave `~/.ssh/achadinhos_robo` do Mac. Alerta de orçamento de R$ 1 na conta de faturamento. Arquivos em `achadinhos-robo/`: `docker-compose.yml` (Evolution API `evoapicloud/evolution-api:v2.3.8`, Postgres 15 enxuto e `cloudflared`; sem Redis, cache local por causa da memória) e `instalar.sh` (2 GB de swap, Docker, gera `.env` com a chave e a senha, sobe tudo). Swap, Docker e imagens já instalados na máquina (26/11/2026). Nenhuma porta aberta: o HTTPS vem de um túnel da Cloudflare em `robo.nossoprojeto3d.com.br` apontando para `http://api:8080`. A Evolution não guarda mensagens, contatos nem conversas (`DATABASE_SAVE_DATA_*=false`), só a sessão do chip.
 - Ponte: **no Worker `achadinhos-ml`** (`src/robo.js`, `POST /api/robo`), não numa Edge Function do Supabase. Segredos do Worker: `EVO_URL` (https://robo.nossoprojeto3d.com.br) e `EVO_KEY` (a chave do `.env`); `EVO_INSTANCIA = "achadinhos"` no wrangler.toml. O app chama com `chamaRobo` → `apiLinks('/api/robo')`. Ações: `status`, `qr` (cria a instância na primeira vez), `grupos`, `enviar` (só para `…@g.us`, 1 a 3 s entre mensagens, imagem via `sendMedia` com legenda, texto com `linkPreview`), `desconectar`. Rotas conferidas no código da Evolution 2.3.8.
 
 **Falta, em ordem**
-1. **Oracle (Junior):** criar a conta, criar a máquina e me passar o IP e a chave SSH.
+1. ~~Servidor~~: pronto (Google Cloud, ver acima).
 2. **Túnel (Junior, no painel da Cloudflare):** Zero Trust > Networks > Tunnels > criar `achadinhos-robo` (Cloudflared), copiar o token; em Public Hostname: `robo.nossoprojeto3d.com.br` → HTTP → `api:8080`.
 3. **Instalar:** copiar `achadinhos-robo/` para a máquina e rodar `./instalar.sh` com o token.
 4. **Worker:** `npx wrangler secret put EVO_URL` e `EVO_KEY`; `npx wrangler deploy`.

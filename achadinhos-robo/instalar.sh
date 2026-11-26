@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
-# Instala o robô na máquina da Oracle (Ubuntu). Rode na pasta deste arquivo: ./instalar.sh
+# Instala o robô na máquina do Google Cloud (Ubuntu 24.04, e2-micro). Rode na pasta deste arquivo: ./instalar.sh
 # Pede o token do túnel da Cloudflare; gera a chave da Evolution e a senha do banco.
 set -euo pipefail
 cd "$(dirname "$0")"
+
+# 2 GB de memória extra no disco: a máquina grátis só tem 1 GB
+if [ ! -f /swapfile ]; then
+  echo "Criando a memória extra (swap)..."
+  sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile
+  sudo mkswap /swapfile >/dev/null && sudo swapon /swapfile
+  echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab >/dev/null
+  echo 'vm.swappiness=10' | sudo tee /etc/sysctl.d/99-robo.conf >/dev/null && sudo sysctl -p /etc/sysctl.d/99-robo.conf >/dev/null
+fi
 
 if ! command -v docker >/dev/null; then
   echo "Instalando o Docker..."
@@ -38,11 +47,8 @@ DATABASE_SAVE_DATA_CONTACTS=false
 DATABASE_SAVE_DATA_CHATS=false
 DATABASE_SAVE_DATA_LABELS=false
 DATABASE_SAVE_DATA_HISTORIC=false
-CACHE_REDIS_ENABLED=true
-CACHE_REDIS_URI=redis://redis:6379/6
-CACHE_REDIS_PREFIX_KEY=achadinhos
-CACHE_REDIS_SAVE_INSTANCES=false
-CACHE_LOCAL_ENABLED=false
+CACHE_REDIS_ENABLED=false
+CACHE_LOCAL_ENABLED=true
 ENV
   chmod 600 .env
 fi
