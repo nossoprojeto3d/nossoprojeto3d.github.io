@@ -1052,7 +1052,8 @@ function capa(mini) {
 const wa = t => 'https://api.whatsapp.com/send?text=' + encodeURIComponent(t);
 /* ---------- modelo da mensagem de oferta (Ajustes > Modelo da mensagem) ---------- */
 const MODELO_PADRAO = {
-  oferta: '{absurda}\n\n{titulo}\n{preco}[ 💥🎟️ {cupom}]\n\n{cupons}\n\n{frase}\nEntra aqui: {link}',
+  /* modelo do Junior (26/11/2026); {preco} já traz o "R$" */
+  oferta: '{absurda}\n\n🛍️ *{titulo}*\n\n💬 {frase}\n\n👀 De {de}\n✅ *Por {preco}*\n\n🎟️ *Cupomzão pro cês: {cupom}*\n{cupons}\n\n⚡ Corre que preço de achadinho some rápido!\n👉 {link}',
   cupom: '{abertura}\n[⚠️ {aviso}]\n{cupons}\n\n{chamada}\n{link}'
 };
 const CAMPOS = {
