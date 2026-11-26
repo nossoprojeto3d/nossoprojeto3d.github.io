@@ -50,7 +50,7 @@ button{cursor:pointer}
 .side{display:none}
 .main{flex:1;width:100%;max-width:560px;margin:0 auto;padding:max(28px,env(safe-area-inset-top)) 20px calc(96px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:16px}
 /* fixed (não sticky): no app da tela de início do iPhone, o 100dvh vem errado ao abrir e a barra ficava no meio */
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--bg2);border-top:1px solid var(--line);padding:6px 12px max(10px,env(safe-area-inset-bottom))}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--bg2);border-top:1px solid var(--line);padding:6px 12px max(10px,env(safe-area-inset-bottom))}
 .tab{height:52px;border:0;background:none;color:var(--muted);font-size:13px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
 .tab[aria-current="page"]{color:var(--accent)}
 .top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
@@ -1004,7 +1004,7 @@ const painelEmoji = () => S.emojiAberto ? `<div class="emojis" role="group" aria
 /* configuração à esquerda e prévia fixa à direita (no celular, a prévia vem embaixo) */
 function telaModelo() {
   const tipo = S.modeloTipo;
-  return `<div class="top"><h1>Modelo</h1>
+  return `<div class="top"><h1>Template</h1>
     <div class="seg" role="group" aria-label="Modelo de qual post"><button data-a="modelo-tipo" data-n="oferta" aria-pressed="${tipo === 'oferta'}">Oferta</button><button data-a="modelo-tipo" data-n="cupom" aria-pressed="${tipo === 'cupom'}">Cupom</button></div></div>
   <div class="modelo-duo">
     <section class="modelo-ed stack tight" aria-label="Modelo do post de ${tipo}">
@@ -1250,7 +1250,6 @@ function telaOferta() {
   <div class="duo" data-step="${S.step}">
     <section class="pane pane-form" aria-label="${S.manual ? 'Oferta nova' : 'Mensagem e link'}">
       <div class="passo-tit so-web"><b>1</b>${S.manual ? 'Oferta do zero' : 'Cole a oferta'}</div>
-      <div class="seg mini origem" role="group" aria-label="Começar com"><button data-a="origem" data-n="pronta" aria-pressed="${!S.manual}">Mensagem pronta</button><button data-a="origem" data-n="zero" aria-pressed="${S.manual}">Do zero</button></div>
       ${campos}
       <p class="erro" id="erro-oferta" role="alert" hidden></p>
       <button class="btn pri block so-cel" data-a="montar">Post pronto</button>
@@ -1310,7 +1309,6 @@ function telaCupom() {
   <div class="duo" data-step="${S.stepC}">
     <section class="pane pane-form" aria-label="Cupons e link">
       <div class="passo-tit so-web"><b>1</b>Cupons e link</div>
-      <div class="seg mini origem" role="group" aria-label="Começar com"><button data-a="origem-c" data-n="pronta" aria-pressed="${!S.cZero}">Mensagem pronta</button><button data-a="origem-c" data-n="zero" aria-pressed="${S.cZero}">Do zero</button></div>
       ${S.cZero ? '' : `<div class="field">
         <label for="msgc">Mensagem que você viu</label>
         <div class="com-acao"><textarea class="in" id="msgc" data-i="msgc" rows="4" placeholder="Cole aqui o post de cupom de outro grupo.">${esc(S.msgC)}</textarea><button class="acao-in" data-a="colar-cupom" aria-label="Colar em mensagem que você viu" title="Colar">${ico('colar', 16)}<span>Colar</span></button></div>
@@ -1397,7 +1395,7 @@ function telaDisparo() {
 function telaNovo() {
   if (S.disparo) return telaDisparo();
   if (S.envio) return telaPassos();
-  return `<div class="top"><h1>Novo post</h1>
+  return `<div class="top"><h1>${modoZero() ? 'Novo post' : 'Clonar oferta'}</h1>
     <div class="seg" role="group" aria-label="Tipo de post"><button data-a="tipo" data-n="oferta" aria-pressed="${S.tipo === 'oferta'}">Oferta</button><button data-a="tipo" data-n="cupom" aria-pressed="${S.tipo === 'cupom'}">Cupom</button></div></div>
   ${S.tipo === 'oferta' ? telaOferta() : telaCupom()}`;
 }
@@ -1638,8 +1636,16 @@ function telaLogin() {
     </form>
   </div>`;
 }
-const ABAS = [['novo', 'Novo post', 'mais'], ['historico', 'Histórico', 'relogio'], ['modelo', 'Modelo', 'modelo'], ['ajustes', 'Ajustes', 'ajustes']];
-const abas = () => ABAS.map(([id, nome, ic]) => `<button class="tab" data-a="ir" data-n="${id}" ${S.view === id ? 'aria-current="page"' : ''}>${ico(ic, 22)}${nome}</button>`).join('');
+/* Novo post e Clonar oferta são a mesma tela (view 'novo'), no modo Do zero ou Mensagem pronta */
+const ABAS = [['zero', 'Novo post', 'mais'], ['clonar', 'Clonar oferta', 'copiar'], ['historico', 'Histórico', 'relogio'], ['modelo', 'Template', 'modelo'], ['ajustes', 'Ajustes', 'ajustes']];
+const modoZero = () => S.tipo === 'oferta' ? !!S.manual : !!S.cZero;
+const abaAtual = () => S.view !== 'novo' ? S.view : modoZero() ? 'zero' : 'clonar';
+const abas = () => ABAS.map(([id, nome, ic]) => `<button class="tab" data-a="${id === 'zero' || id === 'clonar' ? 'ir-novo' : 'ir'}" data-n="${id}" ${abaAtual() === id ? 'aria-current="page"' : ''}>${ico(ic, 22)}${id === 'clonar' ? '<span class="so-web">Clonar oferta</span><span class="so-cel">Clonar</span>' : nome}</button>`).join('');
+/* põe a oferta ou o cupom no modo da aba (as trocas guardam o que estava no outro modo) */
+function sincModo(zero) {
+  if (S.tipo === 'oferta' && !!S.manual !== zero) A.origem(zero ? 'zero' : 'pronta');
+  if (S.tipo === 'cupom' && !!S.cZero !== zero) A['origem-c'](zero ? 'zero' : 'pronta');
+}
 function render() {
   const app = $('#app');
   if (S.abrindo) { app.innerHTML = telaAbrindo(); return; }
@@ -1678,7 +1684,13 @@ function topo() { window.scrollTo(0, 0); }
 /* ---------- ações ---------- */
 const A = {
   ir(n) { if (S.envio) { concluiEnvio(n, true); toast('Post salvo no histórico.'); if (n === 'historico' && sb) carregaHistorico().then(() => { if (S.view === 'historico') render(); }); return; } if (S.disparo && S.disparo.ativo) return toast('Espere o envio terminar ou toque em Parar.'); if (S.disparo) fechaDisparo(); S.view = n; render(); topo(); if (n === 'historico' && sb) carregaHistorico().then(() => { if (S.view === 'historico') render(); }); },
-  tipo(n) { S.tipo = n; render(); },
+  tipo(n) { const zero = modoZero(); S.tipo = n; sincModo(zero); render(); },
+  'ir-novo'(n) {
+    const zero = n === 'zero';
+    if (S.view === 'novo' && !S.envio && !S.disparo && modoZero() === zero) return;
+    if (!S.envio && !(S.disparo && S.disparo.ativo)) sincModo(zero);
+    A.ir('novo');
+  },
   'graf-tog'() { S.grafAberto = !S.grafAberto; refazHist(); },
   hf(n) { const [k, v] = n.split(':'); S.hf[k] = k === 'dias' ? +v : v; refazHist(); },
   'abrir-aviso'(n) { S.avisoAberto = S.avisoAberto === +n ? null : +n; poe('#hist-lista', listaHistorico()); },
