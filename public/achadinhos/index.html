@@ -93,6 +93,7 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 @media (max-width:1023px){.chip{min-height:40px}}
 #modelo{min-height:240px;font-size:15px;line-height:1.5;resize:vertical}
 .modelo-duo{display:flex;flex-direction:column;gap:20px}
+.modelo-img{margin-top:12px;padding-top:16px;border-top:1px solid var(--line)}
 .emojis{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:2px;padding:8px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
 .emo{min-height:40px;border:0;border-radius:8px;background:none;font-size:22px;line-height:1;cursor:pointer}
 .emo:hover,.emo:focus-visible{background:var(--line)}
@@ -1014,6 +1015,7 @@ function telaModelo() {
       <p class="hint">Linha com campo vazio some. Um trecho entre [ ] só aparece se o campo dele tiver valor. Use *negrito*, _itálico_ e ~riscado~ do WhatsApp.</p>
       <div id="modelo-avisos" class="stack tight">${avisosModelo()}</div>
       <div id="modelo-acoes">${acoesModelo()}</div>
+      ${tipo === 'cupom' ? `<div class="modelo-img"><div id="bloco-img">${blocoImagem()}</div></div>` : ''}
     </section>
     <section class="modelo-pv" aria-label="Prévia" id="modelo-previa">${previaModelo()}</section>
   </div>`;
@@ -1591,7 +1593,6 @@ function telaAjustes() {
   <div class="stack estreito">
     <section class="stack tight"><h2>Mercado Livre</h2><div id="bloco-ml">${blocoML()}</div></section>
     <section class="stack tight"><h2>Robô do WhatsApp</h2><div id="bloco-robo" class="stack tight">${blocoRobo()}</div></section>
-    <section class="stack tight"><h2>Imagem do cupom</h2><div id="bloco-img">${blocoImagem()}</div></section>
     <section class="stack tight"><h2>Avisos</h2>
       <label class="sw card"><span>Avisar quando o produto já foi enviado hoje</span><input type="checkbox" data-i="avisar" ${S.avisarRepetido ? 'checked' : ''}></label>
     </section>
@@ -2201,7 +2202,7 @@ async function arquivoImagem() {
   const b = await new Promise(r => c.toBlob(r, 'image/png')); return new File([b], 'cupom.png', { type: 'image/png' });
 }
 function refazMsgs(tipo) { if (tipo === 'oferta') { poe('#bolhas', bolhasOferta()); ligaEnviar('enviar-oferta', podeOferta(), txtO); } else { poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), txtC); } }
-function refazImagem() { poe('#bloco-img', blocoImagem()); poe('#bolhas-c', bolhasCupom()); }
+function refazImagem() { poe('#bloco-img', blocoImagem()); poe('#bolhas-c', bolhasCupom()); if (S.view === 'modelo') poe('#modelo-previa', previaModelo()); }
 
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-a]');
