@@ -50,7 +50,7 @@ button{cursor:pointer}
 .side{display:none}
 .main{flex:1;width:100%;max-width:560px;margin:0 auto;padding:max(28px,env(safe-area-inset-top)) 20px calc(96px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:16px}
 /* fixed (não sticky): no app da tela de início do iPhone, o 100dvh vem errado ao abrir e a barra ficava no meio */
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--bg2);border-top:1px solid var(--line);padding:6px 12px max(10px,env(safe-area-inset-bottom))}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--bg2);border-top:1px solid var(--line);padding:6px 12px max(10px,env(safe-area-inset-bottom))}
 .tab{height:52px;border:0;background:none;color:var(--muted);font-size:13px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
 .tab[aria-current="page"]{color:var(--accent)}
 .top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
@@ -91,7 +91,8 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 .chip{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--text);font:600 13.5px var(--body);cursor:pointer}
 .chip:hover{border-color:var(--accent);color:var(--accent)}
 @media (max-width:1023px){.chip{min-height:40px}}
-#modelo{min-height:200px;font-size:15px;line-height:1.5}
+#modelo{min-height:240px;font-size:15px;line-height:1.5;resize:vertical}
+.modelo-duo{display:flex;flex-direction:column;gap:20px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .bolha i{font-style:italic} .bolha s{text-decoration:line-through}
 .passos-ml{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
@@ -308,6 +309,12 @@ details.hint summary{cursor:pointer;min-height:32px;display:flex;align-items:cen
   .side .pe .lbl{display:none}
   .main{flex:1;min-width:0;max-width:none;margin:0;height:100dvh;overflow-y:auto;padding:18px 28px 0;gap:14px;box-sizing:border-box}
   .main.fixa{overflow:hidden}
+  /* aba Modelo: editor rola à esquerda, prévia parada à direita */
+  .modelo-duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,440px);gap:28px;flex:1;min-height:0}
+  .modelo-ed{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 8px 18px 2px}
+  .modelo-pv{min-height:0;overflow-y:auto;padding-bottom:18px}
+  .modelo-pv .wa{min-height:100%;box-sizing:border-box;justify-content:flex-start}
+  #modelo{min-height:340px}
   h1{font-size:30px}
   .top .seg{flex:0 0 240px}
   .duo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;flex:1;min-height:0}
@@ -765,6 +772,7 @@ const fraseAviso = (acao, c) => { const l = acao === 'voltou' ? FRASES_VOLTOU : 
 const P = {
   mais: '<path d="M12 5v14M5 12h14"/>',
   relogio: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  modelo: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',
   ajustes: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
   ok: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   alerta: '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17.5v.5"/>',
@@ -969,25 +977,33 @@ const rascModelo = () => S.modeloRasc !== null ? S.modeloRasc : modeloAtual();
 function previaModelo() {
   const t = rascModelo(), v = dados().produto ? { ...EXEMPLO, ...Object.fromEntries(Object.entries(camposOferta()).filter(([, x]) => x)) } : EXEMPLO;
   const desc = desconhecidos(t);
-  return `<div class="wa"><div class="cap">Exemplo de como chega</div><div class="msg"><div class="bolha">${fmtWA(aplicaModelo(t, v)) || '<span class="ph">Modelo vazio</span>'}</div></div></div>`
-    + (desc.length ? chk('warn', 'Campo que não existe: ' + desc.map(k => `<span class="mono">{${esc(k)}}</span>`).join(', ')) : '')
+  return `<div class="wa"><div class="cap">Como chega no grupo</div><div class="msg"><div class="bolha">${fmtWA(aplicaModelo(t, v)) || '<span class="ph">Modelo vazio</span>'}</div></div></div>`;
+}
+function avisosModelo() {
+  const t = rascModelo(), desc = desconhecidos(t);
+  return (desc.length ? chk('warn', 'Campo que não existe: ' + desc.map(k => `<span class="mono">{${esc(k)}}</span>`).join(', ')) : '')
     + (!/\{link\}/.test(t) ? chk('warn', 'O modelo está sem o <span class="mono">{link}</span>.') : '');
 }
 function acoesModelo() {
   const t = rascModelo(), mudou = t !== modeloAtual(), padrao = t === MODELO_PADRAO;
   return `<div class="row">${padrao ? '<span></span>' : '<button class="btn link" data-a="modelo-padrao">Voltar ao padrão</button>'}<button class="btn pri sm" data-a="modelo-salvar" ${mudou && !S.modeloSalvando ? '' : 'disabled'}>${S.modeloSalvando ? 'Salvando…' : mudou ? 'Salvar' : 'Salvo'}</button></div>`;
 }
-function blocoModelo() {
-  return `<div class="field">
-      <label for="modelo" class="sr">Modelo da mensagem</label>
-      <textarea class="in mono" id="modelo" data-i="modelo" rows="9" spellcheck="false" autocapitalize="none">${esc(rascModelo())}</textarea>
+/* aba Modelo: configuração à esquerda e prévia fixa à direita (no celular, a prévia vem embaixo) */
+function telaModelo() {
+  return `<h1>Modelo</h1>
+  <div class="modelo-duo">
+    <section class="modelo-ed stack tight" aria-label="Modelo da mensagem de oferta">
+      <label for="modelo" class="lbl">Post de oferta</label>
+      <textarea class="in mono" id="modelo" data-i="modelo" spellcheck="false" autocapitalize="none">${esc(rascModelo())}</textarea>
       <div class="chips" role="group" aria-label="Inserir campo">${CAMPOS.map(([k, n]) => `<button class="chip" data-a="modelo-campo" data-n="${k}">${n}</button>`).join('')}</div>
-      <p class="hint">Linha com campo vazio some. Um trecho entre [ ] só aparece se o campo dele tiver valor. Use *negrito* e _itálico_ do WhatsApp.</p>
-      <div id="modelo-previa" class="stack tight">${previaModelo()}</div>
+      <p class="hint">Linha com campo vazio some. Um trecho entre [ ] só aparece se o campo dele tiver valor. Use *negrito*, _itálico_ e ~riscado~ do WhatsApp.</p>
+      <div id="modelo-avisos" class="stack tight">${avisosModelo()}</div>
       <div id="modelo-acoes">${acoesModelo()}</div>
-    </div>`;
+    </section>
+    <section class="modelo-pv" aria-label="Prévia" id="modelo-previa">${previaModelo()}</section>
+  </div>`;
 }
-const refazModelo = () => { poe('#modelo-previa', previaModelo()); poe('#modelo-acoes', acoesModelo()); };
+const refazModelo = () => { poe('#modelo-previa', previaModelo()); poe('#modelo-avisos', avisosModelo()); poe('#modelo-acoes', acoesModelo()); };
 /* dias até a sessão do ML vencer (null quando o ML ainda não informou) */
 const diasML = m => m && m.validade ? Math.ceil((Date.parse(m.validade) - Date.now()) / 864e5) : null;
 /* Ajustes: a sessão do Gerador de links do ML, de onde saem os meli.la */
@@ -1547,7 +1563,6 @@ function telaAjustes() {
   return `<h1>Ajustes</h1>
   <div class="stack estreito">
     <section class="stack tight"><h2>Mercado Livre</h2><div id="bloco-ml">${blocoML()}</div></section>
-    <section class="stack tight"><h2>Modelo da mensagem</h2><div id="bloco-modelo">${blocoModelo()}</div></section>
     <section class="stack tight"><h2>Robô do WhatsApp</h2><div id="bloco-robo" class="stack tight">${blocoRobo()}</div></section>
     <section class="stack tight"><h2>Imagem do cupom</h2><div id="bloco-img">${blocoImagem()}</div></section>
     <section class="stack tight"><h2>Avisos</h2>
@@ -1595,19 +1610,19 @@ function telaLogin() {
     </form>
   </div>`;
 }
-const ABAS = [['novo', 'Novo post', 'mais'], ['historico', 'Histórico', 'relogio'], ['ajustes', 'Ajustes', 'ajustes']];
+const ABAS = [['novo', 'Novo post', 'mais'], ['historico', 'Histórico', 'relogio'], ['modelo', 'Modelo', 'modelo'], ['ajustes', 'Ajustes', 'ajustes']];
 const abas = () => ABAS.map(([id, nome, ic]) => `<button class="tab" data-a="ir" data-n="${id}" ${S.view === id ? 'aria-current="page"' : ''}>${ico(ic, 22)}${nome}</button>`).join('');
 function render() {
   const app = $('#app');
   if (S.abrindo) { app.innerHTML = telaAbrindo(); return; }
   if (!S.dentro) { app.innerHTML = telaLogin(); return; }
   if (!S.user) { app.innerHTML = telaQuem(); return; }
-  const tela = S.view === 'novo' ? telaNovo() : S.view === 'historico' ? telaHistorico() : telaAjustes();
+  const tela = S.view === 'novo' ? telaNovo() : S.view === 'historico' ? telaHistorico() : S.view === 'modelo' ? telaModelo() : telaAjustes();
   app.innerHTML = `<div class="shell">
     <aside class="side"><div class="marca" style="color:var(--text)"><div class="np"><img src="logo-np-verde.png" alt="Nosso Projeto 3D" width="26" height="31"></div><span style="font-family:var(--disp);font-weight:700;font-size:19px;line-height:1.05">Nossos Achadinhos</span></div>
       <nav aria-label="Principal">${abas()}</nav>
       <div class="pe"><span class="quem" aria-hidden="true" style="width:36px;height:36px;font-size:14px">${esc(S.user[0])}</span><span class="lbl">${esc(S.user)}</span></div></aside>
-    <main class="main${(S.view === 'novo' && !S.disparo && !S.envio) || (S.view === 'historico' && S.historico.length) ? ' fixa' : ''}" id="main">${tela}</main>
+    <main class="main${(S.view === 'novo' && !S.disparo && !S.envio) || (S.view === 'historico' && S.historico.length) || S.view === 'modelo' ? ' fixa' : ''}" id="main">${tela}</main>
     <nav class="tabs" aria-label="Principal">${abas()}</nav>
   </div>`;
   montaGraficos();
@@ -2022,7 +2037,7 @@ async function apiLinks(caminho, corpo) {
 async function carregaModelo() {
   if (!sb || !CFG.ml) return;
   try { const m = await apiLinks('/api/modelo'); S.modelo = m.texto || ''; guarda('na-modelo', S.modelo || null); } catch (e) { return; }
-  if (S.view === 'ajustes' && S.modeloRasc === null) { const t = $('#modelo'); if (t && document.activeElement !== t) t.value = modeloAtual(); refazModelo(); }
+  if (S.view === 'modelo' && S.modeloRasc === null) { const t = $('#modelo'); if (t && document.activeElement !== t) t.value = modeloAtual(); refazModelo(); }
   if (S.view === 'novo') atualizaOferta(false);
 }
 async function carregaSessaoML() {
