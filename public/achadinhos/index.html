@@ -1054,7 +1054,8 @@ const wa = t => 'https://api.whatsapp.com/send?text=' + encodeURIComponent(t);
 const MODELO_PADRAO = {
   /* modelo do Junior (26/11/2026); {preco} já traz o "R$" */
   oferta: '{absurda}\n\n🛍️ *{titulo}*\n\n💬 {frase}\n\n👀 De {de}\n✅ *Por {preco}*\n\n🎟️ *Cupomzão pro cês: {cupom}*\n{cupons}\n\n⚡ Corre que preço de achadinho some rápido!\n👉 {link}',
-  cupom: '{abertura}\n[⚠️ {aviso}]\n{cupons}\n\n{chamada}\n{link}'
+  /* modelo do Junior (26/11/2026) */
+  cupom: '{abertura}\n\n[⚠️ {aviso}]\n\n{cupons}\n\n{chamada}\n{link}'
 };
 const CAMPOS = {
   oferta: [['titulo', 'Título'], ['preco', 'Preço'], ['cupom', 'Cupom'], ['cupons', 'Vários cupons'], ['desconto', 'Desconto'], ['de', 'Preço antigo'], ['frete', 'Frete'], ['avaliacao', 'Avaliação'], ['loja', 'Loja'], ['frase', 'Frase'], ['absurda', 'Oferta absurda'], ['link', 'Link']],
