@@ -3,6 +3,9 @@
    GET  /api/sessao     sessão salva? ({ tag, em, validade }; o cookie nunca sai daqui)
    POST /api/sessao     { curl }: o "Copy as cURL (bash)" do createLink no Chrome; testa e guarda cookie, csrf e etiqueta
    POST /api/converter  { url }: abre o link de outro grupo, acha o produto e devolve o meli.la da conta
+                        (com título, foto, preço, preço antigo, desconto, frete, nota, vendidos e loja, para o modelo do post)
+   GET  /api/modelo     modelo da mensagem de oferta ({ texto, em } ou {})
+   POST /api/modelo     { texto }: guarda o modelo (vazio = volta ao padrão do app)
    Só atende quem está logado no app e é membro (achadinhos_membros no Supabase). */
 import { ehML, limpaProduto, produtoDireto, produtoDaVitrine, ehLista, sessaoDoCurl, juntaCookies, validadeDe } from './ml.js';
 
@@ -79,7 +82,8 @@ async function converter(req, env) {
   }
   try {
     const m = await geraMeli(env, s, limpaProduto(prod.url));
-    return json(req, { id: prod.id, titulo: prod.titulo || m.titulo, preco: prod.preco ?? null, foto: prod.foto || '', curto: m.curto });
+    const { url: _u, ...extra } = prod;
+    return json(req, { ...extra, titulo: prod.titulo || m.titulo, preco: prod.preco ?? null, foto: prod.foto || '', curto: m.curto });
   } catch (e) {
     return json(req, { erro: e.codigo || 'ml-fora' }, e.codigo === 'sessao' ? 409 : 502);
   }
@@ -109,6 +113,15 @@ export default {
     }
     if (p === '/api/sessao' && req.method === 'POST') return salvaSessao(req, env);
     if (p === '/api/converter' && req.method === 'POST') return converter(req, env);
+    if (p === '/api/modelo' && req.method === 'GET') return json(req, JSON.parse((await env.DADOS.get('modelo-oferta')) || '{}'));
+    if (p === '/api/modelo' && req.method === 'POST') {
+      const { texto } = await req.json().catch(() => ({}));
+      if (typeof texto !== 'string' || texto.length > 3000) return json(req, { erro: 'modelo-invalido' }, 400);
+      if (!texto.trim()) { await env.DADOS.delete('modelo-oferta'); return json(req, {}); }
+      const m = { texto, em: new Date().toISOString() };
+      await env.DADOS.put('modelo-oferta', JSON.stringify(m));
+      return json(req, m);
+    }
     return json(req, { erro: 'rota' }, 404);
   }
 };

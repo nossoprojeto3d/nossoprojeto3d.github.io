@@ -87,6 +87,13 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 .pl-txt b{font-size:15px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .pl-ok{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--ok);min-width:0;white-space:nowrap}
 .pl-ok .mono{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--text);font:600 13.5px var(--body);cursor:pointer}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+@media (max-width:1023px){.chip{min-height:40px}}
+#modelo{min-height:200px;font-size:15px;line-height:1.5}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.bolha i{font-style:italic} .bolha s{text-decoration:line-through}
 .passos-ml{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
 .passos-ml a{color:var(--accent)}
 details.hint summary{cursor:pointer;min-height:32px;display:flex;align-items:center}
@@ -378,7 +385,7 @@ const S = {
   cupons: [],
   linkCupom: '', addAberto: false, img: null, avisarRepetido: true,
   manual: false,
-  conv: null, trocaLink: false, sessaoML: null, mlEdita: false, mlSalvando: false,
+  conv: null, trocaLink: false, sessaoML: null, mlEdita: false, mlSalvando: false, modelo: '', modeloRasc: null, modeloSalvando: false,
   cAbre: null, cAbreIdx: 0, cChama: null, msgC: '', cNota: '', feitos: {}, stepC: 'form', cZero: false,
   frase: null, absurda: false, fraseAbs: null, absIdx: 0,
 
@@ -858,8 +865,10 @@ function partesCupom(d) {
 /* nome que vem do ML junto com o meli.la: siglas em maiúsculas (Pla → PLA, 3d → 3D) */
 const nomeML = t => t.replace(/\S+/g, w => /^\d+d$/i.test(w) || SIGLAS.test(w.toUpperCase()) ? w.toUpperCase() : w).replace(/\s{2,}/g, ' ').trim();
 const tituloML = () => S.conv && S.conv.estado === 'ok' && S.conv.d.titulo && S.conv.orig === ler(S.msg).linkOrig ? nomeML(S.conv.d.titulo) : '';
+/* o que o ML conta do produto (preço antigo, desconto, frete, nota, loja), para o modelo da mensagem */
+const extraML = () => { const c = S.conv; if (!c || c.estado !== 'ok' || c.orig !== ler(S.msg).linkOrig) return null; const { antes, desconto, frete, nota, vendidos, loja, oficial } = c.d; return { antes, desconto, frete, nota, vendidos, loja, oficial }; };
 /* com o link gerado, o nome do ML substitui o da mensagem; o que for editado à mão (draft) manda */
-const bruto = () => { if (S.draft) return S.draft; const d = ler(S.msg), t = !S.manual && tituloML(); return t ? { ...d, produto: t } : d; };
+const bruto = () => { if (S.draft) return S.draft; const d = ler(S.msg), t = !S.manual && tituloML(); return { ...d, ...(t ? { produto: t } : {}), ml: S.manual ? null : extraML() }; };
 /* sem nome de produto, o app cria um título */
 const dados = () => bruto();
 const frasesValidas = () => dados().cupom ? FRASES.concat(FRASES_CUPOM) : FRASES;
@@ -954,6 +963,31 @@ function campoLink() {
         <div id="chk-link">${chkLink(S.link, ler(S.msg).linkOrig)}</div>`
     + (S.trocaLink && c && c.estado === 'ok' ? '<button class="btn link" data-a="usar-conv">Usar o link convertido</button>' : '');
 }
+/* Ajustes: modelo da mensagem de oferta, com prévia de um post de exemplo (ou do post que está aberto) */
+const EXEMPLO = { titulo: 'Filamento PLA Onyon3D 1kg Vermelho', preco: 'R$ 91,91 no Pix', cupom: 'MAKER10', cupons: '', desconto: '31% OFF', de: 'R$ 135,00', frete: 'Frete grátis', avaliacao: '⭐ 4.9 · +1000 vendidos', loja: 'Yalo Embalagens (loja oficial)', frase: 'A Thai deixou o Junior mandar esse porque é bom mesmo', absurda: '🚨 OFERTA ABSURDA 🚨', link: 'https://meli.la/2EdRB5y' };
+const rascModelo = () => S.modeloRasc !== null ? S.modeloRasc : modeloAtual();
+function previaModelo() {
+  const t = rascModelo(), v = dados().produto ? { ...EXEMPLO, ...Object.fromEntries(Object.entries(camposOferta()).filter(([, x]) => x)) } : EXEMPLO;
+  const desc = desconhecidos(t);
+  return `<div class="wa"><div class="cap">Exemplo de como chega</div><div class="msg"><div class="bolha">${fmtWA(aplicaModelo(t, v)) || '<span class="ph">Modelo vazio</span>'}</div></div></div>`
+    + (desc.length ? chk('warn', 'Campo que não existe: ' + desc.map(k => `<span class="mono">{${esc(k)}}</span>`).join(', ')) : '')
+    + (!/\{link\}/.test(t) ? chk('warn', 'O modelo está sem o <span class="mono">{link}</span>.') : '');
+}
+function acoesModelo() {
+  const t = rascModelo(), mudou = t !== modeloAtual(), padrao = t === MODELO_PADRAO;
+  return `<div class="row">${padrao ? '<span></span>' : '<button class="btn link" data-a="modelo-padrao">Voltar ao padrão</button>'}<button class="btn pri sm" data-a="modelo-salvar" ${mudou && !S.modeloSalvando ? '' : 'disabled'}>${S.modeloSalvando ? 'Salvando…' : mudou ? 'Salvar' : 'Salvo'}</button></div>`;
+}
+function blocoModelo() {
+  return `<div class="field">
+      <label for="modelo" class="sr">Modelo da mensagem</label>
+      <textarea class="in mono" id="modelo" data-i="modelo" rows="9" spellcheck="false" autocapitalize="none">${esc(rascModelo())}</textarea>
+      <div class="chips" role="group" aria-label="Inserir campo">${CAMPOS.map(([k, n]) => `<button class="chip" data-a="modelo-campo" data-n="${k}">${n}</button>`).join('')}</div>
+      <p class="hint">Linha com campo vazio some. Um trecho entre [ ] só aparece se o campo dele tiver valor. Use *negrito* e _itálico_ do WhatsApp.</p>
+      <div id="modelo-previa" class="stack tight">${previaModelo()}</div>
+      <div id="modelo-acoes">${acoesModelo()}</div>
+    </div>`;
+}
+const refazModelo = () => { poe('#modelo-previa', previaModelo()); poe('#modelo-acoes', acoesModelo()); };
 /* dias até a sessão do ML vencer (null quando o ML ainda não informou) */
 const diasML = m => m && m.validade ? Math.ceil((Date.parse(m.validade) - Date.now()) / 864e5) : null;
 /* Ajustes: a sessão do Gerador de links do ML, de onde saem os meli.la */
@@ -983,10 +1017,47 @@ function capa(mini) {
 }
 // api.whatsapp.com e não wa.me: o redirecionamento do wa.me estraga os emojis no WhatsApp Web e no app do computador
 const wa = t => 'https://api.whatsapp.com/send?text=' + encodeURIComponent(t);
-function textoOferta() {
-  const d = dados(), fr = fraseAtual().trim(), ab = S.absurda ? absAtual().trim() : '';
-  const pc = partesCupom(d);
-  return (ab ? ab + '\n\n' : '') + d.produto.trim() + '\n' + pc.linha + '\n\n' + (pc.lista ? pc.lista + '\n\n' : '') + (fr ? fr + '\n' : '') + 'Entra aqui: ' + S.link.trim();
+/* ---------- modelo da mensagem de oferta (Ajustes > Modelo da mensagem) ---------- */
+const MODELO_PADRAO = '{absurda}\n\n{titulo}\n{preco}[ 💥🎟️ {cupom}]\n\n{cupons}\n\n{frase}\nEntra aqui: {link}';
+const CAMPOS = [['titulo', 'Título'], ['preco', 'Preço'], ['cupom', 'Cupom'], ['cupons', 'Vários cupons'], ['desconto', 'Desconto'], ['de', 'Preço antigo'], ['frete', 'Frete'], ['avaliacao', 'Avaliação'], ['loja', 'Loja'], ['frase', 'Frase'], ['absurda', 'Oferta absurda'], ['link', 'Link']];
+const NOMES = Object.fromEntries(CAMPOS);
+const modeloAtual = () => S.modelo || MODELO_PADRAO;
+/* valor de cada campo no post atual; vazio quando não tem */
+function camposOferta() {
+  const d = dados(), cs = codigos(d), ml = d.ml || {};
+  const descMsg = (S.manual ? '' : (S.msg.match(/(\d{1,2})\s*%\s*(?:off|de desconto)/i) || [])[1]) || '';
+  return {
+    titulo: (d.produto || '').trim(), preco: (d.preco || '').trim(),
+    cupom: cs.length === 1 ? cs[0] : '',
+    cupons: cs.length > 1 ? cs.map(c => `🎟️ ${c}${d.regras && d.regras[c] ? ': ' + d.regras[c] : ''}`).join('\n') : '',
+    desconto: ml.desconto ? ml.desconto + '% OFF' : descMsg ? descMsg + '% OFF' : '',
+    de: ml.antes ? reais(ml.antes) : '',
+    frete: ml.frete || '',
+    avaliacao: ml.nota ? `⭐ ${ml.nota}${ml.vendidos ? ` · +${ml.vendidos} vendidos` : ''}` : '',
+    loja: ml.loja ? ml.loja + (ml.oficial ? ' (loja oficial)' : '') : '',
+    frase: fraseAtual().trim(), absurda: S.absurda ? absAtual().trim() : '', link: S.link.trim()
+  };
+}
+/* preenche o modelo: trecho [entre colchetes] some se os campos dele estiverem vazios; linha também */
+function aplicaModelo(modelo, v) {
+  const vazio = t => { const ks = [...t.matchAll(/\{(\w+)\}/g)].map(m => m[1]).filter(k => k in v); return ks.length > 0 && ks.every(k => !v[k]); };
+  const linhas = [];
+  for (let l of modelo.replace(/\r/g, '').split('\n')) {
+    l = l.replace(/\[([^\[\]]*\{\w+\}[^\[\]]*)\]/g, (m, t) => vazio(t) ? '' : t);
+    if (vazio(l)) continue;
+    linhas.push(l.replace(/\{(\w+)\}/g, (m, k) => k in v ? v[k] : m).replace(/[ \t]+$/, ''));
+  }
+  return linhas.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+const desconhecidos = modelo => [...new Set([...modelo.matchAll(/\{([^{}\s]{1,30})\}/g)].map(m => m[1]).filter(k => !NOMES[k]))];
+function textoOferta() { return aplicaModelo(modeloAtual(), camposOferta()); }
+/* formatação do WhatsApp na prévia: *negrito*, _itálico_, ~riscado~ e links */
+function fmtWA(t) {
+  return esc(t)
+    .replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s).,!?:]|$)/gm, '$1<b>$2</b>')
+    .replace(/(^|[\s(])_([^_\n]+)_(?=[\s).,!?:]|$)/gm, '$1<i>$2</i>')
+    .replace(/(^|[\s(])~([^~\n]+)~(?=[\s).,!?:]|$)/gm, '$1<s>$2</s>')
+    .replace(/https?:\/\/[^\s<]+/g, u => `<span class="lk">${u}</span>`);
 }
 /* texto que vai pro grupo: o automático, ou o que vocês editaram à mão */
 const textoFinal = tipo => S.ed[tipo] !== null ? S.ed[tipo] : tipo === 'oferta' ? textoOferta() : textoCupom();
@@ -1047,10 +1118,13 @@ function textoMsg(tipo, k) { return k === 'post' ? textoFinal(tipo) : k.slice(2)
 function bolhasOferta() {
   const d = dados();
   if (!S.manual && !S.msg.trim()) return '<div class="vazio">Cole uma mensagem para ver como o post chega no grupo.</div>';
-  const pc = partesCupom(d), fr = fraseAtual(), lk = S.link.trim() || 'seu link aqui';
-  const ab = S.absurda && absAtual().trim() ? esc(absAtual().trim()) + '\n\n' : '';
   const pode = podeOferta();
-  let h = `<div class="msg">` + (S.ed.oferta !== null ? `<div class="bolha">${comLinks(S.ed.oferta)}${tique('post')}</div>` : `<div class="bolha">${ab}${d.produto.trim() ? `<b>${esc(d.produto.trim())}</b>` : '<b class="ph">Nome do produto</b>'}\n${esc(pc.linha)}\n\n${pc.lista ? esc(pc.lista) + '\n\n' : ''}${fr.trim() ? esc(fr.trim()) + '\n' : ''}Entra aqui: <span class="lk">${esc(lk)}</span>${tique('post')}</div>`) + acoesMsg('post', txtO(), pode) + '</div>';
+  /* campos que faltam aparecem apagados na prévia, pra mostrar onde vão entrar */
+  const v = camposOferta(), PH = { titulo: 'Nome do produto', link: 'seu link aqui' };
+  for (const k in PH) if (!v[k]) v[k] = '\u2063' + PH[k] + '\u2064';
+  const txt = S.ed.oferta !== null ? S.ed.oferta : aplicaModelo(modeloAtual(), v);
+  const bolha = fmtWA(txt).replace(/\u2063([^\u2064]*)\u2064/g, '<span class="ph">$1</span>');
+  let h = `<div class="msg"><div class="bolha">${bolha}${tique('post')}</div>` + acoesMsg('post', txtO(), pode) + '</div>';
   codigos(d).forEach(c => { h += `<div class="msg"><div class="bolha">${esc(c)}${tique('c:' + c)}</div>${acoesMsg('c:' + c, c, pode)}</div>`; });
   return h;
 }
@@ -1473,6 +1547,7 @@ function telaAjustes() {
   return `<h1>Ajustes</h1>
   <div class="stack estreito">
     <section class="stack tight"><h2>Mercado Livre</h2><div id="bloco-ml">${blocoML()}</div></section>
+    <section class="stack tight"><h2>Modelo da mensagem</h2><div id="bloco-modelo">${blocoModelo()}</div></section>
     <section class="stack tight"><h2>Robô do WhatsApp</h2><div id="bloco-robo" class="stack tight">${blocoRobo()}</div></section>
     <section class="stack tight"><h2>Imagem do cupom</h2><div id="bloco-img">${blocoImagem()}</div></section>
     <section class="stack tight"><h2>Avisos</h2>
@@ -1577,7 +1652,7 @@ const A = {
     const d = p.dados || {};
     if (p.tipo === 'oferta') {
       limpaPost('oferta'); S.manual = true;
-      S.draft = { produto: d.produto != null ? d.produto : p.titulo, preco: d.preco != null ? d.preco : (p.detalhe === 'Sem preço' ? '' : p.detalhe), cupom: d.cupom != null ? d.cupom : (p.cupom || ''), regras: d.regras || {}, linkOrig: '' };
+      S.draft = { produto: d.produto != null ? d.produto : p.titulo, preco: d.preco != null ? d.preco : (p.detalhe === 'Sem preço' ? '' : p.detalhe), cupom: d.cupom != null ? d.cupom : (p.cupom || ''), regras: d.regras || {}, linkOrig: '', ml: d.ml || null };
       S.link = d.link || ''; if (d.frase) S.frase = d.frase; S.absurda = !!d.absurda; if (d.fraseAbs) S.fraseAbs = d.fraseAbs;
     } else {
       limpaPost('cupom');
@@ -1637,6 +1712,23 @@ const A = {
   'trocar-link'() { S.trocaLink = true; S.link = ''; refazCampoLink(); const i = $('#link'); if (i) i.focus(); },
   'usar-conv'() { S.trocaLink = false; S.link = S.conv.d.curto; refazCampoLink(); },
   'conv-de-novo'() { S.conv = null; converteLink(true); },
+  'modelo-campo'(k) {
+    const t = $('#modelo'); if (!t) return;
+    const ins = '{' + k + '}', a = t.selectionStart ?? t.value.length, b = t.selectionEnd ?? a;
+    t.value = t.value.slice(0, a) + ins + t.value.slice(b); t.focus(); t.setSelectionRange(a + ins.length, a + ins.length);
+    S.modeloRasc = t.value; refazModelo();
+  },
+  'modelo-padrao'() { S.modeloRasc = MODELO_PADRAO; const t = $('#modelo'); if (t) t.value = MODELO_PADRAO; refazModelo(); },
+  async 'modelo-salvar'() {
+    const t = rascModelo(), texto = t === MODELO_PADRAO ? '' : t;
+    S.modeloSalvando = true; refazModelo();
+    try {
+      if (sb && CFG.ml) await apiLinks('/api/modelo', { texto });
+      S.modelo = texto; S.modeloRasc = null; guarda('na-modelo', texto || null);
+      toast('Modelo salvo. Vale para os próximos posts.');
+    } catch (e) { toast('Não deu pra salvar o modelo agora. Tente de novo.'); }
+    S.modeloSalvando = false; refazModelo();
+  },
   'ml-editar'() { S.mlEdita = true; poe('#bloco-ml', blocoML()); const i = $('#ml-curl'); if (i) i.focus(); },
   'ml-cancelar'() { S.mlEdita = false; poe('#bloco-ml', blocoML()); },
   async 'ml-salvar'() {
@@ -1927,6 +2019,12 @@ async function apiLinks(caminho, corpo) {
   if (!r.ok) { const e = new Error(j.erro || 'falha'); e.codigo = j.erro || 'falha'; throw e; }
   return j;
 }
+async function carregaModelo() {
+  if (!sb || !CFG.ml) return;
+  try { const m = await apiLinks('/api/modelo'); S.modelo = m.texto || ''; guarda('na-modelo', S.modelo || null); } catch (e) { return; }
+  if (S.view === 'ajustes' && S.modeloRasc === null) { const t = $('#modelo'); if (t && document.activeElement !== t) t.value = modeloAtual(); refazModelo(); }
+  if (S.view === 'novo') atualizaOferta(false);
+}
 async function carregaSessaoML() {
   if (!sb || !CFG.ml) return;
   try { const d = await apiLinks('/api/sessao'); S.sessaoML = d.tag ? d : false; } catch (e) { return; }
@@ -1971,7 +2069,7 @@ async function entra(u) {
   if (error || !data) { await sb.auth.signOut().catch(() => {}); S.dentro = false; render(); erro('#erro-login', 'Essa conta não tem acesso ao Nossos Achadinhos.'); return; }
   S.dentro = true; S.user = le('na-quem');
   await carregaHistorico(); render(); topo();
-  roboAtualiza(); carregaSessaoML();
+  roboAtualiza(); carregaSessaoML(); carregaModelo();
 }
 async function carregaHistorico() {
   if (!sb) return;
@@ -1998,7 +2096,7 @@ function copiaJa(t) {
 async function copia(t) { if (copiaJa(t)) return true; try { await navigator.clipboard.writeText(t); return true; } catch (e) { return false; } }
 /* O que dá pra remontar o post depois, pelo histórico */
 function dadosPost(tipo) {
-  if (tipo === 'oferta') { const d = dados(); return { produto: d.produto, preco: d.preco, cupom: d.cupom, regras: d.regras || {}, link: S.link.trim(), frase: fraseAtual(), absurda: S.absurda, fraseAbs: S.absurda ? absAtual() : null }; }
+  if (tipo === 'oferta') { const d = dados(); return { produto: d.produto, preco: d.preco, cupom: d.cupom, regras: d.regras || {}, ml: d.ml || null, link: S.link.trim(), frase: fraseAtual(), absurda: S.absurda, fraseAbs: S.absurda ? absAtual() : null }; }
   return { cupons: S.cupons.map(c => ({ code: c.code, regra: c.regra || '' })), link: S.linkCupom.trim(), abre: abreAtual(), chama: chamaAtual(), nota: S.cNota.trim() };
 }
 function iniciaEnvio(e) {
@@ -2068,6 +2166,7 @@ document.addEventListener('input', e => {
   if (k === 'msg') { S.ed.oferta = null; S.edAberto.oferta = false; if (!S.msg.trim() && v.trim()) S.coladaEm = Date.now(); if (!v.trim()) S.coladaEm = null; S.msg = v; S.draft = null; erro('#erro-oferta', ''); atualizaOferta(true); converteLink(); }
   else if (k === 'link') { S.link = v; erro('#erro-oferta', ''); atualizaOferta(false); if (ML.test(v.trim())) { S.foiML = false; poe('#link-acoes', acoesLink()); } }
   else if (k.startsWith('d-')) { erro('#erro-oferta', ''); S.draft = { ...bruto(), [k.slice(2)]: k === 'd-cupom' ? v.toUpperCase().replace(/[,;\/]+/g, ' ').replace(/\s{2,}/g, ' ').replace(/^\s+/, '') : v }; if (k === 'd-cupom' && e.target.value !== S.draft.cupom) e.target.value = S.draft.cupom; atualizaOferta(false); }
+  else if (k === 'modelo') { S.modeloRasc = v; refazModelo(); }
   else if (k === 'linkc') { S.linkCupom = v; poe('#chk-linkc', chkLink(v)); poe('#fixo-linkc', fixoLink()); poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), txtC); }
   else if (k === 'grupo') {
     const g = S.robo.grupos.find(x => x.jid === e.target.dataset.n); if (g) g.ativo = e.target.checked;
@@ -2146,7 +2245,7 @@ document.addEventListener('pointermove', e => {
     history.replaceState(null, '', location.pathname);
   } catch (e) {}
 })();
-S.modo = le('na-modo') || 'copiar'; S.tituloIdx = proxima('titulos', TITULOS.length); S.fraseAuto = null; S.absAuto = null; S.abreAuto = null; S.linkCupom = linkFixo(); S.img = le('na-img'); if (le('na-avisar') === '0') S.avisarRepetido = false;
+S.modo = le('na-modo') || 'copiar'; S.tituloIdx = proxima('titulos', TITULOS.length); S.fraseAuto = null; S.absAuto = null; S.abreAuto = null; S.linkCupom = linkFixo(); S.img = le('na-img'); S.modelo = le('na-modelo') || ''; if (le('na-avisar') === '0') S.avisarRepetido = false;
 iniciaRobo();
 S.abrindo = NUVEM && temSessaoSalva();
 if (S.abrindo) setTimeout(fimAbrindo, 10000);

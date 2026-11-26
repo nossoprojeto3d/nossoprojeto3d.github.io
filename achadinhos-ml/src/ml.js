@@ -46,12 +46,24 @@ export function produtoDaVitrine(html) {
   const titulo = (card.match(/"type":"title","id":"title","title":\{"text":"((?:[^"\\]|\\.)*)"/) || [])[1];
   const preco = (card.match(/"price":\{[^{}]*?"price":([\d.]+)/) || card.match(/"prc":([\d.]+)/) || [])[1];
   const pic = (card.match(/"pictures":\[\{"id":"([^"]+)"/) || [])[1];
+  const antes = (card.match(/"previous_price":\{"value":([\d.]+)/) || [])[1];
+  const desc = (card.match(/"discount_pct":(\d+)/) || card.match(/"prc_disc_pct":(\d+)/) || [])[1];
+  const frete = (card.match(/"shipping_v2":\[\{[^\]]*?"text":"([^"]+)"/) || [])[1];
+  const rev = card.match(/Classificação ([\d.,]+) de 5 estrelas\.(?: Mais de ([^ ]+) produtos? vendidos?)?/);
+  const vend = card.match(/"seller":\{"text":"Por ((?:[^"\\{]|\\.)+?)\s*(\{icon_cockade\})?"/);
   return {
     id,
     url: urlProduto,
     titulo: titulo ? JSON.parse('"' + titulo + '"') : '',
     preco: preco ? +preco : null,
-    foto: foto(pic)
+    foto: foto(pic),
+    antes: antes && preco && +antes > +preco ? +antes : null,
+    desconto: desc && +desc > 0 ? +desc : null,
+    frete: frete ? JSON.parse('"' + frete + '"') : '',
+    nota: rev ? rev[1].replace(',', '.') : '',
+    vendidos: rev && rev[2] ? rev[2] : '',
+    loja: vend ? JSON.parse('"' + vend[1].trim() + '"') : '',
+    oficial: !!(vend && vend[2])
   };
 }
 

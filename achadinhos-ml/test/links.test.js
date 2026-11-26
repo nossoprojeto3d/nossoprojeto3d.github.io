@@ -50,6 +50,9 @@ test('acha o produto em destaque na vitrine de outro afiliado', () => {
   assert.equal(p.preco, 91.91);
   assert.equal(p.foto, 'https://http2.mlstatic.com/D_Q_NP_697998-MLA112427993482_062026-R.webp');
   assert.equal(limpaProduto(p.url), 'https://www.mercadolivre.com.br/filamento-pla-impressao-3d-high-speed-1kg-onyon3d-175mm-ful-vermelho/p/MLB74331719');
+  assert.deepEqual([p.antes, p.desconto, p.frete, p.nota, p.vendidos, p.loja, p.oficial], [135, 31, 'Frete grátis', '4.9', '1000', 'Yalo Embalagens', true]);
+  const q = produtoDaVitrine(fx('meu'));
+  assert.deepEqual([q.antes, q.desconto, q.vendidos, q.loja], [119.89, 21, '100mil', 'Polimus 3D']);
 });
 
 test('produto pelo id do anúncio mantém o filtro do anúncio', () => {
@@ -72,7 +75,7 @@ test('produto direto, hosts e listas', () => {
 /* ---------- Worker com KV e fetch falsos ---------- */
 function ambiente() {
   const kv = new Map();
-  return { kv, env: { SUPABASE_URL: 'https://sb.test', SUPABASE_KEY: 'pub', DADOS: { get: async k => kv.get(k) ?? null, put: async (k, v) => { kv.set(k, v); } } } };
+  return { kv, env: { SUPABASE_URL: 'https://sb.test', SUPABASE_KEY: 'pub', DADOS: { get: async k => kv.get(k) ?? null, put: async (k, v) => { kv.set(k, v); }, delete: async k => { kv.delete(k); } } } };
 }
 let pedidosML, mlResponde;
 function fetchFalso() {
@@ -121,6 +124,18 @@ test('worker: guarda a sessão testada e gera o meli.la do produto do outro grup
   const g = await (await pede(env, '/api/sessao')).json();
   assert.deepEqual(Object.keys(g).sort(), ['em', 'tag', 'validade']);
   assert.equal(g.validade, '2027-12-27T10:00:00.000Z');
+});
+
+test('worker: modelo da mensagem compartilhado', async () => {
+  fetchFalso(); const { env } = ambiente();
+  assert.deepEqual(await (await pede(env, '/api/modelo')).json(), {});
+  const m = await (await pede(env, '/api/modelo', { texto: '*{titulo}*\n{link}' })).json();
+  assert.equal(m.texto, '*{titulo}*\n{link}');
+  assert.equal((await (await pede(env, '/api/modelo')).json()).texto, '*{titulo}*\n{link}');
+  assert.equal((await pede(env, '/api/modelo', { texto: 'x'.repeat(3001) })).status, 400);
+  await pede(env, '/api/modelo', { texto: '  ' });
+  assert.deepEqual(await (await pede(env, '/api/modelo')).json(), {});
+  assert.equal((await pede(env, '/api/modelo', { texto: 'a' }, 'outro')).status, 401);
 });
 
 test('worker: sessão vencida, lista e link que não é do ML', async () => {
