@@ -80,6 +80,18 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 .chk svg{flex-shrink:0;margin-top:1px}
 .hint{font-size:14px;color:var(--muted)}
 .card{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:14px}
+.pl{display:flex;gap:12px;align-items:center;padding:10px}
+.pl-foto{width:64px;height:64px;flex-shrink:0;border-radius:10px;background:#fff;object-fit:contain}
+.pl.carregando .pl-foto{background:var(--line);animation:pisca 1.2s ease-in-out infinite}
+.pl-txt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.pl-txt b{font-size:15px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pl-ok{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--ok);min-width:0;white-space:nowrap}
+.pl-ok .mono{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.passos-ml{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.passos-ml a{color:var(--accent)}
+details.hint summary{cursor:pointer;min-height:32px;display:flex;align-items:center}
+@keyframes pisca{50%{opacity:.45}}
+@media (prefers-reduced-motion: reduce){.pl.carregando .pl-foto{animation:none}}
 .stack{display:flex;flex-direction:column;gap:16px}
 .stack.tight{gap:8px}
 
@@ -366,6 +378,7 @@ const S = {
   cupons: [],
   linkCupom: '', addAberto: false, img: null, avisarRepetido: true,
   manual: false,
+  conv: null, trocaLink: false, sessaoML: null, mlEdita: false, mlSalvando: false,
   cAbre: null, cAbreIdx: 0, cChama: null, msgC: '', cNota: '', feitos: {}, stepC: 'form', cZero: false,
   frase: null, absurda: false, fraseAbs: null, absIdx: 0,
 
@@ -909,6 +922,52 @@ function chkLink(v, orig) {
   if (orig && v === orig) return chk('warn', 'Esse é o link da mensagem original. Cole o seu.');
   return chk('ok', orig !== undefined ? 'É do Mercado Livre e não é o link da mensagem.' : 'É um link do Mercado Livre.');
 }
+/* ---------- troca automática do link: gera o meli.la pela sessão do ML (achadinhos-ml) ---------- */
+const ERRO_CONV = {
+  'sem-produto': 'Esse link não leva a um produto. Pegue o seu no ML.',
+  'lista': 'Esse link é de uma lista, não de um produto. Pegue o seu no ML.',
+  'sem-sessao': 'Conecte o Mercado Livre em Ajustes pra gerar o link sozinho.',
+  'sessao': 'A conexão com o Mercado Livre venceu. Reconecte em Ajustes.',
+  'ml-recusou': 'O ML não gerou o link desse produto. Pegue o seu no ML.',
+  'sem-acesso': 'Saia e entre de novo pra gerar o link sozinho.'
+};
+const ERRO_AJUSTES = ['sem-sessao', 'sessao'];
+const reais = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+/* cartão do produto com o nosso link curto; se não der, volta o campo de colar o link */
+function campoLink() {
+  const c = S.conv;
+  if (c && !S.trocaLink && c.estado === 'carregando') return `<div class="pl card carregando" aria-live="polite"><div class="pl-foto"></div><div class="pl-txt"><b>Trocando pelo seu link…</b><span class="hint">Abrindo o produto no ML</span></div></div>`;
+  if (c && !S.trocaLink && c.estado === 'ok') {
+    const d = c.d;
+    return `<div class="pl card">${d.foto ? `<img class="pl-foto" src="${esc(d.foto)}" alt="" width="64" height="64">` : '<div class="pl-foto"></div>'}<div class="pl-txt"><b>${esc(d.titulo || 'Produto do Mercado Livre')}</b>${d.preco ? `<span class="hint">${reais(d.preco)} no ML agora</span>` : ''}<span class="pl-ok">${ico('ok', 16)}<span>Seu link</span><span class="mono">${esc(d.curto.replace(/^https:\/\//, ''))}</span></span></div></div>
+      <div class="row"><a class="btn link" href="${esc(d.curto)}" target="_blank" rel="noopener">Abrir pra conferir</a><button class="btn link" data-a="trocar-link">Trocar link</button></div>`;
+  }
+  const falhou = c && c.estado === 'erro' && !S.trocaLink;
+  const extra = !falhou ? '' : ERRO_AJUSTES.includes(c.erro) ? '<button class="btn link" data-a="ir" data-n="ajustes">Ajustes</button>' : ERRO_CONV[c.erro] ? '' : '<button class="btn link" data-a="conv-de-novo">Tentar de novo</button>';
+  return (falhou ? `<div class="row">${chk('warn', ERRO_CONV[c.erro] || 'O ML não respondeu. Pegue o seu link no ML.')}${extra}</div>` : '')
+    + `<div id="link-acoes">${acoesLink()}</div>
+        <div class="com-acao"><input class="in mono" id="link" data-i="link" type="url" inputmode="url" placeholder="https://meli.la/..." value="${esc(S.link)}" autocomplete="off" autocapitalize="none"><button class="acao-in" data-a="colar-link" aria-label="Colar em seu link de afiliado" title="Colar">${ico('colar', 16)}<span>Colar</span></button></div>
+        <div id="chk-link">${chkLink(S.link, ler(S.msg).linkOrig)}</div>`
+    + (S.trocaLink && c && c.estado === 'ok' ? '<button class="btn link" data-a="usar-conv">Usar o link convertido</button>' : '');
+}
+/* Ajustes: a sessão do Gerador de links do ML, de onde saem os meli.la */
+function blocoML() {
+  if (!NUVEM) return '<p class="hint">Só funciona com login.</p>';
+  const m = S.sessaoML;
+  if (m && !S.mlEdita) return `<div class="card row"><div class="stack tight" style="min-width:0"><div class="lbl">Conectado como <span class="mono">${esc(m.tag)}</span></div><div class="hint">Desde ${new Date(m.em).toLocaleDateString('pt-BR')}</div></div><button class="btn sm" data-a="ml-editar">Reconectar</button></div>`;
+  return `<div class="field">
+      <label for="ml-curl">Cole o cURL do Gerador de links</label>
+      <textarea class="in mono" id="ml-curl" rows="3" placeholder="curl 'https://www.mercadolivre.com.br/affiliate-program/..." autocomplete="off" autocapitalize="none" spellcheck="false"></textarea>
+      <details class="hint"><summary>Como copiar</summary><ol class="passos-ml">
+        <li>No Chrome do computador, logado no ML, abra o <a href="https://www.mercadolivre.com.br/afiliados/linkbuilder" target="_blank" rel="noopener">Gerador de links</a>.</li>
+        <li>Aperte Option+Command+I e abra a aba Network (Rede).</li>
+        <li>Gere um link de qualquer produto.</li>
+        <li>Filtre por createLink, clique com o botão direito na linha &gt; Copy &gt; Copy as cURL (bash).</li>
+      </ol></details>
+      <p class="erro" id="erro-ml" role="alert" hidden></p>
+      <div class="row">${m ? '<button class="btn link" data-a="ml-cancelar">Cancelar</button>' : '<span></span>'}<button class="btn pri sm" data-a="ml-salvar" ${S.mlSalvando ? 'disabled' : ''}>${S.mlSalvando ? 'Conectando…' : 'Conectar'}</button></div>
+    </div>`;
+}
 /* Imagem padrão do post de cupom (1080×1080, feita pelo prompt da tela) */
 const IMG_PADRAO = 'cupom-padrao.jpg';
 function capa(mini) {
@@ -1060,9 +1119,7 @@ function telaOferta() {
       </div>
       <div class="field">
         <label for="link">Seu link de afiliado</label>
-        <div id="link-acoes">${acoesLink()}</div>
-        <div class="com-acao"><input class="in mono" id="link" data-i="link" type="url" inputmode="url" placeholder="https://meli.la/..." value="${esc(S.link)}" autocomplete="off" autocapitalize="none"><button class="acao-in" data-a="colar-link" aria-label="Colar em seu link de afiliado" title="Colar">${ico('colar', 16)}<span>Colar</span></button></div>
-        <div id="chk-link">${chkLink(S.link, ler(S.msg).linkOrig)}</div>
+        <div id="link-campo" class="stack tight">${campoLink()}</div>
       </div>`;
   return `
   <div class="duo" data-step="${S.step}">
@@ -1409,6 +1466,7 @@ function telaHistorico() {
 function telaAjustes() {
   return `<h1>Ajustes</h1>
   <div class="stack estreito">
+    <section class="stack tight"><h2>Mercado Livre</h2><div id="bloco-ml">${blocoML()}</div></section>
     <section class="stack tight"><h2>Robô do WhatsApp</h2><div id="bloco-robo" class="stack tight">${blocoRobo()}</div></section>
     <section class="stack tight"><h2>Imagem do cupom</h2><div id="bloco-img">${blocoImagem()}</div></section>
     <section class="stack tight"><h2>Avisos</h2>
@@ -1570,6 +1628,24 @@ const A = {
   },
   'post-pronto-c'() { if (!podeCupom()) return toast(S.cupons.length ? 'Confira o link de ativar.' : 'Adicione pelo menos um cupom.'); S.stepC = 'previa'; render(); topo(); },
   'voltar-c'() { S.stepC = 'form'; render(); topo(); },
+  'trocar-link'() { S.trocaLink = true; S.link = ''; refazCampoLink(); const i = $('#link'); if (i) i.focus(); },
+  'usar-conv'() { S.trocaLink = false; S.link = S.conv.d.curto; refazCampoLink(); },
+  'conv-de-novo'() { S.conv = null; converteLink(true); },
+  'ml-editar'() { S.mlEdita = true; poe('#bloco-ml', blocoML()); const i = $('#ml-curl'); if (i) i.focus(); },
+  'ml-cancelar'() { S.mlEdita = false; poe('#bloco-ml', blocoML()); },
+  async 'ml-salvar'() {
+    const v = $('#ml-curl').value.trim();
+    if (!/^curl\s/.test(v) || !/createLink/.test(v)) return erro('#erro-ml', 'Isso não parece o cURL do createLink. Veja em Como copiar.');
+    S.mlSalvando = true; poe('#bloco-ml', blocoML());
+    try {
+      S.sessaoML = await apiLinks('/api/sessao', { curl: v }); S.mlEdita = false; S.mlSalvando = false;
+      poe('#bloco-ml', blocoML()); toast(`Mercado Livre conectado como ${S.sessaoML.tag}.`);
+      if (S.conv && ERRO_AJUSTES.includes(S.conv.erro)) { S.conv = null; converteLink(true); }
+    } catch (e) {
+      S.mlSalvando = false; poe('#bloco-ml', blocoML()); $('#ml-curl').value = v;
+      erro('#erro-ml', e.codigo === 'curl-invalido' ? 'Faltou parte do cURL. Copie de novo a linha createLink.' : e.codigo === 'sessao' ? 'O ML não aceitou essa sessão. Entre no ML de novo e copie outra vez.' : 'Não deu pra conectar agora. Tente de novo.');
+    }
+  },
   'abrir-ml'() { S.foiML = true; setTimeout(() => poe('#link-acoes', acoesLink()), 400); },
   async 'colar-link'() {
     let t = '';
@@ -1581,7 +1657,7 @@ const A = {
     erro('#erro-oferta', ''); atualizaOferta(false); poe('#link-acoes', acoesLink()); toast('Link colado.');
   },
   async colar() {
-    try { const t = await navigator.clipboard.readText(); if (t) { S.msg = t; S.draft = null; S.coladaEm = Date.now(); $('#msg').value = t; atualizaOferta(true); poe('#link-acoes', acoesLink()); return; } } catch (e) {}
+    try { const t = await navigator.clipboard.readText(); if (t) { S.msg = t; S.draft = null; S.coladaEm = Date.now(); $('#msg').value = t; atualizaOferta(true); poe('#link-acoes', acoesLink()); converteLink(true); return; } } catch (e) {}
     $('#msg').focus(); toast('Toque no campo e escolha Colar.');
   },
   /* mensagem pronta x do zero: trocar guarda o que estava no outro, nada se perde num toque errado */
@@ -1606,7 +1682,7 @@ const A = {
   'gerar-titulo'() { S.tituloIdx = proxima('titulos', TITULOS.length); const t = TITULOS[S.tituloIdx]; S.draft = { ...bruto(), produto: t }; document.querySelectorAll('[data-i=d-produto]').forEach(el => { el.value = t; }); erro('#erro-oferta', ''); atualizaOferta(false); },
   trocar() { S.frase = null; S.fraseAuto = escolhe('frase', dados().cupom ? 'frase-cupom' : 'frase', frasesValidas()); atualizaOferta(false); },
   'trocar-abs'() { S.fraseAbs = null; S.absAuto = escolhe('abs', 'abs', FRASES_ABS); $('#frase-abs').value = absAtual(); atualizaOferta(false); },
-  descartar() { S.feitos = {}; S.ed.oferta = null; S.edAberto.oferta = false; S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseAuto = null; S.absAuto = null; S.tituloIdx = proxima('titulos', TITULOS.length); S.msg = ''; S.link = ''; S.foiML = false; S.draft = null; S.coladaEm = null; S.guardaPronta = null; S.guardaZero = null; S.step = 'form'; render(); topo(); toast('Campos limpos.'); },
+  descartar() { S.feitos = {}; S.ed.oferta = null; S.edAberto.oferta = false; S.manual = false; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseAuto = null; S.absAuto = null; S.tituloIdx = proxima('titulos', TITULOS.length); S.msg = ''; S.link = ''; S.foiML = false; S.conv = null; S.trocaLink = false; S.draft = null; S.coladaEm = null; S.guardaPronta = null; S.guardaZero = null; S.step = 'form'; render(); topo(); toast('Campos limpos.'); },
   'enviar-oferta'(n, ev) {
     if (!podeOferta()) { ev.preventDefault(); return; }
     const d = dados();
@@ -1776,7 +1852,7 @@ function limpaPost(tipo) {
   if (tipo !== 'oferta' && tipo !== 'cupom') return;
   S.feitos = {}; if (tipo === 'cupom') { S.stepC = 'form'; S.guardaCPronta = null; S.guardaCZero = null; }
   S.ed[tipo] = null; S.edAberto[tipo] = false;
-  if (tipo === 'oferta') { S.msg = ''; S.link = ''; S.foiML = false; S.draft = null; S.coladaEm = null; S.step = 'form'; S.manual = false; S.guardaPronta = null; S.guardaZero = null; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseAuto = null; S.absAuto = null; S.tituloIdx = proxima('titulos', TITULOS.length); }
+  if (tipo === 'oferta') { S.msg = ''; S.link = ''; S.foiML = false; S.conv = null; S.trocaLink = false; S.draft = null; S.coladaEm = null; S.step = 'form'; S.manual = false; S.guardaPronta = null; S.guardaZero = null; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseAuto = null; S.absAuto = null; S.tituloIdx = proxima('titulos', TITULOS.length); }
   else { S.cupons = []; S.linkCupom = linkFixo(); S.cAbre = null; S.cChama = null; S.msgC = ''; S.cNota = ''; S.abreAuto = null; }
 }
 function refazRobo() { poe('#bloco-robo', blocoRobo()); }
@@ -1836,6 +1912,45 @@ async function ligaNuvem() {
   } catch (e) { sb = null; toast('Sem conexão com o servidor. Tente de novo em instantes.'); }
   fimAbrindo();
 }
+/* gerador de meli.la: só responde a quem está logado e é membro */
+async function apiLinks(caminho, corpo) {
+  const { data } = await sb.auth.getSession();
+  const tk = data && data.session ? data.session.access_token : '';
+  const r = await fetch(CFG.ml + caminho, { method: corpo ? 'POST' : 'GET', headers: { authorization: 'Bearer ' + tk, 'content-type': 'application/json' }, body: corpo ? JSON.stringify(corpo) : undefined });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(j.erro || 'falha'); e.codigo = j.erro || 'falha'; throw e; }
+  return j;
+}
+async function carregaSessaoML() {
+  if (!sb || !CFG.ml) return;
+  try { const d = await apiLinks('/api/sessao'); S.sessaoML = d.tag ? d : false; } catch (e) { return; }
+  poe('#bloco-ml', blocoML());
+  converteLink(true);
+}
+/* troca o link da mensagem colada pelo nosso: uma vez por link; o que a pessoa colou à mão fica */
+let tConv;
+function converteLink(ja) {
+  clearTimeout(tConv);
+  if (!ja) { tConv = setTimeout(() => converteLink(true), 500); return; }
+  if (S.manual || !sb || !CFG.ml || S.sessaoML === null) return;
+  const orig = ler(S.msg).linkOrig;
+  if (!orig || !ML.test(orig)) {
+    if (S.conv) { if (S.conv.d && S.link === S.conv.d.curto) S.link = ''; S.conv = null; S.trocaLink = false; refazCampoLink(); }
+    return;
+  }
+  if (S.conv && S.conv.orig === orig) return;
+  if (!S.conv && linkOfertaOK()) return; /* "Usar de novo" do histórico já traz o link */
+  if (!S.sessaoML) { S.conv = { orig, estado: 'erro', erro: 'sem-sessao' }; refazCampoLink(); return; }
+  S.conv = { orig, estado: 'carregando' }; S.trocaLink = false; S.link = ''; refazCampoLink();
+  apiLinks('/api/converter', { url: orig }).then(d => {
+    if (!S.conv || S.conv.orig !== orig) return;
+    S.conv = { orig, estado: 'ok', d }; S.link = d.curto; refazCampoLink();
+  }).catch(e => {
+    if (!S.conv || S.conv.orig !== orig) return;
+    S.conv = { orig, estado: 'erro', erro: e.codigo }; refazCampoLink();
+  });
+}
+function refazCampoLink() { poe('#link-campo', campoLink()); atualizaOferta(false); }
 async function entra(u) {
   S.abrindo = false;
   /* a conta é uma só para os dois; quem está no aparelho fica guardado nele */
@@ -1843,7 +1958,7 @@ async function entra(u) {
   if (error || !data) { await sb.auth.signOut().catch(() => {}); S.dentro = false; render(); erro('#erro-login', 'Essa conta não tem acesso ao Nossos Achadinhos.'); return; }
   S.dentro = true; S.user = le('na-quem');
   await carregaHistorico(); render(); topo();
-  roboAtualiza();
+  roboAtualiza(); carregaSessaoML();
 }
 async function carregaHistorico() {
   if (!sb) return;
@@ -1937,7 +2052,7 @@ document.addEventListener('input', e => {
   const k = e.target.dataset && e.target.dataset.i; if (!k) return;
   const v = e.target.value;
   if (k === 'msg') { setTimeout(() => poe('#link-acoes', acoesLink())); }
-  if (k === 'msg') { S.ed.oferta = null; S.edAberto.oferta = false; if (!S.msg.trim() && v.trim()) S.coladaEm = Date.now(); if (!v.trim()) S.coladaEm = null; S.msg = v; S.draft = null; erro('#erro-oferta', ''); atualizaOferta(true); }
+  if (k === 'msg') { S.ed.oferta = null; S.edAberto.oferta = false; if (!S.msg.trim() && v.trim()) S.coladaEm = Date.now(); if (!v.trim()) S.coladaEm = null; S.msg = v; S.draft = null; erro('#erro-oferta', ''); atualizaOferta(true); converteLink(); }
   else if (k === 'link') { S.link = v; erro('#erro-oferta', ''); atualizaOferta(false); if (ML.test(v.trim())) { S.foiML = false; poe('#link-acoes', acoesLink()); } }
   else if (k.startsWith('d-')) { erro('#erro-oferta', ''); S.draft = { ...bruto(), [k.slice(2)]: k === 'd-cupom' ? v.toUpperCase().replace(/[,;\/]+/g, ' ').replace(/\s{2,}/g, ' ').replace(/^\s+/, '') : v }; if (k === 'd-cupom' && e.target.value !== S.draft.cupom) e.target.value = S.draft.cupom; atualizaOferta(false); }
   else if (k === 'linkc') { S.linkCupom = v; poe('#chk-linkc', chkLink(v)); poe('#fixo-linkc', fixoLink()); poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), txtC); }

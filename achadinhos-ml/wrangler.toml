@@ -1,0 +1,17 @@
+# Gerador de meli.la do Nossos Achadinhos (o Gerador de links do ML, com a sessão da conta guardada no KV).
+# Publicar: cd achadinhos-ml && npx wrangler deploy (não roda sozinho no push do site).
+name = "achadinhos-ml"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+account_id = "2f0d4ffc032753fd4c4c951f4516020c"
+workers_dev = true
+
+[vars]
+# mesmo Supabase do app (public/achadinhos/config.js); a chave é a publicável, feita para ficar pública
+SUPABASE_URL = "https://sruvkpqzpjqeqkesqffq.supabase.co"
+SUPABASE_KEY = "sb_publishable_oETMODMZSazY4tWIYmOWLw_aqT6zY9l"
+
+# chave "sessao": { cookie, csrf, tag, em } do Gerador de links. É o login do ML: nunca sai do Worker.
+[[kv_namespaces]]
+binding = "DADOS"
+id = "5c29791bf4664439bbd6d7212023287e"
