@@ -1,5 +1,6 @@
 # Servidor do robô do Nossos Achadinhos (Google Cloud, e2-micro grátis: 1 GB de memória, us-central1).
 # Evolution API 2.3.8 + Postgres enxuto + túnel da Cloudflare (HTTPS em robo.nossoprojeto3d.com.br, sem abrir porta).
+# Rede só IPv6 (IP v4 público é cobrado no Google; IPv6 não): os contêineres saem por IPv6 com NAT do Docker.
 # Subir: ./instalar.sh (gera o .env com as senhas). Nada aqui publica porta na internet.
 services:
   api:
@@ -26,9 +27,17 @@ services:
   tunel:
     image: cloudflare/cloudflared:2026.11.2
     restart: always
-    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    command: tunnel --no-autoupdate --edge-ip-version 6 run --token ${TUNNEL_TOKEN}
     depends_on: [api]
 
 volumes:
   instancias:
   banco:
+
+networks:
+  default:
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+        - subnet: fd00:ac:1::/64

@@ -19,6 +19,12 @@ if ! command -v docker >/dev/null; then
   sudo usermod -aG docker "$USER"
 fi
 
+# Docker com IPv6 (a máquina não tem IPv4 público)
+if [ ! -f /etc/docker/daemon.json ]; then
+  echo '{ "ipv6": true, "ip6tables": true, "fixed-cidr-v6": "fd00:ac:0::/64" }' | sudo tee /etc/docker/daemon.json >/dev/null
+  sudo systemctl restart docker
+fi
+
 if [ ! -f .env ]; then
   read -rp "Cole o token do túnel da Cloudflare: " TOKEN
   CHAVE=$(openssl rand -hex 32)
@@ -34,6 +40,8 @@ AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=false
 DEL_INSTANCE=false
 LOG_LEVEL=ERROR,WARN
 LANGUAGE=pt-BR
+# sem IPv4 público: tenta IPv6 primeiro
+NODE_OPTIONS=--dns-result-order=ipv6first
 CONFIG_SESSION_PHONE_CLIENT=Nossos Achadinhos
 CONFIG_SESSION_PHONE_NAME=Chrome
 QRCODE_LIMIT=30
