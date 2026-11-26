@@ -855,7 +855,11 @@ function partesCupom(d) {
   if (cs.length < 2) return { linha: (d.preco + (cs[0] ? ` 💥🎟️ ${cs[0]}` : '')).trim(), lista: '' };
   return { linha: (d.preco + ' 💥').trim(), lista: cs.map(c => `🎟️ ${c}${d.regras && d.regras[c] ? ': ' + d.regras[c] : ''}`).join('\n') };
 }
-const bruto = () => S.draft || ler(S.msg);
+/* nome que vem do ML junto com o meli.la: siglas em maiúsculas (Pla → PLA, 3d → 3D) */
+const nomeML = t => t.replace(/\S+/g, w => /^\d+d$/i.test(w) || SIGLAS.test(w.toUpperCase()) ? w.toUpperCase() : w).replace(/\s{2,}/g, ' ').trim();
+const tituloML = () => S.conv && S.conv.estado === 'ok' && S.conv.d.titulo && S.conv.orig === ler(S.msg).linkOrig ? nomeML(S.conv.d.titulo) : '';
+/* com o link gerado, o nome do ML substitui o da mensagem; o que for editado à mão (draft) manda */
+const bruto = () => { if (S.draft) return S.draft; const d = ler(S.msg), t = !S.manual && tituloML(); return t ? { ...d, produto: t } : d; };
 /* sem nome de produto, o app cria um título */
 const dados = () => bruto();
 const frasesValidas = () => dados().cupom ? FRASES.concat(FRASES_CUPOM) : FRASES;
@@ -1950,7 +1954,11 @@ function converteLink(ja) {
     S.conv = { orig, estado: 'erro', erro: e.codigo }; refazCampoLink();
   });
 }
-function refazCampoLink() { poe('#link-campo', campoLink()); atualizaOferta(false); }
+function refazCampoLink() {
+  poe('#link-campo', campoLink());
+  const t = bruto().produto; document.querySelectorAll('[data-i=d-produto]').forEach(el => { if (document.activeElement !== el) el.value = t; });
+  atualizaOferta(false);
+}
 async function entra(u) {
   S.abrindo = false;
   /* a conta é uma só para os dois; quem está no aparelho fica guardado nele */
