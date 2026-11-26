@@ -1,0 +1,39 @@
+# Servidor do robô do Nossos Achadinhos (Oracle Cloud, máquina grátis ARM).
+# Evolution API 2.3.8 + Postgres + Redis + túnel da Cloudflare (HTTPS em robo.nossoprojeto3d.com.br, sem abrir porta).
+# Subir: ./instalar.sh (gera o .env com as senhas). Nada aqui publica porta na internet.
+services:
+  api:
+    image: evoapicloud/evolution-api:v2.3.8
+    restart: always
+    env_file: .env
+    depends_on: [postgres, redis]
+    volumes:
+      - instancias:/evolution/instances
+
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: evolution
+      POSTGRES_USER: evolution
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - banco:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - cache:/data
+
+  tunel:
+    image: cloudflare/cloudflared:2026.11.2
+    restart: always
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    depends_on: [api]
+
+volumes:
+  instancias:
+  banco:
+  cache:

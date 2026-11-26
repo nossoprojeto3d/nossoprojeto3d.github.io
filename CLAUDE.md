@@ -101,19 +101,18 @@ Objetivo: o botão "Enviar pro grupo" do app (`public/achadinhos/`) disparar soz
 - O envio é um grupo por vez (o app espera o intervalo escolhido entre um e outro); o histórico grava uma vez só, quando pelo menos um grupo recebe.
 - Se o robô cair, Ajustes mostra "Robô fora do ar" e o botão "Enviar pelo meu WhatsApp" continua embaixo do botão principal.
 
-**Roteiro, em ordem**
-1. **Chip (Junior).** Pré-pago com WhatsApp ativo, só para o robô; nunca o número do Nosso Projeto 3D. O chip entra nos grupos como admin. As pessoas entram só por link de convite, nunca adicionadas à mão.
-2. **Onde o robô roda.** Decidir com o Junior: VPS (recomendado, fica ligado sempre) ou o Mac dele (só envia com o Mac ligado). Planos grátis que "dormem" derrubam a conexão. Precisa de HTTPS.
-3. **Evolution API v2** (aberta, conecta como WhatsApp Web, via Baileys) em Docker nesse servidor, com uma instância para o chip. A chave da API nunca vai para o navegador nem para o repositório.
-4. **Ponte no Supabase:** Edge Function `achadinhos-robo` (no mesmo projeto, prefixo `achadinhos`). Segredos: `EVO_URL`, `EVO_KEY`, `EVO_INSTANCIA`. Recusa quem não estiver em `achadinhos_membros`. Ações e o que respondem:
-   - `status` → `{ estado: 'conectado' | 'desconectado', numero }` (estado da conexão da instância).
-   - `qr` → `{ qr: 'data:image/png;base64,...' }` (conectar a instância).
-   - `grupos` → `{ grupos: [{ jid, nome, membros }] }` via `GET /group/fetchAllGroups/{instância}?getParticipants=false`.
-   - `enviar` com `{ jid, mensagens: [{ tipo: 'texto' | 'imagem', texto, imagem? }] }` → `{ ok: true }` ou `{ erro: 'motivo em português' }`. Texto: `POST /message/sendText/{instância}` com `number` = jid do grupo (`...@g.us`). Imagem (post de cupom): envio de mídia com a imagem em base64 e o texto como legenda. Mensagens do mesmo grupo em ordem, com 1 a 3 s entre elas (post, depois cada código sozinho).
-   - `desconectar` → desliga a instância do chip.
-   Conferir na documentação da versão instalada os caminhos de estado, QR, mídia e logout antes de escrever (só `fetchAllGroups` e `sendText` foram conferidos em 17/11/2026).
-5. **Grupos escolhidos no banco.** Hoje a escolha fica no aparelho (`localStorage` `na-robo-sel`), então o Junior e a Thai podem ver seleções diferentes. Criar `achadinhos_grupos (jid pk, nome, ativo, atualizado_em)` com RLS de membro e trocar a leitura/gravação no app. Avaliar coluna `grupos int` em `achadinhos_posts` para o histórico mostrar quantos receberam.
+**Decidido em 26/11/2026**
+- Chip comprado e já dentro dos grupos.
+- Servidor: **Oracle Cloud grátis** (Always Free, máquina ARM Ampere A1, Ubuntu). Arquivos em `achadinhos-robo/`: `docker-compose.yml` (Evolution API `evoapicloud/evolution-api:v2.3.8`, Postgres 15, Redis 7 e `cloudflared`) e `instalar.sh` (instala o Docker, gera `.env` com a chave e a senha, sobe tudo). Nenhuma porta aberta: o HTTPS vem de um túnel da Cloudflare em `robo.nossoprojeto3d.com.br` apontando para `http://api:8080`. A Evolution não guarda mensagens, contatos nem conversas (`DATABASE_SAVE_DATA_*=false`), só a sessão do chip.
+- Ponte: **no Worker `achadinhos-ml`** (`src/robo.js`, `POST /api/robo`), não numa Edge Function do Supabase. Segredos do Worker: `EVO_URL` (https://robo.nossoprojeto3d.com.br) e `EVO_KEY` (a chave do `.env`); `EVO_INSTANCIA = "achadinhos"` no wrangler.toml. O app chama com `chamaRobo` → `apiLinks('/api/robo')`. Ações: `status`, `qr` (cria a instância na primeira vez), `grupos`, `enviar` (só para `…@g.us`, 1 a 3 s entre mensagens, imagem via `sendMedia` com legenda, texto com `linkPreview`), `desconectar`. Rotas conferidas no código da Evolution 2.3.8.
+
+**Falta, em ordem**
+1. **Oracle (Junior):** criar a conta, criar a máquina e me passar o IP e a chave SSH.
+2. **Túnel (Junior, no painel da Cloudflare):** Zero Trust > Networks > Tunnels > criar `achadinhos-robo` (Cloudflared), copiar o token; em Public Hostname: `robo.nossoprojeto3d.com.br` → HTTP → `api:8080`.
+3. **Instalar:** copiar `achadinhos-robo/` para a máquina e rodar `./instalar.sh` com o token.
+4. **Worker:** `npx wrangler secret put EVO_URL` e `EVO_KEY`; `npx wrangler deploy`.
+5. **Grupos escolhidos no banco** (hoje ficam no aparelho, `na-robo-sel`): guardar no KV do Worker para valer para os dois.
 6. **Ligar:** `robo: true` em `config.js`, publicar, conectar o chip pelo QR em Ajustes.
-7. **Testar** primeiro num grupo só com os dois: oferta com e sem cupom, post de cupom com imagem, ordem das mensagens, falha (chip fora do grupo), parar no meio, robô desligado (app tem que cair para o envio manual), dois aparelhos ao mesmo tempo.
+7. **Testar** primeiro num grupo só com os dois: oferta com e sem cupom, post de cupom com imagem, prévia do meli.la, ordem das mensagens, falha (chip fora do grupo), parar no meio, robô desligado (app tem que cair para o envio manual).
 
 **Cuidados contra banimento:** espera de 10 s ou mais entre grupos, nada de mensagem no privado em massa, não adicionar pessoas aos grupos, não entrar em muitos grupos de uma vez. Se o chip for banido, o grupo continua: o número do Nosso Projeto 3D fica como dono/admin e um chip novo entra no lugar.

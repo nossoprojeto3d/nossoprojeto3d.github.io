@@ -11,6 +11,9 @@ workers_dev = true
 SUPABASE_URL = "https://sruvkpqzpjqeqkesqffq.supabase.co"
 SUPABASE_KEY = "sb_publishable_oETMODMZSazY4tWIYmOWLw_aqT6zY9l"
 
+# Robô do WhatsApp (src/robo.js): EVO_URL e EVO_KEY são segredos (npx wrangler secret put EVO_URL / EVO_KEY).
+EVO_INSTANCIA = "achadinhos"
+
 # chave "sessao": { cookie, csrf, tag, em } do Gerador de links. É o login do ML: nunca sai do Worker.
 [[kv_namespaces]]
 binding = "DADOS"

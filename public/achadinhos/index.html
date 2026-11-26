@@ -1938,10 +1938,10 @@ function iniciaRobo() {
 }
 function salvaGruposDemo() { if (S.robo.demo) guarda('na-robo-demo-grupos', JSON.stringify(S.robo.grupos)); }
 function selecaoSalva() { try { return JSON.parse(le('na-robo-sel') || 'null'); } catch (e) { return null; } }
+/* robô do WhatsApp: a ponte fica no Worker achadinhos-ml (POST /api/robo), que guarda a chave da Evolution API */
 async function chamaRobo(acao, dados) {
-  const { data, error } = await sb.functions.invoke('achadinhos-robo', { body: { acao, ...(dados || {}) } });
-  if (error || (data && data.erro)) throw new Error((data && data.erro) || 'O robô não respondeu.');
-  return data || {};
+  try { return await apiLinks('/api/robo', { acao, ...(dados || {}) }); }
+  catch (e) { throw new Error(e.codigo && e.codigo !== 'falha' ? e.codigo : 'O robô não respondeu.'); }
 }
 async function roboAtualiza() {
   if (!ROBO_REAL || S.robo.demo || !sb) return;

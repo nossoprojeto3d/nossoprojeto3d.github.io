@@ -6,7 +6,9 @@
                         (com título, foto, preço, preço antigo, desconto, frete, nota, vendidos e loja, para o modelo do post)
    GET  /api/modelo     modelos das mensagens ({ oferta: { texto, em }, cupom: { texto, em } }; o que não tiver fica de fora)
    POST /api/modelo     { tipo: 'oferta' | 'cupom', texto }: guarda o modelo (vazio = volta ao padrão do app)
+   POST /api/robo       { acao: status | qr | grupos | enviar | desconectar }: ponte para o robô do WhatsApp (src/robo.js)
    Só atende quem está logado no app e é membro (achadinhos_membros no Supabase). */
+import { criaRobo } from './robo.js';
 import { ehML, limpaProduto, produtoDireto, produtoDaVitrine, ehLista, sessaoDoCurl, juntaCookies, validadeDe } from './ml.js';
 
 const UA_CEL = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
@@ -114,6 +116,10 @@ export default {
     }
     if (p === '/api/sessao' && req.method === 'POST') return salvaSessao(req, env);
     if (p === '/api/converter' && req.method === 'POST') return converter(req, env);
+    if (p === '/api/robo' && req.method === 'POST') {
+      const r = await criaRobo(env)(await req.json().catch(() => ({})));
+      return json(req, r.dados, r.status);
+    }
     if (p === '/api/modelo' && req.method === 'GET') {
       const r = {};
       for (const t of TIPOS) { const m = await env.DADOS.get('modelo-' + t); if (m) r[t] = JSON.parse(m); }

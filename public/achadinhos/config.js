@@ -6,7 +6,7 @@
 window.NA_CONFIG = {
   supabaseUrl: 'https://sruvkpqzpjqeqkesqffq.supabase.co',
   supabaseKey: 'sb_publishable_oETMODMZSazY4tWIYmOWLw_aqT6zY9l',
-  // Robô do WhatsApp: deixe false até a função achadinhos-robo existir no Supabase (roteiro no CLAUDE.md).
+  // Robô do WhatsApp: deixe false até o servidor (pasta achadinhos-robo) e os segredos EVO_URL/EVO_KEY do Worker existirem.
   robo: false,
   // Gerador de meli.la (pasta achadinhos-ml): troca o link do outro grupo pelo nosso, com a sessão do ML salva em Ajustes.
   ml: 'https://achadinhos-ml.auto-insta.workers.dev'
