@@ -282,6 +282,10 @@ details.hint summary{cursor:pointer;min-height:32px;display:flex;align-items:cen
 .chip{padding:6px 10px;border-radius:999px;background:var(--bg2);border:1px solid var(--line);font-size:13px;font-weight:500}
 .barra{height:8px;border-radius:4px;background:var(--bg2);overflow:hidden}
 .barra span{display:block;height:100%;background:var(--accent);transition:width .3s}
+.veu{position:fixed;inset:0;z-index:8;display:grid;place-items:center;padding:16px;background:rgba(7,33,29,.72)}
+.pop{width:min(420px,100%);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.45)}
+.pop h2{margin:0;font-family:var(--disp);font-size:21px}
+.pop .agora{min-height:20px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .qr{width:208px;height:208px;align-self:center;background:#fff;border-radius:14px;padding:12px;box-sizing:border-box}
 .qr svg,.qr img{display:block;width:100%;height:100%}
 .ol-qr{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:15px;color:var(--muted)}
@@ -1151,8 +1155,8 @@ function areaEnvio(id, pode, txt) {
       <div class="row"><span class="hint">Vai para</span><button class="btn link" data-a="ir" data-n="ajustes">Mudar</button></div>
       <div class="chips">${gs.map(g => `<span class="chip">${esc(g.nome)}</span>`).join('') || '<span class="hint">Nenhum grupo escolhido. Escolha em Ajustes.</span>'}</div>
     </div>
-    <button class="btn pri block" id="${id}" data-a="${id}" ${pode && n ? '' : 'disabled'}>${ico('enviar')}${n > 1 ? `Enviar pros ${n} grupos` : 'Enviar pro grupo'}</button>
-    <a class="btn link block${pode ? '' : ' off'}" id="${id}-manual" data-a="${id}" data-n="manual" ${pode ? `href="${esc(wa(txt()))}"` : 'aria-disabled="true"'} target="_blank" rel="noopener">Enviar pelo meu WhatsApp</a>${btnCopiarMsg(id, pode)}`;
+    <button class="btn pri block" id="${id}" data-a="${id}" ${pode && n ? '' : 'disabled'}>${ico('enviar')}Enviar pelo bot</button>
+    <a class="btn block${pode ? '' : ' off'}" id="${id}-manual" data-a="${id}" data-n="manual" ${pode ? `href="${esc(wa(txt()))}"` : 'aria-disabled="true"'} target="_blank" rel="noopener">Enviar pelo meu WhatsApp</a>`;
 }
 /* cada mensagem da prévia tem seus botões: copiar e mandar no WhatsApp; ✓✓ quando já foi */
 const feito = k => !!(S.feitos && S.feitos[k]);
@@ -1374,26 +1378,26 @@ function telaPassos() {
     <button class="btn block" data-a="novo-de-novo">${ico('mais', 18)}Pronto, fazer outro post</button>
   </div>`;
 }
-function telaDisparo() {
+/* popup do envio pelo robô (opção C): barra até terminar; tudo certo, fecha sozinho com um aviso;
+   se algum grupo falhar ou o envio for parado, fica aberto mostrando o que fazer */
+function popDisparo() {
   const d = S.disparo, tot = d.grupos.length;
-  const ok = d.grupos.filter(g => g.status === 'ok').length, fal = d.grupos.filter(g => g.status === 'falhou').length;
+  const ok = d.grupos.filter(g => g.status === 'ok').length, ruins = d.grupos.filter(g => g.status === 'falhou' || g.status === 'parado');
   const feitos = d.grupos.filter(g => g.status !== 'fila' && g.status !== 'enviando').length;
-  const titulo = d.ativo ? 'Enviando…' : ok === tot ? 'Enviado!' : ok ? 'Enviado em parte' : 'Não foi enviado';
-  const resumo = d.ativo ? `${ok} de ${tot} ${tot === 1 ? 'grupo' : 'grupos'} até agora.` : `${ok} de ${tot} ${tot === 1 ? 'grupo recebeu' : 'grupos receberam'} o post${d.qtdCodigos ? ' e o cupom' : ''}.`;
-  const ST = { fila: 'Na fila', enviando: d.qtdCodigos ? 'Enviando o post e o cupom…' : 'Enviando o post…', ok: 'Enviado', parado: 'Não enviado' };
-  return `<div class="stack estreito">
-    ${S.robo.demo ? '<div class="demo"><span>Demonstração: nada foi enviado de verdade.</span></div>' : ''}
-    <h1>${titulo}</h1>
-    <p class="muted">${esc(d.titulo)}. ${resumo}</p>
-    <div class="barra" role="progressbar" aria-label="Progresso do envio" aria-valuemin="0" aria-valuemax="${tot}" aria-valuenow="${feitos}"><span style="width:${Math.round(feitos / tot * 100)}%"></span></div>
-    <div class="stack tight" aria-live="polite">${d.grupos.map(g => `<div class="item"><div style="flex:1;min-width:0"><div class="t">${esc(g.nome)}</div><div class="st ${g.status}">${g.status === 'falhou' ? 'Falhou: ' + esc(g.erro || 'tente de novo') : ST[g.status]}</div></div>${g.status === 'ok' ? `<span class="st ok">${ico('ok', 20)}</span>` : g.status === 'falhou' ? `<span class="st falhou">${ico('alerta', 20)}</span>` : ''}</div>`).join('')}</div>
-    ${d.ativo ? '<button class="btn block" data-a="disparo-parar">Parar o envio</button>'
-      : `${fal ? `<button class="btn pri block" data-a="disparo-reenviar">${ico('trocar', 18)}Reenviar ${fal === 1 ? 'o que falhou' : `os ${fal} que falharam`}</button>` : ''}
-         <button class="btn ${fal ? '' : 'pri '}block" data-a="disparo-fim" data-n="novo">Fazer outro post</button>`}
-  </div>`;
+  const atual = d.grupos.find(g => g.status === 'enviando') || d.grupos.find(g => g.status === 'fila');
+  const titulo = d.ativo ? (d.parar ? 'Parando…' : 'Enviando pros grupos…') : ok ? 'Enviado em parte' : ruins.some(g => g.status === 'falhou') ? 'Não foi enviado' : 'Envio parado';
+  return `<div class="veu"><div class="pop stack tight" role="dialog" aria-modal="true" aria-labelledby="pop-tit">
+    ${S.robo.demo ? '<div class="demo"><span>Demonstração: nada é enviado de verdade.</span></div>' : ''}
+    <h2 id="pop-tit">${titulo}</h2>
+    <div class="row" style="gap:12px"><div class="barra" style="flex:1" role="progressbar" aria-label="Progresso do envio" aria-valuemin="0" aria-valuemax="${tot}" aria-valuenow="${feitos}"><span style="width:${Math.round(feitos / tot * 100)}%"></span></div><span class="hint mono">${feitos} de ${tot}</span></div>
+    ${d.ativo ? `<p class="hint agora" aria-live="polite">${atual ? 'Agora: ' + esc(atual.nome) : ''}</p><button class="btn block" data-a="disparo-parar"${d.parar ? ' disabled' : ''}>Parar envio</button>`
+      : `<p class="hint">${ok} de ${tot} ${tot === 1 ? 'grupo recebeu' : 'grupos receberam'} o post.</p>
+        <div class="stack tight">${ruins.map(g => `<div class="item"><div style="flex:1;min-width:0"><div class="t">${esc(g.nome)}</div><div class="st ${g.status}">${g.status === 'falhou' ? 'Falhou: ' + esc(g.erro || 'tente de novo') : 'Não enviado'}</div></div><span class="st falhou">${ico('alerta', 20)}</span></div>`).join('')}</div>
+        <button class="btn pri block" data-a="disparo-reenviar">${ico('trocar', 18)}${ruins.length === 1 ? 'Reenviar pra esse grupo' : `Reenviar pros ${ruins.length} grupos`}</button>
+        <button class="btn block" data-a="disparo-fim" data-n="novo">Fechar</button>`}
+  </div></div>`;
 }
 function telaNovo() {
-  if (S.disparo) return telaDisparo();
   if (S.envio) return telaPassos();
   return `<div class="top"><h1>${modoZero() ? 'Nova oferta' : 'Clonar oferta'}</h1>
     <div class="seg" role="group" aria-label="Tipo de post"><button data-a="tipo" data-n="oferta" aria-pressed="${S.tipo === 'oferta'}">Oferta</button><button data-a="tipo" data-n="cupom" aria-pressed="${S.tipo === 'cupom'}">Cupom</button></div></div>
@@ -1658,9 +1662,9 @@ function render() {
     <aside class="side"><div class="marca" style="color:var(--text)"><div class="np"><img src="logo-np-verde.png" alt="Nosso Projeto 3D" width="26" height="31"></div><span style="font-family:var(--disp);font-weight:700;font-size:19px;line-height:1.05">Nossos Achadinhos</span></div>
       <nav aria-label="Principal">${abas()}</nav>
       <div class="pe"><span class="quem" aria-hidden="true" style="width:36px;height:36px;font-size:14px">${esc(S.user[0])}</span><span class="lbl">${esc(S.user)}</span></div></aside>
-    <main class="main${(S.view === 'novo' && !S.disparo && !S.envio) || (S.view === 'historico' && S.historico.length) || S.view === 'modelo' ? ' fixa' : ''}" id="main">${tela}</main>
+    <main class="main${(S.view === 'novo' && !S.envio) || (S.view === 'historico' && S.historico.length) || S.view === 'modelo' ? ' fixa' : ''}" id="main">${tela}</main>
     <nav class="tabs" aria-label="Principal">${abas()}</nav>
-  </div>`;
+  </div>${S.disparo && S.view === 'novo' ? popDisparo() : ''}`;
   montaGraficos();
 }
 
@@ -1880,16 +1884,33 @@ const A = {
   'link-fixo-volta'() { S.linkCupom = linkFixo(); render(); toast('Voltou para o link fixo.'); },
   'link-fixo-salva'() { guarda('na-link-cupom', S.linkCupom.trim()); poe('#fixo-linkc', fixoLink()); toast('Pronto, esse virou o link fixo.'); },
   'img-padrao'() { S.img = null; guarda('na-img', null); refazImagem(); toast('Voltou para a imagem padrão.'); },
-  'disparo-parar'() { if (S.disparo) { S.disparo.parar = true; toast('Parando depois do grupo atual.'); } },
+  'disparo-parar'() { if (S.disparo) { S.disparo.parar = true; render(); } },
   'disparo-reenviar'() { const d = S.disparo; if (!d || d.ativo) return; d.grupos.forEach(g => { if (g.status === 'falhou' || g.status === 'parado') { g.status = 'fila'; g.erro = ''; } }); rodaDisparo(); },
   'disparo-fim'(n) { fechaDisparo(); S.view = n === 'historico' ? 'historico' : 'novo'; render(); topo(); },
   'robo-demo'() { S.robo = { ...S.robo, demo: true, estado: 'desconectado', qr: false, numero: '', grupos: [], erro: '' }; guarda('na-robo-demo', '1'); guarda('na-robo-demo-grupos', null); refazRobo(); },
   'robo-demo-sair'() { guarda('na-robo-demo', null); guarda('na-robo-demo-grupos', null); S.robo = novoRobo(); refazRobo(); if (ROBO_REAL && sb) roboAtualiza(); },
   async 'robo-conectar'() {
     if (S.robo.demo) { S.robo.qr = true; S.robo.qrImg = ''; return refazRobo(); }
-    S.robo.qr = true; S.robo.qrImg = ''; refazRobo();
-    try { const r = await chamaRobo('qr'); S.robo.qrImg = r.qr || ''; } catch (e) { S.robo.qr = false; S.robo.erro = 'Não consegui gerar o QR Code. Confira se o robô está ligado.'; }
+    S.robo.qr = true; S.robo.qrImg = ''; S.robo.erro = ''; refazRobo();
+    const vez = S.robo.vezQr = (S.robo.vezQr || 0) + 1;
+    try {
+      const r = await chamaRobo('qr');
+      if (r.conectado) { S.robo.qr = false; return roboAtualiza(); }
+      S.robo.qrImg = r.qr || '';
+    } catch (e) { S.robo.qr = false; S.robo.erro = e.message || 'Não consegui gerar o QR Code. Confira se o robô está aberto.'; }
     refazRobo();
+    /* espera a leitura: o QR do WhatsApp troca a cada ~20 s e a conexão avisa quando abre */
+    while (S.robo.qr && S.robo.vezQr === vez && S.robo.estado === 'desconectado') {
+      await espera(3000);
+      if (!S.robo.qr || S.robo.vezQr !== vez) break;
+      try {
+        const st = await chamaRobo('status');
+        if (st.estado === 'conectado') { S.robo.qr = false; toast('Número conectado.'); return roboAtualiza(); }
+        const r = await chamaRobo('qr');
+        if (r.conectado) { S.robo.qr = false; return roboAtualiza(); }
+        if (r.qr && r.qr !== S.robo.qrImg) { S.robo.qrImg = r.qr; refazRobo(); }
+      } catch (e) { S.robo.qr = false; S.robo.erro = e.message; refazRobo(); break; }
+    }
   },
   'robo-simula-qr'() { S.robo.estado = 'carregando'; refazRobo(); setTimeout(() => { if (!S.robo.demo) return; S.robo.estado = 'conectado'; S.robo.qr = false; S.robo.numero = '(62) 9 0000-0000'; S.robo.grupos = GRUPOS_EXEMPLO.map(g => ({ ...g })); salvaGruposDemo(); refazRobo(); toast('Número conectado (demonstração).'); }, 900); },
   async 'robo-desconectar'() {
@@ -1916,9 +1937,10 @@ const CFG = window.NA_CONFIG || {};
 const NUVEM = !!(CFG.supabaseUrl && CFG.supabaseKey);
 
 /* ---------- robô do WhatsApp: envio automático nos grupos ----------
-   Hoje só existe a demonstração. O robô de verdade entra quando config.js tiver robo: true
-   e a função achadinhos-robo existir no Supabase (roteiro no CLAUDE.md do repositório). */
+   Com config.js robo: 'local', o app fala com o robô aberto neste computador (pasta achadinhos-robo-local,
+   http://127.0.0.1:3737). Fechado, cai no envio manual. Sem robo, só a demonstração. */
 const ROBO_REAL = NUVEM && !!CFG.robo;
+const ROBO_LOCAL = CFG.robo === 'local', ROBO_URL = CFG.roboUrl || 'http://127.0.0.1:3737';
 const GRUPOS_EXEMPLO = [
   { jid: 'exemplo-1@g.us', nome: 'Nossos Achadinhos #1', membros: 214, ativo: true },
   { jid: 'exemplo-2@g.us', nome: 'Nossos Achadinhos #2', membros: 87, ativo: true },
@@ -1938,8 +1960,16 @@ function iniciaRobo() {
 }
 function salvaGruposDemo() { if (S.robo.demo) guarda('na-robo-demo-grupos', JSON.stringify(S.robo.grupos)); }
 function selecaoSalva() { try { return JSON.parse(le('na-robo-sel') || 'null'); } catch (e) { return null; } }
-/* robô do WhatsApp: a ponte fica no Worker achadinhos-ml (POST /api/robo), que guarda a chave da Evolution API */
+/* robô do WhatsApp: no robô local deste computador ou, no modelo antigo, pela ponte do Worker (POST /api/robo) */
 async function chamaRobo(acao, dados) {
+  if (ROBO_LOCAL) {
+    let r;
+    try { r = await fetch(ROBO_URL + '/robo', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ acao, ...(dados || {}) }) }); }
+    catch (e) { throw new Error('O robô não está aberto neste computador.'); }
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.erro || 'O robô não respondeu.');
+    return j;
+  }
   try { return await apiLinks('/api/robo', { acao, ...(dados || {}) }); }
   catch (e) { throw new Error(e.codigo && e.codigo !== 'falha' ? e.codigo : 'O robô não respondeu.'); }
 }
@@ -1998,7 +2028,9 @@ async function rodaDisparo() {
     S.historico.push(post);
     if (!S.robo.demo) salvaPost(post).then(okSalvo => { if (!okSalvo) toast('Enviado, mas não ficou registrado. O aviso de produto repetido pode falhar.'); });
   }
-  if (S.disparo === d) { render(); toast(ok === d.grupos.length ? 'Enviado pros grupos.' : ok ? 'Alguns grupos falharam.' : 'Nenhum grupo recebeu.'); }
+  if (S.disparo !== d) return;
+  if (ok === d.grupos.length) { fechaDisparo(); render(); toast(`${S.robo.demo ? 'Demonstração: ' : ''}Enviado pr${ok === 1 ? 'o grupo' : `os ${ok} grupos`}.`); }
+  else render();
 }
 function fechaDisparo() { const d = S.disparo; S.disparo = null; if (d && d.salvo) limpaPost(d.tipo); }
 function limpaPost(tipo) {
