@@ -129,13 +129,16 @@ test('worker: guarda a sessão testada e gera o meli.la do produto do outro grup
 test('worker: modelo da mensagem compartilhado', async () => {
   fetchFalso(); const { env } = ambiente();
   assert.deepEqual(await (await pede(env, '/api/modelo')).json(), {});
-  const m = await (await pede(env, '/api/modelo', { texto: '*{titulo}*\n{link}' })).json();
+  const m = await (await pede(env, '/api/modelo', { tipo: 'oferta', texto: '*{titulo}*\n{link}' })).json();
   assert.equal(m.texto, '*{titulo}*\n{link}');
-  assert.equal((await (await pede(env, '/api/modelo')).json()).texto, '*{titulo}*\n{link}');
-  assert.equal((await pede(env, '/api/modelo', { texto: 'x'.repeat(3001) })).status, 400);
-  await pede(env, '/api/modelo', { texto: '  ' });
-  assert.deepEqual(await (await pede(env, '/api/modelo')).json(), {});
-  assert.equal((await pede(env, '/api/modelo', { texto: 'a' }, 'outro')).status, 401);
+  await pede(env, '/api/modelo', { tipo: 'cupom', texto: '{cupons}\n{link}' });
+  const g = await (await pede(env, '/api/modelo')).json();
+  assert.deepEqual([g.oferta.texto, g.cupom.texto], ['*{titulo}*\n{link}', '{cupons}\n{link}']);
+  assert.equal((await pede(env, '/api/modelo', { tipo: 'oferta', texto: 'x'.repeat(3001) })).status, 400);
+  assert.equal((await pede(env, '/api/modelo', { tipo: 'outro', texto: 'a' })).status, 400);
+  await pede(env, '/api/modelo', { tipo: 'oferta', texto: '  ' });
+  assert.deepEqual(Object.keys(await (await pede(env, '/api/modelo')).json()), ['cupom']);
+  assert.equal((await pede(env, '/api/modelo', { tipo: 'cupom', texto: 'a' }, 'outro')).status, 401);
 });
 
 test('worker: sessão vencida, lista e link que não é do ML', async () => {

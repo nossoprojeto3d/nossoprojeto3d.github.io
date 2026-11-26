@@ -93,6 +93,9 @@ textarea.in{min-height:160px;resize:vertical;line-height:1.4}
 @media (max-width:1023px){.chip{min-height:40px}}
 #modelo{min-height:240px;font-size:15px;line-height:1.5;resize:vertical}
 .modelo-duo{display:flex;flex-direction:column;gap:20px}
+.emojis{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:2px;padding:8px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.emo{min-height:40px;border:0;border-radius:8px;background:none;font-size:22px;line-height:1;cursor:pointer}
+.emo:hover,.emo:focus-visible{background:var(--line)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .bolha i{font-style:italic} .bolha s{text-decoration:line-through}
 .passos-ml{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
@@ -392,7 +395,7 @@ const S = {
   cupons: [],
   linkCupom: '', addAberto: false, img: null, avisarRepetido: true,
   manual: false,
-  conv: null, trocaLink: false, sessaoML: null, mlEdita: false, mlSalvando: false, modelo: '', modeloRasc: null, modeloSalvando: false,
+  conv: null, trocaLink: false, sessaoML: null, mlEdita: false, mlSalvando: false, modelos: { oferta: '', cupom: '' }, modeloRasc: { oferta: null, cupom: null }, modeloTipo: 'oferta', modeloSalvando: false, emojiAberto: false,
   cAbre: null, cAbreIdx: 0, cChama: null, msgC: '', cNota: '', feitos: {}, stepC: 'form', cZero: false,
   frase: null, absurda: false, fraseAbs: null, absIdx: 0,
 
@@ -971,31 +974,43 @@ function campoLink() {
         <div id="chk-link">${chkLink(S.link, ler(S.msg).linkOrig)}</div>`
     + (S.trocaLink && c && c.estado === 'ok' ? '<button class="btn link" data-a="usar-conv">Usar o link convertido</button>' : '');
 }
-/* Ajustes: modelo da mensagem de oferta, com prévia de um post de exemplo (ou do post que está aberto) */
-const EXEMPLO = { titulo: 'Filamento PLA Onyon3D 1kg Vermelho', preco: 'R$ 91,91 no Pix', cupom: 'MAKER10', cupons: '', desconto: '31% OFF', de: 'R$ 135,00', frete: 'Frete grátis', avaliacao: '⭐ 4.9 · +1000 vendidos', loja: 'Yalo Embalagens (loja oficial)', frase: 'A Thai deixou o Junior mandar esse porque é bom mesmo', absurda: '🚨 OFERTA ABSURDA 🚨', link: 'https://meli.la/2EdRB5y' };
-const rascModelo = () => S.modeloRasc !== null ? S.modeloRasc : modeloAtual();
+/* aba Modelo: prévia com o post que está aberto, e o que faltar vem do exemplo */
+const EXEMPLO = {
+  oferta: { titulo: 'Filamento PLA Onyon3D 1kg Vermelho', preco: 'R$ 91,91 no Pix', cupom: 'MAKER10', cupons: '', desconto: '31% OFF', de: 'R$ 135,00', frete: 'Frete grátis', avaliacao: '⭐ 4.9 · +1000 vendidos', loja: 'Yalo Embalagens (loja oficial)', frase: 'A Thai deixou o Junior mandar esse porque é bom mesmo', absurda: '🚨 OFERTA ABSURDA 🚨', link: 'https://meli.la/2EdRB5y' },
+  cupom: { abertura: 'A Thai achou cupom novo! O Junior já tá no carrinho 🎟️', aviso: 'Só pra quem resgatou antes das 00h', cupons: 'MELI20: 20% OFF acima de R$ 99\nFRETE10: R$ 10 OFF no frete', codigos: 'MELI20 · FRETE10', chamada: 'Ativa por aqui antes de comprar 👇', link: 'https://meli.la/17SDCZ2' }
+};
+/* emojis à mão para o modelo (no celular o teclado também tem os dele) */
+const EMOJIS = '🔥 💥 🚨 ⚡ 🤯 😱 🤑 😍 🥳 🎉 ✨ 💯 ✅ ❗ ⚠️ 👉 👇 👆 ➡️ 🎟️ 🏷️ 💰 💸 🛒 🛍️ 📦 🚚 ⏰ ⌛ 🆕 🔝 ⭐ 🌟 ❤️ 💚 💛 🏪 🎁 📢 📣 🖨️ 🧵 🔧 🧰 📏 🧲 💡 🤝 🙌 👀 😂 🤩 💎 🔻 📉'.split(' ');
+const rascModelo = (tipo = S.modeloTipo) => S.modeloRasc[tipo] !== null ? S.modeloRasc[tipo] : modeloAtual(tipo);
 function previaModelo() {
-  const t = rascModelo(), v = dados().produto ? { ...EXEMPLO, ...Object.fromEntries(Object.entries(camposOferta()).filter(([, x]) => x)) } : EXEMPLO;
-  const desc = desconhecidos(t);
-  return `<div class="wa"><div class="cap">Como chega no grupo</div><div class="msg"><div class="bolha">${fmtWA(aplicaModelo(t, v)) || '<span class="ph">Modelo vazio</span>'}</div></div></div>`;
+  const tipo = S.modeloTipo, t = rascModelo();
+  const real = tipo === 'oferta' ? (dados().produto ? camposOferta() : {}) : (S.cupons.length ? camposCupom() : {});
+  const v = { ...EXEMPLO[tipo], ...Object.fromEntries(Object.entries(real).filter(([, x]) => x)) };
+  const txt = fmtWA(aplicaModelo(t, v)) || '<span class="ph">Modelo vazio</span>';
+  const bolha = tipo === 'cupom' ? `<div class="bolha img">${capa(false)}<div class="txt">${txt}</div></div>` : `<div class="bolha">${txt}</div>`;
+  return `<div class="wa"><div class="cap">Como chega no grupo</div><div class="msg">${bolha}</div></div>`;
 }
 function avisosModelo() {
-  const t = rascModelo(), desc = desconhecidos(t);
+  const t = rascModelo(), desc = desconhecidos(t, S.modeloTipo);
   return (desc.length ? chk('warn', 'Campo que não existe: ' + desc.map(k => `<span class="mono">{${esc(k)}}</span>`).join(', ')) : '')
     + (!/\{link\}/.test(t) ? chk('warn', 'O modelo está sem o <span class="mono">{link}</span>.') : '');
 }
 function acoesModelo() {
-  const t = rascModelo(), mudou = t !== modeloAtual(), padrao = t === MODELO_PADRAO;
+  const tipo = S.modeloTipo, t = rascModelo(), mudou = t !== modeloAtual(tipo), padrao = t === MODELO_PADRAO[tipo];
   return `<div class="row">${padrao ? '<span></span>' : '<button class="btn link" data-a="modelo-padrao">Voltar ao padrão</button>'}<button class="btn pri sm" data-a="modelo-salvar" ${mudou && !S.modeloSalvando ? '' : 'disabled'}>${S.modeloSalvando ? 'Salvando…' : mudou ? 'Salvar' : 'Salvo'}</button></div>`;
 }
-/* aba Modelo: configuração à esquerda e prévia fixa à direita (no celular, a prévia vem embaixo) */
+const painelEmoji = () => S.emojiAberto ? `<div class="emojis" role="group" aria-label="Emojis">${EMOJIS.map(e => `<button class="emo" data-a="modelo-emoji" data-n="${e}" aria-label="${e}">${e}</button>`).join('')}</div>` : '';
+/* configuração à esquerda e prévia fixa à direita (no celular, a prévia vem embaixo) */
 function telaModelo() {
-  return `<h1>Modelo</h1>
+  const tipo = S.modeloTipo;
+  return `<div class="top"><h1>Modelo</h1>
+    <div class="seg" role="group" aria-label="Modelo de qual post"><button data-a="modelo-tipo" data-n="oferta" aria-pressed="${tipo === 'oferta'}">Oferta</button><button data-a="modelo-tipo" data-n="cupom" aria-pressed="${tipo === 'cupom'}">Cupom</button></div></div>
   <div class="modelo-duo">
-    <section class="modelo-ed stack tight" aria-label="Modelo da mensagem de oferta">
-      <label for="modelo" class="lbl">Post de oferta</label>
+    <section class="modelo-ed stack tight" aria-label="Modelo do post de ${tipo}">
+      <label for="modelo" class="lbl">Post de ${tipo}</label>
       <textarea class="in mono" id="modelo" data-i="modelo" spellcheck="false" autocapitalize="none">${esc(rascModelo())}</textarea>
-      <div class="chips" role="group" aria-label="Inserir campo">${CAMPOS.map(([k, n]) => `<button class="chip" data-a="modelo-campo" data-n="${k}">${n}</button>`).join('')}</div>
+      <div class="chips" role="group" aria-label="Inserir campo">${CAMPOS[tipo].map(([k, n]) => `<button class="chip" data-a="modelo-campo" data-n="${k}">${n}</button>`).join('')}<button class="chip emo-btn" data-a="modelo-emojis" aria-expanded="${S.emojiAberto}">😀 Emoji</button></div>
+      <div id="emojis">${painelEmoji()}</div>
       <p class="hint">Linha com campo vazio some. Um trecho entre [ ] só aparece se o campo dele tiver valor. Use *negrito*, _itálico_ e ~riscado~ do WhatsApp.</p>
       <div id="modelo-avisos" class="stack tight">${avisosModelo()}</div>
       <div id="modelo-acoes">${acoesModelo()}</div>
@@ -1034,10 +1049,24 @@ function capa(mini) {
 // api.whatsapp.com e não wa.me: o redirecionamento do wa.me estraga os emojis no WhatsApp Web e no app do computador
 const wa = t => 'https://api.whatsapp.com/send?text=' + encodeURIComponent(t);
 /* ---------- modelo da mensagem de oferta (Ajustes > Modelo da mensagem) ---------- */
-const MODELO_PADRAO = '{absurda}\n\n{titulo}\n{preco}[ 💥🎟️ {cupom}]\n\n{cupons}\n\n{frase}\nEntra aqui: {link}';
-const CAMPOS = [['titulo', 'Título'], ['preco', 'Preço'], ['cupom', 'Cupom'], ['cupons', 'Vários cupons'], ['desconto', 'Desconto'], ['de', 'Preço antigo'], ['frete', 'Frete'], ['avaliacao', 'Avaliação'], ['loja', 'Loja'], ['frase', 'Frase'], ['absurda', 'Oferta absurda'], ['link', 'Link']];
-const NOMES = Object.fromEntries(CAMPOS);
-const modeloAtual = () => S.modelo || MODELO_PADRAO;
+const MODELO_PADRAO = {
+  oferta: '{absurda}\n\n{titulo}\n{preco}[ 💥🎟️ {cupom}]\n\n{cupons}\n\n{frase}\nEntra aqui: {link}',
+  cupom: '{abertura}\n[⚠️ {aviso}]\n{cupons}\n\n{chamada}\n{link}'
+};
+const CAMPOS = {
+  oferta: [['titulo', 'Título'], ['preco', 'Preço'], ['cupom', 'Cupom'], ['cupons', 'Vários cupons'], ['desconto', 'Desconto'], ['de', 'Preço antigo'], ['frete', 'Frete'], ['avaliacao', 'Avaliação'], ['loja', 'Loja'], ['frase', 'Frase'], ['absurda', 'Oferta absurda'], ['link', 'Link']],
+  cupom: [['abertura', 'Abertura'], ['aviso', 'Aviso'], ['cupons', 'Cupons com regra'], ['codigos', 'Só os códigos'], ['chamada', 'Chamada'], ['link', 'Link']]
+};
+const modeloAtual = (tipo = 'oferta') => S.modelos[tipo] || MODELO_PADRAO[tipo];
+/* campos do post de cupom */
+function camposCupom() {
+  return {
+    abertura: abreAtual().trim(), aviso: S.cNota.trim(),
+    cupons: S.cupons.map(c => c.code + (c.regra ? ': ' + c.regra : '')).join('\n'),
+    codigos: S.cupons.map(c => c.code).join(' · '),
+    chamada: chamaAtual().trim(), link: S.linkCupom.trim()
+  };
+}
 /* valor de cada campo no post atual; vazio quando não tem */
 function camposOferta() {
   const d = dados(), cs = codigos(d), ml = d.ml || {};
@@ -1059,14 +1088,15 @@ function aplicaModelo(modelo, v) {
   const vazio = t => { const ks = [...t.matchAll(/\{(\w+)\}/g)].map(m => m[1]).filter(k => k in v); return ks.length > 0 && ks.every(k => !v[k]); };
   const linhas = [];
   for (let l of modelo.replace(/\r/g, '').split('\n')) {
+    const tinha = /\{\w+\}/.test(l);
     l = l.replace(/\[([^\[\]]*\{\w+\}[^\[\]]*)\]/g, (m, t) => vazio(t) ? '' : t);
-    if (vazio(l)) continue;
+    if (vazio(l) || (tinha && !l.trim())) continue;
     linhas.push(l.replace(/\{(\w+)\}/g, (m, k) => k in v ? v[k] : m).replace(/[ \t]+$/, ''));
   }
   return linhas.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
-const desconhecidos = modelo => [...new Set([...modelo.matchAll(/\{([^{}\s]{1,30})\}/g)].map(m => m[1]).filter(k => !NOMES[k]))];
-function textoOferta() { return aplicaModelo(modeloAtual(), camposOferta()); }
+const desconhecidos = (modelo, tipo) => [...new Set([...modelo.matchAll(/\{([^{}\s]{1,30})\}/g)].map(m => m[1]).filter(k => !CAMPOS[tipo].some(c => c[0] === k)))];
+function textoOferta() { return aplicaModelo(modeloAtual('oferta'), camposOferta()); }
 /* formatação do WhatsApp na prévia: *negrito*, _itálico_, ~riscado~ e links */
 function fmtWA(t) {
   return esc(t)
@@ -1089,10 +1119,7 @@ function editor(tipo) {
     <div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn sm" style="flex:1 1 160px" data-a="ed-auto" data-n="${tipo}">Voltar ao automático</button><button class="btn sm" style="flex:1 1 120px;background:var(--accent);border-color:var(--accent);color:var(--on-accent)" data-a="ed-fechar" data-n="${tipo}">Pronto</button></div>
   </div>`;
 }
-function textoCupom() {
-  const a = abreAtual().trim(), c = chamaAtual().trim(), n = S.cNota.trim();
-  return (a ? a + '\n' : '') + (n ? '⚠️ ' + n + '\n' : '') + S.cupons.map(x => x.code + (x.regra ? ': ' + x.regra : '')).join('\n') + '\n\n' + (c ? c + '\n' : '') + S.linkCupom.trim();
-}
+function textoCupom() { return aplicaModelo(modeloAtual('cupom'), camposCupom()); }
 const btnEnviar = (id, pode, txt, sec) => `<a class="btn ${sec ? '' : 'pri '}block${pode ? '' : ' off'}" id="${id}" data-a="${id}" ${pode ? `href="${esc(wa(txt()))}"` : 'aria-disabled="true"'} target="_blank" rel="noopener">${ico('enviar')}${sec ? 'Abrir no WhatsApp' : 'Enviar pro grupo'}</a>`;
 function sincEditor(tipo) { const t = $('#ed-' + tipo); if (t && S.ed[tipo] === null && document.activeElement !== t) t.value = textoFinal(tipo); }
 function ligaEnviar(id, pode, txt) {
@@ -1138,7 +1165,7 @@ function bolhasOferta() {
   /* campos que faltam aparecem apagados na prévia, pra mostrar onde vão entrar */
   const v = camposOferta(), PH = { titulo: 'Nome do produto', link: 'seu link aqui' };
   for (const k in PH) if (!v[k]) v[k] = '\u2063' + PH[k] + '\u2064';
-  const txt = S.ed.oferta !== null ? S.ed.oferta : aplicaModelo(modeloAtual(), v);
+  const txt = S.ed.oferta !== null ? S.ed.oferta : aplicaModelo(modeloAtual('oferta'), v);
   const bolha = fmtWA(txt).replace(/\u2063([^\u2064]*)\u2064/g, '<span class="ph">$1</span>');
   let h = `<div class="msg"><div class="bolha">${bolha}${tique('post')}</div>` + acoesMsg('post', txtO(), pode) + '</div>';
   codigos(d).forEach(c => { h += `<div class="msg"><div class="bolha">${esc(c)}${tique('c:' + c)}</div>${acoesMsg('c:' + c, c, pode)}</div>`; });
@@ -1254,12 +1281,12 @@ function blocoImagem() {
 function bolhasCupom() {
   if (!S.cupons.length) return '<div class="vazio">Adicione um cupom para ver o post.</div>';
   const lk = S.linkCupom.trim() || 'seu link aqui';
-  const linhas = S.cupons.map(c => `${esc(c.code)}${c.regra ? ': ' + esc(c.regra) : ''}`).join('\n');
   const pode = podeCupom();
   preparaImg();
   const img = roboAtivo() ? '' : (window.ClipboardItem ? `<button class="btn sm${feito('img') ? ' feito' : ''}" data-a="m-copiar-img">${ico('copiar', 16)}Copiar imagem</button>` : '')
     + (podeArquivo() ? `<button class="btn sm" data-a="m-img">${ico('subir', 16)}Imagem + texto</button>` : '');
-  const txt = S.ed.cupom !== null ? comLinks(S.ed.cupom) : `${abreAtual().trim() ? '<b>' + esc(abreAtual().trim()) + '</b>\n' : ''}${S.cNota.trim() ? '⚠️ ' + esc(S.cNota.trim()) + '\n' : ''}${linhas}\n\n${chamaAtual().trim() ? esc(chamaAtual().trim()) + '\n' : ''}<span class="lk">${esc(lk)}</span>`;
+  const v = camposCupom(); if (!v.link) v.link = '\u2063' + lk + '\u2064';
+  const txt = S.ed.cupom !== null ? fmtWA(S.ed.cupom) : fmtWA(aplicaModelo(modeloAtual('cupom'), v)).replace(/\u2063([^\u2064]*)\u2064/g, '<span class="ph">$1</span>');
   return `<div class="msg"><div class="bolha img">${capa(false)}<div class="txt">${txt}${tique('post')}</div></div>${acoesMsg('post', txtC(), pode, img)}</div>`
     + S.cupons.map(c => `<div class="msg"><div class="bolha">${esc(c.code)}${tique('c:' + c.code)}</div>${acoesMsg('c:' + c.code, c.code, pode)}</div>`).join('');
 }
@@ -1727,20 +1754,18 @@ const A = {
   'trocar-link'() { S.trocaLink = true; S.link = ''; refazCampoLink(); const i = $('#link'); if (i) i.focus(); },
   'usar-conv'() { S.trocaLink = false; S.link = S.conv.d.curto; refazCampoLink(); },
   'conv-de-novo'() { S.conv = null; converteLink(true); },
-  'modelo-campo'(k) {
-    const t = $('#modelo'); if (!t) return;
-    const ins = '{' + k + '}', a = t.selectionStart ?? t.value.length, b = t.selectionEnd ?? a;
-    t.value = t.value.slice(0, a) + ins + t.value.slice(b); t.focus(); t.setSelectionRange(a + ins.length, a + ins.length);
-    S.modeloRasc = t.value; refazModelo();
-  },
-  'modelo-padrao'() { S.modeloRasc = MODELO_PADRAO; const t = $('#modelo'); if (t) t.value = MODELO_PADRAO; refazModelo(); },
+  'modelo-tipo'(n) { S.modeloTipo = n; render(); },
+  'modelo-campo'(k) { insereModelo('{' + k + '}'); },
+  'modelo-emojis'() { S.emojiAberto = !S.emojiAberto; poe('#emojis', painelEmoji()); const b = $('.emo-btn'); if (b) b.setAttribute('aria-expanded', S.emojiAberto); },
+  'modelo-emoji'(e) { insereModelo(e); },
+  'modelo-padrao'() { const p = MODELO_PADRAO[S.modeloTipo]; S.modeloRasc[S.modeloTipo] = p; const t = $('#modelo'); if (t) t.value = p; refazModelo(); },
   async 'modelo-salvar'() {
-    const t = rascModelo(), texto = t === MODELO_PADRAO ? '' : t;
+    const tipo = S.modeloTipo, t = rascModelo(), texto = t === MODELO_PADRAO[tipo] ? '' : t;
     S.modeloSalvando = true; refazModelo();
     try {
-      if (sb && CFG.ml) await apiLinks('/api/modelo', { texto });
-      S.modelo = texto; S.modeloRasc = null; guarda('na-modelo', texto || null);
-      toast('Modelo salvo. Vale para os próximos posts.');
+      if (sb && CFG.ml) await apiLinks('/api/modelo', { tipo, texto });
+      S.modelos[tipo] = texto; S.modeloRasc[tipo] = null; guarda('na-modelo-' + tipo, texto || null);
+      toast(`Modelo de ${tipo} salvo. Vale para os próximos posts.`);
     } catch (e) { toast('Não deu pra salvar o modelo agora. Tente de novo.'); }
     S.modeloSalvando = false; refazModelo();
   },
@@ -2025,6 +2050,13 @@ async function ligaNuvem() {
   } catch (e) { sb = null; toast('Sem conexão com o servidor. Tente de novo em instantes.'); }
   fimAbrindo();
 }
+/* põe um campo ou emoji onde está o cursor do modelo */
+function insereModelo(ins) {
+  const t = $('#modelo'); if (!t) return;
+  const a = t.selectionStart ?? t.value.length, b = t.selectionEnd ?? a;
+  t.value = t.value.slice(0, a) + ins + t.value.slice(b); t.focus(); t.setSelectionRange(a + ins.length, a + ins.length);
+  S.modeloRasc[S.modeloTipo] = t.value; refazModelo();
+}
 /* gerador de meli.la: só responde a quem está logado e é membro */
 async function apiLinks(caminho, corpo) {
   const { data } = await sb.auth.getSession();
@@ -2036,9 +2068,10 @@ async function apiLinks(caminho, corpo) {
 }
 async function carregaModelo() {
   if (!sb || !CFG.ml) return;
-  try { const m = await apiLinks('/api/modelo'); S.modelo = m.texto || ''; guarda('na-modelo', S.modelo || null); } catch (e) { return; }
-  if (S.view === 'modelo' && S.modeloRasc === null) { const t = $('#modelo'); if (t && document.activeElement !== t) t.value = modeloAtual(); refazModelo(); }
-  if (S.view === 'novo') atualizaOferta(false);
+  let m; try { m = await apiLinks('/api/modelo'); } catch (e) { return; }
+  for (const tipo of ['oferta', 'cupom']) { S.modelos[tipo] = (m[tipo] && m[tipo].texto) || ''; guarda('na-modelo-' + tipo, S.modelos[tipo] || null); }
+  if (S.view === 'modelo' && S.modeloRasc[S.modeloTipo] === null) { const t = $('#modelo'); if (t && document.activeElement !== t) t.value = modeloAtual(S.modeloTipo); refazModelo(); }
+  if (S.view === 'novo') { if (S.tipo === 'oferta') atualizaOferta(false); else atualizaCupom(); }
 }
 async function carregaSessaoML() {
   if (!sb || !CFG.ml) return;
@@ -2181,7 +2214,7 @@ document.addEventListener('input', e => {
   if (k === 'msg') { S.ed.oferta = null; S.edAberto.oferta = false; if (!S.msg.trim() && v.trim()) S.coladaEm = Date.now(); if (!v.trim()) S.coladaEm = null; S.msg = v; S.draft = null; erro('#erro-oferta', ''); atualizaOferta(true); converteLink(); }
   else if (k === 'link') { S.link = v; erro('#erro-oferta', ''); atualizaOferta(false); if (ML.test(v.trim())) { S.foiML = false; poe('#link-acoes', acoesLink()); } }
   else if (k.startsWith('d-')) { erro('#erro-oferta', ''); S.draft = { ...bruto(), [k.slice(2)]: k === 'd-cupom' ? v.toUpperCase().replace(/[,;\/]+/g, ' ').replace(/\s{2,}/g, ' ').replace(/^\s+/, '') : v }; if (k === 'd-cupom' && e.target.value !== S.draft.cupom) e.target.value = S.draft.cupom; atualizaOferta(false); }
-  else if (k === 'modelo') { S.modeloRasc = v; refazModelo(); }
+  else if (k === 'modelo') { S.modeloRasc[S.modeloTipo] = v; refazModelo(); }
   else if (k === 'linkc') { S.linkCupom = v; poe('#chk-linkc', chkLink(v)); poe('#fixo-linkc', fixoLink()); poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), txtC); }
   else if (k === 'grupo') {
     const g = S.robo.grupos.find(x => x.jid === e.target.dataset.n); if (g) g.ativo = e.target.checked;
@@ -2260,7 +2293,7 @@ document.addEventListener('pointermove', e => {
     history.replaceState(null, '', location.pathname);
   } catch (e) {}
 })();
-S.modo = le('na-modo') || 'copiar'; S.tituloIdx = proxima('titulos', TITULOS.length); S.fraseAuto = null; S.absAuto = null; S.abreAuto = null; S.linkCupom = linkFixo(); S.img = le('na-img'); S.modelo = le('na-modelo') || ''; if (le('na-avisar') === '0') S.avisarRepetido = false;
+S.modo = le('na-modo') || 'copiar'; S.tituloIdx = proxima('titulos', TITULOS.length); S.fraseAuto = null; S.absAuto = null; S.abreAuto = null; S.linkCupom = linkFixo(); S.img = le('na-img'); S.modelos = { oferta: le('na-modelo-oferta') || '', cupom: le('na-modelo-cupom') || '' }; if (le('na-avisar') === '0') S.avisarRepetido = false;
 iniciaRobo();
 S.abrindo = NUVEM && temSessaoSalva();
 if (S.abrindo) setTimeout(fimAbrindo, 10000);

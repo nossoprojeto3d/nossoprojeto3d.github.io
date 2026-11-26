@@ -4,14 +4,15 @@
    POST /api/sessao     { curl }: o "Copy as cURL (bash)" do createLink no Chrome; testa e guarda cookie, csrf e etiqueta
    POST /api/converter  { url }: abre o link de outro grupo, acha o produto e devolve o meli.la da conta
                         (com título, foto, preço, preço antigo, desconto, frete, nota, vendidos e loja, para o modelo do post)
-   GET  /api/modelo     modelo da mensagem de oferta ({ texto, em } ou {})
-   POST /api/modelo     { texto }: guarda o modelo (vazio = volta ao padrão do app)
+   GET  /api/modelo     modelos das mensagens ({ oferta: { texto, em }, cupom: { texto, em } }; o que não tiver fica de fora)
+   POST /api/modelo     { tipo: 'oferta' | 'cupom', texto }: guarda o modelo (vazio = volta ao padrão do app)
    Só atende quem está logado no app e é membro (achadinhos_membros no Supabase). */
 import { ehML, limpaProduto, produtoDireto, produtoDaVitrine, ehLista, sessaoDoCurl, juntaCookies, validadeDe } from './ml.js';
 
 const UA_CEL = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
 const UA_PC = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36';
 const CRIA = 'https://www.mercadolivre.com.br/affiliate-program/api/v2/affiliates/linkbuilder/createLink';
+const TIPOS = ['oferta', 'cupom']; /* modelos de mensagem */
 const ORIGENS = ['https://nossoprojeto3d.com.br', 'http://localhost:4321', 'http://localhost:8788'];
 
 function cors(req) {
@@ -113,13 +114,17 @@ export default {
     }
     if (p === '/api/sessao' && req.method === 'POST') return salvaSessao(req, env);
     if (p === '/api/converter' && req.method === 'POST') return converter(req, env);
-    if (p === '/api/modelo' && req.method === 'GET') return json(req, JSON.parse((await env.DADOS.get('modelo-oferta')) || '{}'));
+    if (p === '/api/modelo' && req.method === 'GET') {
+      const r = {};
+      for (const t of TIPOS) { const m = await env.DADOS.get('modelo-' + t); if (m) r[t] = JSON.parse(m); }
+      return json(req, r);
+    }
     if (p === '/api/modelo' && req.method === 'POST') {
-      const { texto } = await req.json().catch(() => ({}));
-      if (typeof texto !== 'string' || texto.length > 3000) return json(req, { erro: 'modelo-invalido' }, 400);
-      if (!texto.trim()) { await env.DADOS.delete('modelo-oferta'); return json(req, {}); }
+      const { tipo, texto } = await req.json().catch(() => ({}));
+      if (!TIPOS.includes(tipo) || typeof texto !== 'string' || texto.length > 3000) return json(req, { erro: 'modelo-invalido' }, 400);
+      if (!texto.trim()) { await env.DADOS.delete('modelo-' + tipo); return json(req, {}); }
       const m = { texto, em: new Date().toISOString() };
-      await env.DADOS.put('modelo-oferta', JSON.stringify(m));
+      await env.DADOS.put('modelo-' + tipo, JSON.stringify(m));
       return json(req, m);
     }
     return json(req, { erro: 'rota' }, 404);
