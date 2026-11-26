@@ -954,11 +954,13 @@ function campoLink() {
         <div id="chk-link">${chkLink(S.link, ler(S.msg).linkOrig)}</div>`
     + (S.trocaLink && c && c.estado === 'ok' ? '<button class="btn link" data-a="usar-conv">Usar o link convertido</button>' : '');
 }
+/* dias até a sessão do ML vencer (null quando o ML ainda não informou) */
+const diasML = m => m && m.validade ? Math.ceil((Date.parse(m.validade) - Date.now()) / 864e5) : null;
 /* Ajustes: a sessão do Gerador de links do ML, de onde saem os meli.la */
 function blocoML() {
   if (!NUVEM) return '<p class="hint">Só funciona com login.</p>';
   const m = S.sessaoML;
-  if (m && !S.mlEdita) return `<div class="card row"><div class="stack tight" style="min-width:0"><div class="lbl">Conectado como <span class="mono">${esc(m.tag)}</span></div><div class="hint">Desde ${new Date(m.em).toLocaleDateString('pt-BR')}</div></div><button class="btn sm" data-a="ml-editar">Reconectar</button></div>`;
+  if (m && !S.mlEdita) return `<div class="card row"><div class="stack tight" style="min-width:0"><div class="lbl">Conectado como <span class="mono">${esc(m.tag)}</span></div><div class="hint">${m.validade ? 'Vale até ' + new Date(m.validade).toLocaleDateString('pt-BR') : 'Desde ' + new Date(m.em).toLocaleDateString('pt-BR')}</div></div><button class="btn sm" data-a="ml-editar">Reconectar</button></div>${diasML(m) !== null && diasML(m) <= 7 ? chk('warn', diasML(m) <= 0 ? 'A conexão venceu. Reconecte.' : `Vence em ${diasML(m)} ${diasML(m) === 1 ? 'dia' : 'dias'}. Reconecte quando puder.`) : ''}`;
   return `<div class="field">
       <label for="ml-curl">Cole o cURL do Gerador de links</label>
       <textarea class="in mono" id="ml-curl" rows="3" placeholder="curl 'https://www.mercadolivre.com.br/affiliate-program/..." autocomplete="off" autocapitalize="none" spellcheck="false"></textarea>
@@ -1929,6 +1931,9 @@ async function carregaSessaoML() {
   if (!sb || !CFG.ml) return;
   try { const d = await apiLinks('/api/sessao'); S.sessaoML = d.tag ? d : false; } catch (e) { return; }
   poe('#bloco-ml', blocoML());
+  /* perto de vencer: avisa uma vez por dia em cada aparelho */
+  const dd = diasML(S.sessaoML), hoje = new Date().toDateString();
+  if (dd !== null && dd <= 7 && le('na-ml-avisou') !== hoje) { guarda('na-ml-avisou', hoje); toast(dd <= 0 ? 'A conexão com o Mercado Livre venceu. Reconecte em Ajustes.' : `A conexão com o Mercado Livre vence em ${dd} ${dd === 1 ? 'dia' : 'dias'}. Reconecte em Ajustes.`); }
   converteLink(true);
 }
 /* troca o link da mensagem colada pelo nosso: uma vez por link; o que a pessoa colou à mão fica */

@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { limpaProduto, produtoDaVitrine, produtoDireto, ehML, ehLista, sessaoDoCurl, juntaCookies } from '../src/ml.js';
+import { limpaProduto, produtoDaVitrine, produtoDireto, ehML, ehLista, sessaoDoCurl, juntaCookies, validadeDe } from '../src/ml.js';
 import worker from '../src/index.js';
 
 const fx = n => readFileSync(new URL(`./fixtures/${n}.html`, import.meta.url), 'utf8');
@@ -33,6 +33,14 @@ test('lê a sessão do cURL copiado do Chrome', () => {
 test('junta cookies novos e apaga os vencidos', () => {
   const c = juntaCookies('a=1; ssid=velho; b=2', ['ssid=novo; Path=/; Secure', 'b=; Max-Age=0', 'c=3; Path=/']);
   assert.equal(c, 'a=1; ssid=novo; c=3');
+});
+
+test('validade do cookie de login renovado', () => {
+  const agora = Date.parse('2026-11-26T12:00:00Z');
+  assert.equal(validadeDe(['ssid=x; Max-Age=86400; Path=/'], agora), '2026-11-27T12:00:00.000Z');
+  assert.equal(validadeDe(['a=1', 'ssid=x; Expires=Mon, 27 Dec 2027 10:00:00 GMT; Path=/'], agora), '2027-12-27T10:00:00.000Z');
+  assert.equal(validadeDe(['_d2id=x; Max-Age=999'], agora), null);
+  assert.equal(validadeDe(['ssid=; Max-Age=0'], agora), null);
 });
 
 test('acha o produto em destaque na vitrine de outro afiliado', () => {
@@ -75,7 +83,7 @@ function fetchFalso() {
     if (url.endsWith('/linkbuilder/createLink')) {
       pedidosML.push({ ...op, corpo: JSON.parse(op.body) });
       if (mlResponde === 'login') return new Response('', { status: 302, headers: { location: 'https://www.mercadolivre.com.br/login' } });
-      const h = new Headers({ 'content-type': 'application/json' }); h.append('set-cookie', 'ssid=renovado; Path=/');
+      const h = new Headers({ 'content-type': 'application/json' }); h.append('set-cookie', 'ssid=renovado; Path=/; Expires=Mon, 27 Dec 2027 10:00:00 GMT');
       return new Response(JSON.stringify({ status: 200, urls: [{ id: '2EdRB5y', short_url: 'https://meli.la/2EdRB5y', title: 'Título do ML' }] }), { headers: h });
     }
     const paginas = { 'https://meli.la/2wrL4Dw': [VITRINE_OUTRO, fx('outro')], 'https://meli.la/lista': ['https://www.mercadolivre.com.br/social/x/lists/1?matt_tool=1', '<html></html>'] };
@@ -111,7 +119,8 @@ test('worker: guarda a sessão testada e gera o meli.la do produto do outro grup
   assert.equal(ult.headers['x-csrf-token'], '0f1e2d3c-aaaa-bbbb-cccc-1234567890ab');
   assert.match(JSON.parse(kv.get('sessao')).cookie, /ssid=renovado/);
   const g = await (await pede(env, '/api/sessao')).json();
-  assert.deepEqual(Object.keys(g).sort(), ['em', 'tag']);
+  assert.deepEqual(Object.keys(g).sort(), ['em', 'tag', 'validade']);
+  assert.equal(g.validade, '2027-12-27T10:00:00.000Z');
 });
 
 test('worker: sessão vencida, lista e link que não é do ML', async () => {

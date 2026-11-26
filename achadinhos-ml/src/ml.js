@@ -105,6 +105,17 @@ export function sessaoDoCurl(txt) {
   return { cookie, csrf, tag, teste };
 }
 
+/* validade do cookie de login (ssid) quando o ML manda ele renovado: Max-Age vale mais que Expires */
+export function validadeDe(setCookies, agora = Date.now()) {
+  const sc = (setCookies || []).find(c => /^\s*ssid=/.test(c));
+  if (!sc) return null;
+  const ma = sc.match(/;\s*max-age=(\d+)/i);
+  if (ma) return +ma[1] > 0 ? new Date(agora + +ma[1] * 1000).toISOString() : null;
+  const ex = sc.match(/;\s*expires=([^;]+)/i);
+  const t = ex ? Date.parse(ex[1]) : NaN;
+  return t > agora ? new Date(t).toISOString() : null;
+}
+
 /* junta os set-cookie da resposta ao cookie guardado, para a sessão não envelhecer */
 export function juntaCookies(cookie, setCookies) {
   const mapa = new Map(cookie.split(/;\s*/).filter(Boolean).map(x => { const i = x.indexOf('='); return [x.slice(0, i), x.slice(i + 1)]; }));

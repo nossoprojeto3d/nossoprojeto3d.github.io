@@ -1,10 +1,10 @@
 /* Gerador de meli.la do Nossos Achadinhos (https://achadinhos-ml.auto-insta.workers.dev).
    Faz o mesmo que o Gerador de links do ML (afiliados/linkbuilder), com a sessão da conta guardada aqui.
-   GET  /api/sessao     sessão salva? ({ tag, em }; o cookie nunca sai daqui)
+   GET  /api/sessao     sessão salva? ({ tag, em, validade }; o cookie nunca sai daqui)
    POST /api/sessao     { curl }: o "Copy as cURL (bash)" do createLink no Chrome; testa e guarda cookie, csrf e etiqueta
    POST /api/converter  { url }: abre o link de outro grupo, acha o produto e devolve o meli.la da conta
    Só atende quem está logado no app e é membro (achadinhos_membros no Supabase). */
-import { ehML, limpaProduto, produtoDireto, produtoDaVitrine, ehLista, sessaoDoCurl, juntaCookies } from './ml.js';
+import { ehML, limpaProduto, produtoDireto, produtoDaVitrine, ehLista, sessaoDoCurl, juntaCookies, validadeDe } from './ml.js';
 
 const UA_CEL = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
 const UA_PC = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36';
@@ -54,8 +54,8 @@ async function geraMeli(env, s, url) {
   });
   const novos = r.headers.getSetCookie ? r.headers.getSetCookie() : [];
   if (novos.length) {
-    const c = juntaCookies(s.cookie, novos);
-    if (c !== s.cookie) { s.cookie = c; await env.DADOS.put('sessao', JSON.stringify(s)); }
+    const c = juntaCookies(s.cookie, novos), v = validadeDe(novos) || s.validade;
+    if (c !== s.cookie || v !== s.validade) { s.cookie = c; s.validade = v; if (s.em) await env.DADOS.put('sessao', JSON.stringify(s)); }
   }
   if (r.status === 401 || r.status === 403 || (r.status >= 300 && r.status < 400)) throw falha('sessao');
   const j = await r.json().catch(() => null);
@@ -90,11 +90,11 @@ async function salvaSessao(req, env) {
   const s = sessaoDoCurl(curl);
   if (!s) return json(req, { erro: 'curl-invalido' }, 400);
   const { teste, ...guardar } = s;
-  guardar.em = new Date().toISOString();
   try { await geraMeli(env, guardar, teste && ehML(teste) ? limpaProduto(teste) : 'https://www.mercadolivre.com.br/p/MLB24741975'); }
   catch (e) { return json(req, { erro: e.codigo === 'sessao' ? 'sessao' : 'teste-falhou' }, 422); }
+  guardar.em = new Date().toISOString();
   await env.DADOS.put('sessao', JSON.stringify(guardar));
-  return json(req, { tag: guardar.tag, em: guardar.em });
+  return json(req, { tag: guardar.tag, em: guardar.em, validade: guardar.validade || null });
 }
 
 export default {
@@ -105,7 +105,7 @@ export default {
     if (!(await membro(req, env))) return json(req, { erro: 'sem-acesso' }, 401);
     if (p === '/api/sessao' && req.method === 'GET') {
       const s = JSON.parse((await env.DADOS.get('sessao')) || 'null');
-      return json(req, s ? { tag: s.tag, em: s.em } : {});
+      return json(req, s ? { tag: s.tag, em: s.em, validade: s.validade || null } : {});
     }
     if (p === '/api/sessao' && req.method === 'POST') return salvaSessao(req, env);
     if (p === '/api/converter' && req.method === 'POST') return converter(req, env);
