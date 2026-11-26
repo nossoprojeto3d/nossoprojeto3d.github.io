@@ -1637,7 +1637,7 @@ function telaLogin() {
 /* Nova oferta e Clonar oferta são a mesma tela (view 'novo'), no modo Do zero ou Mensagem pronta.
    O histórico não tem aba: os posts continuam salvos (achadinhos_posts) e servem para o aviso de produto repetido.
    A tela antiga do histórico (telaHistorico) ficou no código, sem caminho até ela, caso volte um dia. */
-const ABAS = [['zero', 'Nova oferta', 'mais'], ['clonar', 'Clonar oferta', 'copiar'], ['modelo', 'Template', 'modelo'], ['ajustes', 'Ajustes', 'ajustes']];
+const ABAS = [['clonar', 'Clonar oferta', 'copiar'], ['zero', 'Nova oferta', 'mais'], ['modelo', 'Template', 'modelo'], ['ajustes', 'Ajustes', 'ajustes']];
 const modoZero = () => S.tipo === 'oferta' ? !!S.manual : !!S.cZero;
 const abaAtual = () => S.view !== 'novo' ? S.view : modoZero() ? 'zero' : 'clonar';
 const abas = () => ABAS.map(([id, nome, ic]) => `<button class="tab" data-a="${id === 'zero' || id === 'clonar' ? 'ir-novo' : 'ir'}" data-n="${id}" ${abaAtual() === id ? 'aria-current="page"' : ''}>${ico(ic, 22)}${nome}</button>`).join('');
