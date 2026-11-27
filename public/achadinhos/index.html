@@ -1212,7 +1212,6 @@ function bolhasOferta() {
 }
 function avisosOferta() {
   let h = '';
-  if (!dados().produto.trim()) h += chk('warn', 'Falta o nome do produto. Escreva um ou toque em Gerar título.');
   if (S.ed.oferta !== null) h += chk('warn', 'Texto editado à mão: o que mudar nos campos acima não entra no post.');
   if (repetido()) h += chk('warn', 'Esse produto já foi pro grupo hoje.');
   if (S.coladaEm && S.msg.trim()) { const min = Math.max(0, Math.round((Date.now() - S.coladaEm) / 60000)); h += chk('warn', `Colada há ${min} min. Abra o link e confira se a oferta ainda vale.`); }
