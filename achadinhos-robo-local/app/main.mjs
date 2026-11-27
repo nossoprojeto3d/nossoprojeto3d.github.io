@@ -69,7 +69,8 @@ function abreJanela() {
     if (r === 0) e.preventDefault();
   });
   janela.on('closed', () => { janela = null; });
-  janela.loadURL(SITE);
+  /* sempre a versão mais nova do site: sem isso o cache (10 min do GitHub Pages) mostra a anterior ao reabrir */
+  janela.loadURL(SITE, { extraHeaders: 'Cache-Control: no-cache\nPragma: no-cache\n' });
 }
 
 app.whenReady().then(() => {
