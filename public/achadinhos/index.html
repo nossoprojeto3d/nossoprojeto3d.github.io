@@ -255,6 +255,19 @@ details.hint summary{cursor:pointer;min-height:32px;display:flex;align-items:cen
 .sw input{appearance:none;-webkit-appearance:none;width:52px;height:32px;border-radius:16px;background:#CBD5C9;border:1px solid var(--line);position:relative;flex-shrink:0;transition:background .15s;cursor:pointer}
 .sw input::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:transform .15s,background .15s}
 .sw input:checked{background:var(--destaque);border-color:var(--destaque)} .sw input:checked::after{transform:translateX(20px);background:#fff}
+/* grupos do bot: uma linha fina por grupo, numa caixa só */
+.grupos{padding:4px 0 6px}
+.gr-topo{display:flex;align-items:center;gap:10px;padding:10px 16px 8px}
+.gr-topo .lbl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:1023px){.gr-atu{display:none}.gr-topo .btn.link{min-width:44px;justify-content:center}}
+.gr-conta{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.gr-item{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 16px;border-top:1px solid var(--line);cursor:pointer}
+.gr-item:hover{background:var(--bg)}
+.gr-item input{width:20px;height:20px;margin:0;flex-shrink:0;accent-color:var(--destaque);cursor:pointer}
+.gr-nome{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.gr-item input:not(:checked) ~ .gr-nome{color:var(--muted)}
+.gr-n{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.gr-vazio{padding:4px 16px 10px}
 
 /* login */
 .login{min-height:100dvh;max-width:440px;margin:0 auto;padding:max(40px,env(safe-area-inset-top)) 28px 32px;display:flex;flex-direction:column}
@@ -2076,6 +2089,7 @@ function limpaPost(tipo) {
   if (tipo === 'oferta') { S.msg = ''; S.link = ''; S.foiML = false; S.conv = null; S.trocaLink = false; S.draft = null; S.coladaEm = null; S.step = 'form'; S.manual = false; S.guardaPronta = null; S.guardaZero = null; S.frase = null; S.absurda = false; S.fraseAbs = null; S.fraseAuto = null; S.absAuto = null; S.tituloIdx = proxima('titulos', TITULOS.length); }
   else { S.cupons = []; S.linkCupom = linkFixo(); S.cAbre = null; S.cChama = null; S.msgC = ''; S.cNota = ''; S.abreAuto = null; }
 }
+const contaGrupos = () => `${gruposAtivos().length} de ${S.robo.grupos.length}`;
 function refazRobo() { poe('#bloco-robo', blocoRobo()); poe('#bot-st', botSt()); }
 /* selo do bot no menu do computador */
 function botSt() {
@@ -2117,9 +2131,11 @@ function blocoRobo() {
   const gs = r.grupos;
   h += `<div class="card row"><div class="row" style="justify-content:flex-start;gap:10px;min-width:0"><span class="dot on" aria-hidden="true"></span><div style="min-width:0"><div class="lbl">Conectado</div><div class="hint">${esc(r.numero)}</div></div></div>
       ${r.confirmaSair ? '<div class="row"><button class="btn sm" data-a="robo-nao-sair">Cancelar</button><button class="btn sm" data-a="robo-desconectar" style="border-color:var(--warn);color:var(--warn)">Confirmar</button></div>' : '<button class="btn sm" data-a="robo-desconectar">Desconectar</button>'}</div>
-    <div class="row"><span class="lbl">Grupos que recebem</span><button class="btn link" data-a="robo-grupos">${ico('trocar', 16)}Atualizar</button></div>
-    ${gs.length ? gs.map(g => `<label class="sw card"><span style="min-width:0"><span class="lbl" style="display:block">${esc(g.nome)}</span><span class="hint">${g.membros ? g.membros + ' pessoas' : 'Grupo'}</span></span><input type="checkbox" data-i="grupo" data-n="${esc(g.jid)}" ${g.ativo ? 'checked' : ''} aria-label="Enviar para ${esc(g.nome)}"></label>`).join('')
-      : '<div class="card"><p class="hint">O número ainda não está em nenhum grupo. Coloque o chip como admin dos grupos e toque em Atualizar.</p></div>'}
+    <div class="card grupos">
+      <div class="gr-topo"><span class="lbl">Grupos que recebem</span>${gs.length ? `<span class="gr-conta" id="gr-conta">${contaGrupos()}</span>` : ''}<button class="btn link" data-a="robo-grupos" aria-label="Atualizar grupos">${ico('trocar', 16)}<span class="gr-atu">Atualizar</span></button></div>
+      ${gs.length ? gs.map(g => `<label class="gr-item"><input type="checkbox" data-i="grupo" data-n="${esc(g.jid)}" ${g.ativo ? 'checked' : ''}><span class="gr-nome">${esc(g.nome)}</span><span class="gr-n" title="pessoas no grupo">${g.membros || ''}</span></label>`).join('')
+        : '<p class="hint gr-vazio">O número ainda não está em nenhum grupo. Coloque o chip como admin dos grupos e toque em Atualizar.</p>'}
+    </div>
     <div class="stack tight"><span class="lbl">Espera entre um grupo e outro</span>
       <div class="seg seg3" role="group" aria-label="Espera entre grupos">${[5, 10, 20].map(v => `<button data-a="robo-int" data-n="${v}" aria-pressed="${r.intervalo === v}">${v} s</button>`).join('')}</div>
       <p class="hint">Esperar entre os grupos ajuda a não parecer robô pro WhatsApp. 10 segundos é um bom meio-termo.</p></div>`;
@@ -2308,6 +2324,7 @@ document.addEventListener('input', e => {
   else if (k === 'grupo') {
     const g = S.robo.grupos.find(x => x.jid === e.target.dataset.n); if (g) g.ativo = e.target.checked;
     if (S.robo.demo) salvaGruposDemo(); else guarda('na-robo-sel', JSON.stringify(gruposAtivos().map(x => x.jid)));
+    poe('#gr-conta', contaGrupos()); poe('#bot-st', botSt());
   }
   else if (k === 'busca') { S.busca = v; poe('#hist-lista', listaHistorico()); }
   else if (k === 'avisar') { S.avisarRepetido = e.target.checked; guarda('na-avisar', S.avisarRepetido ? '1' : '0'); }
