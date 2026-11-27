@@ -103,12 +103,12 @@ O botão de envio do Achadinhos dispara sozinho nos grupos pelo **chip provisór
 - Envio: popup com barra; fecha sozinho com aviso quando todos recebem; com falha, fica aberto com Reenviar/Fechar. Grupos escolhidos ficam no aparelho (`na-robo-sel`).
 
 **Situação em 27/11/2026**
-- O Junior instalou o .dmg, entrou e viu "Conecte o número": **ainda falta ler o QR no app e fazer o primeiro envio de teste num grupo só.**
+- Mac testado pelo Junior em 27/11/2026: QR lido e envio para grupo funcionando.
 - O bot do Terminal (`achadinhos-robo-local/sessao`, aparelho conectado separado) foi usado na Black Friday. Depois que o app funcionar: desligar o do Terminal e remover o aparelho antigo no celular do chip.
 
 **Falta, em ordem**
 1. Junior: conectar o chip no app e testar (oferta com e sem cupom, cupom com imagem, prévia do meli.la, parar no meio, chip fora do grupo).
-2. **Windows da Thai:** gerar o instalador `.exe` (`win`/`nsis` já no package.json) num runner Windows do GitHub Actions (grátis), porque o sharp precisa do binário do Windows; publicar o .exe como artefato ou release. Sem assinatura: o Windows avisa na 1ª vez ("Mais informações › Executar assim mesmo"). A Thai lê o QR do mesmo chip no app dela.
+2. **Windows da Thai:** instalador pronto (27/11/2026), gerado no GitHub Actions (`.github/workflows/achadinhos-windows.yml`, runner Windows, roda sozinho quando muda `app/`, `build/`, `nucleo.mjs`, `whatsapp.mjs` ou package*) e publicado no link fixo https://github.com/nossoprojeto3d/nossoprojeto3d.github.io/releases/download/achadinhos-windows/Nossos-Achadinhos-Setup.exe (release `achadinhos-windows`, substituído a cada build). Sem assinatura: o Windows avisa na 1ª vez ("Mais informações › Executar assim mesmo"). Falta a Thai instalar e ler o QR do mesmo chip. No Windows a barra de menus fica escondida (`autoHideMenuBar`). Testes com `node --test "test/*.test.mjs"` (o Node 22 não aceita pasta).
 3. Depois: grupos escolhidos no banco (hoje cada aparelho tem a sua lista), e talvez abrir junto com o computador.
 
 **Cuidados contra banimento:** espera de 10 s ou mais entre grupos, nada de mensagem no privado em massa, não adicionar pessoas aos grupos, não entrar em muitos grupos de uma vez. Se o chip for banido, o grupo continua: o número do Nosso Projeto 3D fica como dono/admin e um chip novo entra no lugar.
