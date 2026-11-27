@@ -1253,7 +1253,8 @@ function avisosOferta() {
   let h = '';
   if (S.ed.oferta !== null) h += chk('warn', 'Texto editado à mão: o que mudar nos campos acima não entra no post.');
   if (repetido()) h += chk('warn', 'Esse produto já foi pro grupo hoje.');
-  if (S.coladaEm && S.msg.trim()) { const min = Math.max(0, Math.round((Date.now() - S.coladaEm) / 60000)); h += chk('warn', `Colada há ${min} min. Abra o link e confira se a oferta ainda vale.`); }
+  /* só lembra de conferir quando a oferta já está colada há um tempo (preço de achadinho muda rápido) */
+  if (S.coladaEm && S.msg.trim()) { const min = Math.round((Date.now() - S.coladaEm) / 60000); if (min >= 15) h += chk('warn', `Colada há ${min < 60 ? min + ' min' : Math.floor(min / 60) + ' h'}. Abra o link e confira se a oferta ainda vale.`); }
   return h;
 }
 function previaOferta() {
