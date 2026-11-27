@@ -1,6 +1,6 @@
 -- Nossos Achadinhos: tabelas do app dentro do projeto do Supabase do Caixa (plano gratuito só permite 2 projetos).
 -- Tudo tem o prefixo achadinhos_ e não toca em nada do Caixa. Aplicado em 17/11/2026, migração "achadinhos_conta_unica".
--- Para remover tudo: drop trigger achadinhos_primeiro_membro on auth.users; drop table public.achadinhos_posts, public.achadinhos_membros; drop schema achadinhos_privado cascade;
+-- Para remover tudo: drop trigger achadinhos_primeiro_membro on auth.users; drop table public.achadinhos_ajustes, public.achadinhos_posts, public.achadinhos_membros; drop schema achadinhos_privado cascade;
 -- Quem tem acesso: as duas contas do Caixa (Junior e Thai), incluídas em achadinhos_membros em 17/11/2026 com
 --   insert into public.achadinhos_membros (user_id) select id from public.perfis;
 -- O gatilho abaixo só incluiria a primeira conta nova se a tabela estivesse vazia; hoje não inclui ninguém.
@@ -52,3 +52,19 @@ create policy achadinhos_posts_ler on public.achadinhos_posts
   for select to authenticated using ((select achadinhos_privado.is_membro()));
 create policy achadinhos_posts_gravar on public.achadinhos_posts
   for insert to authenticated with check ((select achadinhos_privado.is_membro()) and user_id = (select auth.uid()));
+
+-- Ajustes compartilhados entre os computadores (migração achadinhos_ajustes, 27/11/2026).
+-- Hoje só a chave 'grupos': lista de jids dos grupos escolhidos para o bot do WhatsApp.
+create table public.achadinhos_ajustes (
+  chave          text primary key,
+  valor          jsonb not null,
+  quem           text,
+  atualizado_em  timestamptz not null default now()
+);
+alter table public.achadinhos_ajustes enable row level security;
+create policy achadinhos_ajustes_ler on public.achadinhos_ajustes
+  for select to authenticated using ((select achadinhos_privado.is_membro()));
+create policy achadinhos_ajustes_criar on public.achadinhos_ajustes
+  for insert to authenticated with check ((select achadinhos_privado.is_membro()));
+create policy achadinhos_ajustes_mudar on public.achadinhos_ajustes
+  for update to authenticated using ((select achadinhos_privado.is_membro())) with check ((select achadinhos_privado.is_membro()));

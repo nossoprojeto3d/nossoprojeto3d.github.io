@@ -2039,6 +2039,32 @@ function iniciaRobo() {
 }
 function salvaGruposDemo() { if (S.robo.demo) guarda('na-robo-demo-grupos', JSON.stringify(S.robo.grupos)); }
 function selecaoSalva() { try { return JSON.parse(le('na-robo-sel') || 'null'); } catch (e) { return null; } }
+/* grupos escolhidos valem para os dois computadores: ficam no banco (achadinhos_ajustes, chave 'grupos') e numa cópia no aparelho */
+function aplicaSelecao(sel) {
+  let mudou = false;
+  for (const g of S.robo.grupos) { const a = sel.includes(g.jid); if (g.ativo !== a) { g.ativo = a; mudou = true; } }
+  return mudou;
+}
+async function carregaSelecao() {
+  if (!sb || S.robo.demo) return;
+  const { data, error } = await sb.from('achadinhos_ajustes').select('valor').eq('chave', 'grupos').maybeSingle();
+  if (error) return;
+  if (!data) { const local = selecaoSalva(); if (local) salvaSelecao(local); return; }
+  const sel = Array.isArray(data.valor) ? data.valor : [];
+  guarda('na-robo-sel', JSON.stringify(sel));
+  if (aplicaSelecao(sel)) { refazRobo(); poe('#gr-conta', contaGrupos()); if (S.view === 'novo' && !S.disparo && !S.envio) render(); }
+}
+let tSel;
+function salvaSelecao(sel) {
+  clearTimeout(tSel);
+  tSel = setTimeout(async () => {
+    const { error } = await sb.from('achadinhos_ajustes').upsert({ chave: 'grupos', valor: sel, quem: S.user || null, atualizado_em: new Date().toISOString() });
+    if (error) toast('A lista de grupos não foi salva para o outro computador. Confira a internet.');
+  }, 600);
+}
+/* ao voltar para a janela, pega o que o outro computador mudou */
+let ultSel = 0;
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.dentro && Date.now() - ultSel > 5000) { ultSel = Date.now(); carregaSelecao(); } });
 /* robô do WhatsApp: no robô local deste computador ou, no modelo antigo, pela ponte do Worker (POST /api/robo) */
 async function chamaRobo(acao, dados) {
   /* dentro do app de computador: o bot roda no próprio app */
@@ -2069,6 +2095,7 @@ async function roboAtualiza() {
     if (S.robo.estado === 'conectado') {
       const sel = selecaoSalva(), r = await chamaRobo('grupos');
       S.robo.grupos = (r.grupos || []).map(g => ({ jid: g.jid, nome: g.nome, membros: g.membros || 0, ativo: sel ? sel.includes(g.jid) : false }));
+      await carregaSelecao().catch(() => {});
     }
   } catch (e) { S.robo.estado = 'erro'; S.robo.erro = e.message || 'O robô não respondeu.'; }
   refazRobo();
@@ -2088,7 +2115,11 @@ async function imagemBase64() {
   const f = await arquivoImagem();
   return await new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1] || ''); r.onerror = falha; r.readAsDataURL(f); });
 }
-function disparo(job) {
+let abrindoDisparo = false;
+async function disparo(job) {
+  /* confere a lista mais nova do banco antes (o outro computador pode ter mudado); clique duplo não abre dois envios */
+  if (abrindoDisparo || S.disparo) return; abrindoDisparo = true;
+  try { await carregaSelecao(); } catch (e) {} finally { abrindoDisparo = false; }
   const gs = gruposAtivos(); if (!gs.length) return toast('Escolha pelo menos um grupo em Ajustes.');
   S.disparo = { ...job, qtdCodigos: job.mensagens.length - 1, grupos: gs.map(g => ({ jid: g.jid, nome: g.nome, status: 'fila', erro: '' })), ativo: false, parar: false, salvo: false };
   render(); topo(); rodaDisparo();
@@ -2361,7 +2392,7 @@ document.addEventListener('input', e => {
   else if (k === 'linkc') { S.linkCupom = v; poe('#chk-linkc', chkLink(v)); poe('#fixo-linkc', fixoLink()); poe('#bolhas-c', bolhasCupom()); ligaEnviar('enviar-cupom', podeCupom(), txtC); }
   else if (k === 'grupo') {
     const g = S.robo.grupos.find(x => x.jid === e.target.dataset.n); if (g) g.ativo = e.target.checked;
-    if (S.robo.demo) salvaGruposDemo(); else guarda('na-robo-sel', JSON.stringify(gruposAtivos().map(x => x.jid)));
+    if (S.robo.demo) salvaGruposDemo(); else { const sel = gruposAtivos().map(x => x.jid); guarda('na-robo-sel', JSON.stringify(sel)); salvaSelecao(sel); }
     poe('#gr-conta', contaGrupos()); poe('#bot-st', botSt());
   }
   else if (k === 'busca') { S.busca = v; poe('#hist-lista', listaHistorico()); }
