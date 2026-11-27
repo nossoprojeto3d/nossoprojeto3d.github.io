@@ -1,8 +1,9 @@
-name: App do Achadinhos para Windows
+name: App do Achadinhos (Windows e Mac)
 
-# Gera o instalador .exe do app Nossos Achadinhos (Electron) num Windows do GitHub,
-# porque o sharp precisa do binário do Windows. O .exe fica sempre no mesmo link:
-# https://github.com/nossoprojeto3d/nossoprojeto3d.github.io/releases/download/achadinhos-windows/Nossos-Achadinhos-Setup.exe
+# Gera os instaladores do app Nossos Achadinhos (Electron) em máquinas do próprio sistema,
+# porque o sharp precisa do binário de cada um. Ficam sempre nos mesmos links (release achadinhos-windows):
+# .../releases/download/achadinhos-windows/Nossos-Achadinhos-Setup.exe (Windows)
+# .../releases/download/achadinhos-windows/Nossos-Achadinhos-Mac.dmg (Mac Apple Silicon)
 on:
   push:
     branches: [main]
@@ -24,8 +25,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  windows:
-    runs-on: windows-latest
+  app:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            build: win
+            arquivo: dist/Nossos-Achadinhos-Setup.exe
+          - os: macos-latest
+            build: mac
+            arquivo: dist/Nossos-Achadinhos-Mac.dmg
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
         working-directory: achadinhos-robo-local
@@ -40,7 +51,9 @@ jobs:
       # garante o Electron baixado mesmo se o npm pular os scripts de instalação
       - run: node node_modules/electron/install.js
       - run: npm test
-      - run: npm run win
+      - run: npm run ${{ matrix.build }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
       - name: Publicar o instalador no link fixo
         shell: bash
         env:
@@ -49,7 +62,7 @@ jobs:
           TAG=achadinhos-windows
           if ! gh release view "$TAG" >/dev/null 2>&1; then
             gh release create "$TAG" --title "Nossos Achadinhos para Windows" \
-              --notes "Instalador do app Nossos Achadinhos (bot do WhatsApp). Na 1ª vez o Windows avisa: Mais informações › Executar assim mesmo." \
-              --target "$GITHUB_SHA" --latest=false
+              --notes "Instaladores do app Nossos Achadinhos (bot do WhatsApp). Windows: na 1ª vez, Mais informações › Executar assim mesmo. Mac: na 1ª vez, Ajustes do Sistema › Privacidade e Segurança › Abrir mesmo assim." \
+              --target "$GITHUB_SHA" --latest=false || true
           fi
-          gh release upload "$TAG" dist/Nossos-Achadinhos-Setup.exe --clobber
+          gh release upload "$TAG" "${{ matrix.arquivo }}" --clobber

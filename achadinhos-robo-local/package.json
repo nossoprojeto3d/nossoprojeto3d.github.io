@@ -55,7 +55,8 @@
       "hardenedRuntime": false
     },
     "dmg": {
-      "title": "Nossos Achadinhos"
+      "title": "Nossos Achadinhos",
+      "artifactName": "Nossos-Achadinhos-Mac.${ext}"
     },
     "win": {
       "target": [
