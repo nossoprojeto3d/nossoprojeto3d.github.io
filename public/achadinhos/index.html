@@ -335,7 +335,7 @@ details.hint summary{cursor:pointer;min-height:32px;display:flex;align-items:cen
   .modelo-duo{display:grid;grid-template-columns:minmax(0,1fr);gap:28px;flex:1;min-height:0}
   .modelo-ed{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 8px 18px 2px}
   .modelo-pv{min-height:0;overflow-y:auto;padding-bottom:18px}
-  .modelo-pv{position:fixed;top:20px;bottom:20px;right:40px;width:var(--cel);z-index:2;border:11px solid #0F1F1C;border-radius:44px;background:var(--wa-bg);padding-bottom:0;box-shadow:0 30px 60px -22px rgba(14,58,52,.5);overflow-y:auto}
+  .modelo-pv{position:fixed;top:var(--cel-y);height:var(--cel-h);right:40px;width:var(--cel);z-index:2;border:11px solid #0F1F1C;border-radius:44px;background:var(--wa-bg);padding-bottom:0;box-shadow:0 30px 60px -22px rgba(14,58,52,.5);overflow-y:auto}
   .modelo-pv .wa{min-height:100%;box-sizing:border-box;justify-content:flex-start;border-radius:0;padding:0 12px 14px}
   .modelo-pv .wa .cap{align-self:stretch;position:sticky;top:0;margin:0 -12px 6px;padding:16px 18px 12px;background:var(--verde);color:#fff;font-size:15px;font-weight:600}
   #modelo{min-height:340px}
@@ -346,9 +346,10 @@ details.hint summary{cursor:pointer;min-height:32px;display:flex;align-items:cen
   .duo > .pane-form:first-child{grid-column:1;grid-row:1}
   .duo .pv-campos,.duo > .pane-form + .pane-form{grid-column:1;grid-row:2}
   /* o celular: como chega no grupo, com os botões de envio embaixo */
-  /* o celular ocupa a altura toda da janela, à direita; a largura acompanha a tela */
-  .main.com-cel{--cel:clamp(330px,30vw,440px);padding-right:calc(var(--cel) + 80px)}
-  .duo .pv-saida,.duo .pane-cupom{position:fixed;top:20px;bottom:20px;right:40px;width:var(--cel);z-index:2;display:flex!important;flex-direction:column;gap:0;
+  /* o celular fica centralizado na altura, com folga em cima e embaixo, na proporção de um aparelho;
+     cresce e encolhe com a janela */
+  .main.com-cel{--cel-h:clamp(560px,calc(100dvh - 96px),860px);--cel:clamp(300px,calc(var(--cel-h) * .5),430px);--cel-y:calc((100dvh - var(--cel-h)) / 2);padding-right:calc(var(--cel) + 80px)}
+  .duo .pv-saida,.duo .pane-cupom{position:fixed;top:var(--cel-y);height:var(--cel-h);right:40px;width:var(--cel);z-index:2;display:flex!important;flex-direction:column;gap:0;
     background:var(--surface);border:11px solid #0F1F1C;border-radius:44px;overflow:hidden;box-shadow:0 30px 60px -22px rgba(14,58,52,.5)}
   .duo .pv-saida .passo-tit,.duo .pane-cupom .passo-tit{display:none}
   .duo .pv-saida .wa,.duo .pane-cupom .wa{flex:1 1 auto;min-height:0;overflow-y:auto;border-radius:0;padding:0 12px 14px}
