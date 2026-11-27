@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<title>Nossos Achadinhos</title>
+<style>
+  body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#EEF2EC;color:#13312C;font:16px -apple-system,system-ui,sans-serif}
+  main{max-width:360px;text-align:center}
+  h1{font-size:24px;margin:0 0 8px}
+  p{color:#5D746D;margin:0 0 24px;line-height:1.45}
+  button{border:0;border-radius:14px;background:#FFD23F;color:#0E3A34;font:600 16px inherit;padding:14px 28px;cursor:pointer}
+  button:focus-visible{outline:2px solid #1E5A50;outline-offset:3px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Sem conexão com o site</h1>
+  <p>Confira a internet do computador e tente de novo.</p>
+  <button id="tentar">Tentar de novo</button>
+</main>
+<script>
+  const volta = new URLSearchParams(location.search).get('volta') || 'https://nossoprojeto3d.com.br/achadinhos/';
+  document.getElementById('tentar').onclick = () => { location.href = volta; };
+</script>
+</body>
+</html>

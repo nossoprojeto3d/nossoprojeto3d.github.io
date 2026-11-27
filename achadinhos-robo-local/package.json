@@ -2,17 +2,69 @@
   "name": "achadinhos-robo-local",
   "private": true,
   "type": "module",
-  "description": "Robô do WhatsApp do Nossos Achadinhos rodando no próprio computador (sem servidor).",
+  "description": "Robô do WhatsApp do Nossos Achadinhos e o app de computador que abre o site com o bot junto.",
   "scripts": {
     "start": "node robo.mjs",
+    "app": "electron .",
+    "app:teste": "ACHADINHOS_URL=http://localhost:4321/achadinhos/index.html electron .",
+    "mac": "electron-builder --mac --arm64",
     "test": "node --test test"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "baileys": "7.0.0-rc14",
     "link-preview-js": "3.2.0",
     "pino": "9.14.0",
     "qrcode": "1.5.4",
     "sharp": "0.35.5"
+  },
+  "main": "app/main.mjs",
+  "version": "1.0.0",
+  "productName": "Nossos Achadinhos",
+  "devDependencies": {
+    "electron": "45.3.0",
+    "electron-builder": "26.18.1"
+  },
+  "build": {
+    "appId": "br.com.nossoprojeto3d.achadinhos",
+    "productName": "Nossos Achadinhos",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "app/**",
+      "nucleo.mjs",
+      "whatsapp.mjs",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/sharp/**",
+      "node_modules/@img/**"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        "dmg"
+      ],
+      "identity": "-",
+      "icon": "build/icon.png",
+      "hardenedRuntime": false
+    },
+    "dmg": {
+      "title": "Nossos Achadinhos"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "shortcutName": "Nossos Achadinhos"
+    }
   }
 }

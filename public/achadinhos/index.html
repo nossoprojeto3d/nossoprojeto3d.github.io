@@ -2031,6 +2031,13 @@ function salvaGruposDemo() { if (S.robo.demo) guarda('na-robo-demo-grupos', JSON
 function selecaoSalva() { try { return JSON.parse(le('na-robo-sel') || 'null'); } catch (e) { return null; } }
 /* robô do WhatsApp: no robô local deste computador ou, no modelo antigo, pela ponte do Worker (POST /api/robo) */
 async function chamaRobo(acao, dados) {
+  /* dentro do app de computador: o bot roda no próprio app */
+  if (ROBO_LOCAL && window.ACHADINHOS_APP && window.ACHADINHOS_APP.robo) {
+    const r = await window.ACHADINHOS_APP.robo({ acao, ...(dados || {}) }).catch(() => null);
+    if (!r) throw new Error('O bot do app não respondeu.');
+    if (r.status !== 200) throw new Error((r.dados && r.dados.erro) || 'O bot do app não respondeu.');
+    return r.dados;
+  }
   if (ROBO_LOCAL) {
     let r;
     try { r = await fetch(ROBO_URL + '/robo', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ acao, ...(dados || {}) }) }); }
