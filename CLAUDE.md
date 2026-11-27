@@ -91,28 +91,24 @@ Usado pelo `/conferir-site`, no build (`npm run build` e `npx astro preview`), n
 7. "Conheça nossa história" abre e fecha o diálogo.
 8. Sem rolagem horizontal em 320px, 375px e 768px.
 
-## Próxima evolução: robô do Nossos Achadinhos
+## Bot do WhatsApp do Nossos Achadinhos (app de computador)
 
-Objetivo: o botão "Enviar pro grupo" do app (`public/achadinhos/`) disparar sozinho, por um número provisório, nos grupos de achadinhos, sem o Junior abrir o WhatsApp. Começa quando o chip estiver comprado e dentro dos grupos.
+O botão de envio do Achadinhos dispara sozinho nos grupos pelo **chip provisório** (já comprado e dentro dos grupos). **Sem servidor e sem nuvem com cartão** (Oracle pediu CNPJ; Google Cloud testado e apagado em 26/11/2026). O WhatsApp roda no computador como aparelho conectado do chip (até 4 por número). Pasta `achadinhos-robo/` (Evolution + Docker) e a ponte `achadinhos-ml/src/robo.js` ficaram só como referência.
 
-**O que já está pronto (17/11/2026)**
-- Interface completa em modo demonstração: Ajustes > Robô do WhatsApp (conectar número por QR, grupos que recebem, espera entre grupos, desconectar com confirmação) e a tela de envio (progresso por grupo, falha com motivo, reenviar só os que falharam, parar). Nada é enviado na demonstração.
-- O app já chama a ponte quando `robo: true` em `config.js`: `sb.functions.invoke('achadinhos-robo', { body: { acao, ... } })`, com as ações abaixo. Enquanto `robo: false`, tudo sai pelo WhatsApp do aparelho, como hoje.
-- O envio é um grupo por vez (o app espera o intervalo escolhido entre um e outro); o histórico grava uma vez só, quando pelo menos um grupo recebe.
-- Se o robô cair, Ajustes mostra "Robô fora do ar" e o botão "Enviar pelo meu WhatsApp" continua embaixo do botão principal.
+**Como funciona (27/11/2026)**
+- `achadinhos-robo-local/`: `nucleo.mjs` (ações `status`, `qr`, `grupos`, `enviar` só para `…@g.us`, até 10 mensagens, 1 a 3 s entre elas, `desconectar`; erros em português), `whatsapp.mjs` (Baileys 7.0.0-rc14; prévia do link montada à mão, seguindo o redirecionamento do meli.la e convertendo o og:image com sharp, porque o Baileys não segue para outro domínio), testes em `test/` (`npm test`).
+- **App de Mac pronto e em uso** (Electron 45.3.0, `app/main.mjs`): abre https://nossoprojeto3d.com.br/achadinhos/ numa janela; `app/preload.cjs` expõe `window.ACHADINHOS_APP.robo(corpo)` por IPC (sem porta; o main confere que a página é do site). Como carrega o site, **visual e textos mudam só publicando o site**; novo build só quando mudar `app/`, `nucleo.mjs` ou `whatsapp.mjs`. O Mac não dorme durante envio, fechar no meio pede confirmação, sem internet mostra `app/offline.html`, links de fora abrem no navegador. Sessão do chip em `~/Library/Application Support/Nossos Achadinhos/sessao`.
+- Gerar o Mac: `npm run mac` → `dist/Nossos Achadinhos-1.0.0-arm64.dmg` (ad-hoc, `hardenedRuntime: false`, senão o sharp não carrega). Teste contra o localhost: `npm run app:teste`. O npm novo bloqueia os scripts de instalação: depois do `npm install`, rodar `node node_modules/electron/install.js`.
+- Na página (`index.html`): `ROBO_LOCAL` liga o bot só com `CFG.robo === 'local'` **e** dentro do app (ou no localhost); `chamaRobo` usa o IPC do app e, no localhost, `http://127.0.0.1:3737/robo` (o bot de Terminal, `npm start`). No navegador comum o envio é sempre "Enviar pelo meu WhatsApp".
+- Envio: popup com barra; fecha sozinho com aviso quando todos recebem; com falha, fica aberto com Reenviar/Fechar. Grupos escolhidos ficam no aparelho (`na-robo-sel`).
 
-**Decidido em 26/11/2026**
-- Chip comprado e já dentro dos grupos.
-- Servidor: ~~Oracle~~ (exigiu CNPJ) e ~~Google Cloud~~ (testado em 26/11/2026 e apagado no mesmo dia: projeto encerrado e conta de faturamento fechada, para não correr risco de cobrança). **Decisão nova: nada de servidor.** Um app de computador (Mac do Junior e Windows da Thai) roda o WhatsApp do chip localmente como aparelho conectado (até 4 por número); o Achadinhos chama o app local quando ele está aberto e cai no envio manual quando não está. Os arquivos de `achadinhos-robo/` (Evolution + Docker) ficam só como referência.
-- Ponte: **no Worker `achadinhos-ml`** (`src/robo.js`, `POST /api/robo`), não numa Edge Function do Supabase. Segredos do Worker: `EVO_URL` (https://robo.nossoprojeto3d.com.br) e `EVO_KEY` (a chave do `.env`); `EVO_INSTANCIA = "achadinhos"` no wrangler.toml. O app chama com `chamaRobo` → `apiLinks('/api/robo')`. Ações: `status`, `qr` (cria a instância na primeira vez), `grupos`, `enviar` (só para `…@g.us`, 1 a 3 s entre mensagens, imagem via `sendMedia` com legenda, texto com `linkPreview`), `desconectar`. Rotas conferidas no código da Evolution 2.3.8.
+**Situação em 27/11/2026**
+- O Junior instalou o .dmg, entrou e viu "Conecte o número": **ainda falta ler o QR no app e fazer o primeiro envio de teste num grupo só.**
+- O bot do Terminal (`achadinhos-robo-local/sessao`, aparelho conectado separado) foi usado na Black Friday. Depois que o app funcionar: desligar o do Terminal e remover o aparelho antigo no celular do chip.
 
 **Falta, em ordem**
-1. ~~App local~~ **Mac pronto (27/11/2026):** Electron em `achadinhos-robo-local/app/` (abre o site, `preload.cjs` expõe `window.ACHADINHOS_APP.robo` por IPC, sem porta; o Mac não dorme durante envio; fechar no meio pede confirmação; sessão do chip em `~/Library/Application Support/Nossos Achadinhos/sessao`). Gerar: `npm run mac` (dmg em `dist/`, assinatura ad-hoc, sem `hardenedRuntime`). Teste contra o localhost: `npm run app:teste`. O npm bloqueia o download do Electron: depois do `npm install`, rodar `node node_modules/electron/install.js`. **Falta o Windows** (`win`/`nsis` já no package.json; gerar num runner Windows do GitHub). Passos 2 a 4 abaixo deixam de valer.
-2. **Túnel (Junior, no painel da Cloudflare):** Zero Trust > Networks > Tunnels > criar `achadinhos-robo` (Cloudflared), copiar o token; em Public Hostname: `robo.nossoprojeto3d.com.br` → HTTP → `api:8080`.
-3. **Instalar:** copiar `achadinhos-robo/` para a máquina e rodar `./instalar.sh` com o token.
-4. **Worker:** `npx wrangler secret put EVO_URL` e `EVO_KEY`; `npx wrangler deploy`.
-5. **Grupos escolhidos no banco** (hoje ficam no aparelho, `na-robo-sel`): guardar no KV do Worker para valer para os dois.
-6. **Ligar:** `robo: true` em `config.js`, publicar, conectar o chip pelo QR em Ajustes.
-7. **Testar** primeiro num grupo só com os dois: oferta com e sem cupom, post de cupom com imagem, prévia do meli.la, ordem das mensagens, falha (chip fora do grupo), parar no meio, robô desligado (app tem que cair para o envio manual).
+1. Junior: conectar o chip no app e testar (oferta com e sem cupom, cupom com imagem, prévia do meli.la, parar no meio, chip fora do grupo).
+2. **Windows da Thai:** gerar o instalador `.exe` (`win`/`nsis` já no package.json) num runner Windows do GitHub Actions (grátis), porque o sharp precisa do binário do Windows; publicar o .exe como artefato ou release. Sem assinatura: o Windows avisa na 1ª vez ("Mais informações › Executar assim mesmo"). A Thai lê o QR do mesmo chip no app dela.
+3. Depois: grupos escolhidos no banco (hoje cada aparelho tem a sua lista), e talvez abrir junto com o computador.
 
 **Cuidados contra banimento:** espera de 10 s ou mais entre grupos, nada de mensagem no privado em massa, não adicionar pessoas aos grupos, não entrar em muitos grupos de uma vez. Se o chip for banido, o grupo continua: o número do Nosso Projeto 3D fica como dono/admin e um chip novo entra no lugar.
