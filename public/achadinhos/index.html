@@ -276,6 +276,7 @@ details.hint summary{cursor:pointer;min-height:32px;display:flex;align-items:cen
 .marca{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:15px;font-weight:500}
 .np{width:44px;height:44px;flex-shrink:0;border-radius:10px;background:var(--tk1);display:flex;align-items:center;justify-content:center}
 .np img{display:block;width:26px;height:auto}
+.np-ic{display:block;width:44px;height:44px;flex-shrink:0;border-radius:10px;box-shadow:0 0 0 1px rgba(255,255,255,.14)}
 .palco{height:230px;display:flex;align-items:center;justify-content:center;perspective:900px;touch-action:pan-y}
 .heroi{position:relative;width:250px;height:118px;border-radius:14px;display:flex;align-items:center;color:var(--tktext);
   background:repeating-linear-gradient(0deg,var(--tk1) 0 3px,var(--tk2) 3px 4px);
@@ -1730,7 +1731,7 @@ function render() {
   if (!S.user) { app.innerHTML = telaQuem(); return; }
   const tela = S.view === 'novo' ? telaNovo() : S.view === 'historico' ? telaHistorico() : S.view === 'modelo' ? telaModelo() : telaAjustes();
   app.innerHTML = `<div class="shell">
-    <aside class="side"><div class="marca" style="color:var(--text)"><div class="np"><img src="logo-np-verde.png" alt="Nosso Projeto 3D" width="26" height="31"></div><span style="font-family:var(--disp);font-weight:700;font-size:19px;line-height:1.05">Nossos Achadinhos</span></div>
+    <aside class="side"><div class="marca" style="color:var(--text)"><img class="np-ic" src="icone-192.png" alt="" width="44" height="44"><span style="font-family:var(--disp);font-weight:700;font-size:19px;line-height:1.05">Nossos Achadinhos</span></div>
       <nav aria-label="Principal">${abas()}</nav>
       <div id="bot-st">${botSt()}</div>
       <details class="pe conta-menu"><summary aria-label="Conta: ${esc(S.user)}"><span class="quem" aria-hidden="true" style="width:36px;height:36px;font-size:14px">${esc(S.user[0])}</span><span class="lbl">${esc(S.user)}</span>${ico('acima', 16)}</summary>
