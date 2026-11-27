@@ -332,21 +332,23 @@ details.hint summary{cursor:pointer;min-height:32px;display:flex;align-items:cen
   .main{flex:1;min-width:0;max-width:none;margin:0;height:100dvh;overflow-y:auto;padding:18px 28px 0;gap:14px;box-sizing:border-box}
   .main.fixa{overflow:hidden}
   /* aba Modelo: editor rola à esquerda, prévia parada à direita */
-  .modelo-duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,440px);gap:28px;flex:1;min-height:0}
+  .modelo-duo{display:grid;grid-template-columns:minmax(0,1fr);gap:28px;flex:1;min-height:0}
   .modelo-ed{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 8px 18px 2px}
   .modelo-pv{min-height:0;overflow-y:auto;padding-bottom:18px}
-  .modelo-pv{border:11px solid #0F1F1C;border-radius:44px;background:var(--wa-bg);padding-bottom:0;box-shadow:0 30px 60px -22px rgba(14,58,52,.5);align-self:start;height:min(780px,calc(100dvh - 120px));overflow-y:auto}
+  .modelo-pv{position:fixed;top:20px;bottom:20px;right:40px;width:var(--cel);z-index:2;border:11px solid #0F1F1C;border-radius:44px;background:var(--wa-bg);padding-bottom:0;box-shadow:0 30px 60px -22px rgba(14,58,52,.5);overflow-y:auto}
   .modelo-pv .wa{min-height:100%;box-sizing:border-box;justify-content:flex-start;border-radius:0;padding:0 12px 14px}
   .modelo-pv .wa .cap{align-self:stretch;position:sticky;top:0;margin:0 -12px 6px;padding:16px 18px 12px;background:var(--verde);color:#fff;font-size:15px;font-weight:600}
   #modelo{min-height:340px}
   h1{font-size:30px}
   .top .seg{flex:0 0 240px}
-  .duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(380px,430px);grid-template-rows:auto 1fr;column-gap:40px;row-gap:22px;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;align-items:start;padding:2px 4px 24px 2px}
+  .duo{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:40px;row-gap:22px;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;align-items:start;padding:2px 4px 24px 2px}
   .duo .pane,.duo .pv{gap:12px;min-width:0}
   .duo > .pane-form:first-child{grid-column:1;grid-row:1}
   .duo .pv-campos,.duo > .pane-form + .pane-form{grid-column:1;grid-row:2}
   /* o celular: como chega no grupo, com os botões de envio embaixo */
-  .duo .pv-saida,.duo .pane-cupom{grid-column:2;grid-row:1/span 2;position:sticky;top:0;height:min(780px,calc(100dvh - 110px));display:flex!important;flex-direction:column;gap:0;
+  /* o celular ocupa a altura toda da janela, à direita; a largura acompanha a tela */
+  .main.com-cel{--cel:clamp(330px,30vw,440px);padding-right:calc(var(--cel) + 80px)}
+  .duo .pv-saida,.duo .pane-cupom{position:fixed;top:20px;bottom:20px;right:40px;width:var(--cel);z-index:2;display:flex!important;flex-direction:column;gap:0;
     background:var(--surface);border:11px solid #0F1F1C;border-radius:44px;overflow:hidden;box-shadow:0 30px 60px -22px rgba(14,58,52,.5)}
   .duo .pv-saida .passo-tit,.duo .pane-cupom .passo-tit{display:none}
   .duo .pv-saida .wa,.duo .pane-cupom .wa{flex:1 1 auto;min-height:0;overflow-y:auto;border-radius:0;padding:0 12px 14px}
@@ -1693,7 +1695,7 @@ function render() {
       <nav aria-label="Principal">${abas()}</nav>
       <div id="bot-st">${botSt()}</div>
       <div class="pe"><span class="quem" aria-hidden="true" style="width:36px;height:36px;font-size:14px">${esc(S.user[0])}</span><span class="lbl">${esc(S.user)}</span></div></aside>
-    <main class="main${(S.view === 'novo' && !S.envio) || (S.view === 'historico' && S.historico.length) || S.view === 'modelo' ? ' fixa' : ''}" id="main">${tela}</main>
+    <main class="main${(S.view === 'novo' && !S.envio) || S.view === 'modelo' ? ' com-cel' : ''}${(S.view === 'novo' && !S.envio) || (S.view === 'historico' && S.historico.length) || S.view === 'modelo' ? ' fixa' : ''}" id="main">${tela}</main>
     <nav class="tabs" aria-label="Principal">${abas()}</nav>
   </div>${S.disparo && S.view === 'novo' ? popDisparo() : ''}`;
   montaGraficos();
