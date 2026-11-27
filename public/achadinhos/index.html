@@ -2122,7 +2122,7 @@ function refazRobo() { poe('#bloco-robo', blocoRobo()); poe('#bot-st', botSt());
 function botSt() {
   if (!ROBO_REAL && !S.robo.demo) return '';
   const n = gruposAtivos().length;
-  return `<div class="bot-st"><span class="dot${roboAtivo() ? ' on' : ''}"></span>${roboAtivo() ? `Bot no ar · ${n} ${n === 1 ? 'grupo' : 'grupos'}` : S.robo.estado === 'carregando' ? 'Conferindo o bot…' : 'Bot desligado'}</div>`;
+  return `<div class="bot-st"><span class="dot${roboAtivo() ? ' on' : ''}"></span>${roboAtivo() ? `Bot no ar · ${n} ${n === 1 ? 'grupo' : 'grupos'}` : S.robo.estado === 'carregando' ? 'Conferindo o bot…' : 'Conecte o número'}</div>`;
 }
 /* QR de mentira para a demonstração: só o desenho, não conecta nada */
 function qrFalso() {
