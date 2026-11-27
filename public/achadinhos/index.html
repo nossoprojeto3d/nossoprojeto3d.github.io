@@ -42,6 +42,8 @@ h2{font-family:var(--disp);font-weight:700;font-size:22px;letter-spacing:-.01em}
 button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--destaque);outline-offset:2px}
+/* campos: contorno colado na borda, sem sobrar para fora (as áreas que rolam cortariam o lado esquerdo) */
+input:focus-visible,textarea:focus-visible,select:focus-visible{outline-offset:0}
 [hidden]{display:none!important}
 .muted{color:var(--muted)}
 .mono{font-family:var(--mono)}
@@ -366,7 +368,7 @@ span.chip:hover{border-color:var(--line);color:inherit}
   .main.fixa{overflow:hidden}
   /* aba Modelo: editor rola à esquerda, prévia parada à direita */
   .modelo-duo{display:grid;grid-template-columns:minmax(0,1fr);gap:28px;flex:1;min-height:0}
-  .modelo-ed{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 8px 18px 2px}
+  .modelo-ed{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:4px 8px 18px 4px}
   .modelo-pv{min-height:0;overflow-y:auto;padding-bottom:18px}
   .modelo-pv{position:fixed;top:var(--cel-y);height:var(--cel-h);right:40px;width:var(--cel);z-index:2;border:11px solid #0F1F1C;border-radius:44px;background:var(--wa-bg);padding-bottom:0;box-shadow:0 30px 60px -22px rgba(14,58,52,.5);overflow-y:auto}
   .modelo-pv .wa{min-height:100%;box-sizing:border-box;justify-content:flex-start;border-radius:0;padding:0 12px 14px}
@@ -374,7 +376,7 @@ span.chip:hover{border-color:var(--line);color:inherit}
   #modelo{min-height:340px}
   h1{font-size:30px}
   .top .seg{flex:0 0 240px}
-  .duo{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:40px;row-gap:22px;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;align-items:start;padding:2px 4px 24px 2px}
+  .duo{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:40px;row-gap:22px;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;align-items:start;padding:4px 4px 24px 4px}
   .duo .pane,.duo .pv{gap:12px;min-width:0}
   .duo > .pane-form:first-child{grid-column:1;grid-row:1}
   .duo .pv-campos,.duo > .pane-form + .pane-form{grid-column:1;grid-row:2}
@@ -409,7 +411,7 @@ span.chip:hover{border-color:var(--line);color:inherit}
   .gc-dias{order:3}.gc-cupons{order:4}.gc-horas{order:5}.gc-tipo{order:6}
   .hist-graf .hf{order:1}.hist-graf .kpis{order:2}
   .hist-col{container-type:inline-size}
-  .hist-graf,.hist-col{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 6px 18px 2px}
+  .hist-graf,.hist-col{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:4px 6px 18px 4px}
   .hist-col{max-width:760px}
   @container (max-width:560px){.hist-col .txt-reusar{display:none}}
   .hist-col input[type=search]{position:sticky;top:0;z-index:2;flex-shrink:0;box-shadow:0 -6px 0 6px var(--bg)}
