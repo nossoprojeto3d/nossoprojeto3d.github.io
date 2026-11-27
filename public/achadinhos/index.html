@@ -335,7 +335,7 @@ details.hint summary{cursor:pointer;min-height:32px;display:flex;align-items:cen
   .modelo-duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,440px);gap:28px;flex:1;min-height:0}
   .modelo-ed{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 8px 18px 2px}
   .modelo-pv{min-height:0;overflow-y:auto;padding-bottom:18px}
-  .modelo-pv{border:11px solid #0F1F1C;border-radius:44px;background:var(--wa-bg);padding-bottom:0;box-shadow:0 30px 60px -22px rgba(14,58,52,.5);align-self:start;max-height:calc(100dvh - 120px)}
+  .modelo-pv{border:11px solid #0F1F1C;border-radius:44px;background:var(--wa-bg);padding-bottom:0;box-shadow:0 30px 60px -22px rgba(14,58,52,.5);align-self:start;height:min(780px,calc(100dvh - 120px));overflow-y:auto}
   .modelo-pv .wa{min-height:100%;box-sizing:border-box;justify-content:flex-start;border-radius:0;padding:0 12px 14px}
   .modelo-pv .wa .cap{align-self:stretch;position:sticky;top:0;margin:0 -12px 6px;padding:16px 18px 12px;background:var(--verde);color:#fff;font-size:15px;font-weight:600}
   #modelo{min-height:340px}
@@ -346,7 +346,7 @@ details.hint summary{cursor:pointer;min-height:32px;display:flex;align-items:cen
   .duo > .pane-form:first-child{grid-column:1;grid-row:1}
   .duo .pv-campos,.duo > .pane-form + .pane-form{grid-column:1;grid-row:2}
   /* o celular: como chega no grupo, com os botões de envio embaixo */
-  .duo .pv-saida,.duo .pane-cupom{grid-column:2;grid-row:1/span 2;position:sticky;top:0;max-height:calc(100dvh - 110px);display:flex!important;flex-direction:column;gap:0;
+  .duo .pv-saida,.duo .pane-cupom{grid-column:2;grid-row:1/span 2;position:sticky;top:0;height:min(780px,calc(100dvh - 110px));display:flex!important;flex-direction:column;gap:0;
     background:var(--surface);border:11px solid #0F1F1C;border-radius:44px;overflow:hidden;box-shadow:0 30px 60px -22px rgba(14,58,52,.5)}
   .duo .pv-saida .passo-tit,.duo .pane-cupom .passo-tit{display:none}
   .duo .pv-saida .wa,.duo .pane-cupom .wa{flex:1 1 auto;min-height:0;overflow-y:auto;border-radius:0;padding:0 12px 14px}
