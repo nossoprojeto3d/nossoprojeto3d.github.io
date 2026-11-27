@@ -8,7 +8,8 @@
     "app": "electron .",
     "app:teste": "ACHADINHOS_URL=http://localhost:4321/achadinhos/index.html electron .",
     "mac": "electron-builder --mac --arm64",
-    "test": "node --test test"
+    "test": "node --test test",
+    "win": "electron-builder --win --x64 --publish never"
   },
   "engines": {
     "node": ">=20"
@@ -64,7 +65,8 @@
     },
     "nsis": {
       "oneClick": true,
-      "shortcutName": "Nossos Achadinhos"
+      "shortcutName": "Nossos Achadinhos",
+      "artifactName": "Nossos-Achadinhos-Setup.${ext}"
     }
   }
 }

@@ -45,6 +45,8 @@ function abreJanela() {
   janela = new BrowserWindow({
     width: 1440, height: 900, minWidth: 1024, minHeight: 640, show: false,
     title: 'Nossos Achadinhos', backgroundColor: '#EEF2EC',
+    /* no Windows, esconde a barra Arquivo/Editar/Exibir (Alt mostra); no Mac não muda nada */
+    autoHideMenuBar: true,
     webPreferences: { preload: join(AQUI, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false }
   });
   janela.once('ready-to-show', () => janela.show());

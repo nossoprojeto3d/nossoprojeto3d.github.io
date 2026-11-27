@@ -1,0 +1,55 @@
+name: App do Achadinhos para Windows
+
+# Gera o instalador .exe do app Nossos Achadinhos (Electron) num Windows do GitHub,
+# porque o sharp precisa do binário do Windows. O .exe fica sempre no mesmo link:
+# https://github.com/nossoprojeto3d/nossoprojeto3d.github.io/releases/download/achadinhos-windows/Nossos-Achadinhos-Setup.exe
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'achadinhos-robo-local/app/**'
+      - 'achadinhos-robo-local/build/**'
+      - 'achadinhos-robo-local/nucleo.mjs'
+      - 'achadinhos-robo-local/whatsapp.mjs'
+      - 'achadinhos-robo-local/package.json'
+      - 'achadinhos-robo-local/package-lock.json'
+      - '.github/workflows/achadinhos-windows.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: achadinhos-windows
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: achadinhos-robo-local
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: achadinhos-robo-local/package-lock.json
+      - run: npm ci
+      # garante o Electron baixado mesmo se o npm pular os scripts de instalação
+      - run: node node_modules/electron/install.js
+      - run: npm test
+      - run: npm run win
+      - name: Publicar o instalador no link fixo
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=achadinhos-windows
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --title "Nossos Achadinhos para Windows" \
+              --notes "Instalador do app Nossos Achadinhos (bot do WhatsApp). Na 1ª vez o Windows avisa: Mais informações › Executar assim mesmo." \
+              --target "$GITHUB_SHA" --latest=false
+          fi
+          gh release upload "$TAG" dist/Nossos-Achadinhos-Setup.exe --clobber
